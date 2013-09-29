@@ -1,0 +1,2 @@
+Datatypes have been assigned the namespace "dt", that means all type names 
+should be prefixed with "dt_".
