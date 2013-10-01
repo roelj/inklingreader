@@ -70,7 +70,7 @@ parse_wpi (const char* filename)
 	   | 97  06  X   Y                                          |
 	   | 1   1   2   2   bytes                                  |
 	   '--------------------------------------------------------*/
-	case 97:
+	case BLOCK_COORDINATE:
 	  {
 	    stats.coordinates++;
 
@@ -89,7 +89,7 @@ parse_wpi (const char* filename)
 		/* Move over to the Y-coordinate. */
 		count += 2;
 
-		coordinate->y = (((data[count] << 8) + data[count + 1]) << 1) + 5;
+		coordinate->y = (((data[count] << 8) + data[count + 1])) * 2 + 5;
 
 		/* Move past the coordinate data so we don't read 
 		 * duplicate data. (Move only 1 because the for-loop will 
@@ -111,21 +111,82 @@ parse_wpi (const char* filename)
 	      printf ("Could not allocate enough memory.\r\n");
 	  }
 	  break;
-	case 100:
+
+	  /*--------------------------------------------------------.
+	   | PROCESS PRESSURE INFORMATION.                          |
+	   | 100 06  U  U  Pressure (U=Unknown)                     |
+	   | 1   1   1  1  2         bytes                          |
+	   '--------------------------------------------------------*/
+	case BLOCK_PRESSURE:
 	  {
 	    stats.pressure++;
+
+	    /* Make sure the block data has the expected size. */
+	    if (data[count + 1] == 6)
+	      {
+		dt_pressure* pressure = malloc (sizeof (dt_pressure));
+		if (pressure != NULL)
+		  {
+		    count += 4;
+		    pressure->pressure = (data[count] << 8) + 
+		      (data[count + 1]);
+
+		    dt_element* element = malloc (sizeof (dt_element));
+		    if (element != NULL)
+		      {
+			element->type = TYPE_PRESSURE;
+			element->data = pressure;
+
+			/* Add the wrapped tilt information to the list. */
+			list = g_slist_append (list, element);
+		      }
+		  }
+		else
+		  printf ("Could not allocate enough memory.\r\n");
+	      }
 	  }
 	  break;
-	case 101:
+
+	  /*--------------------------------------------------------.
+	   | PROCESS TILT INFORMATION.                              |
+	   | 101 06  X  Y  U  U  (U=Unknown)                        |
+	   | 1   1   1  1  1  1  bytes                              |
+	   '--------------------------------------------------------*/
+	case BLOCK_TILT:
 	  {
 	    stats.tilt++;
+
+	    /* Make sure the block data has the expected size. */
+	    if (data[count + 1] == 6)
+	      {
+		count += 2;
+
+		dt_tilt* tilt = malloc (sizeof (dt_tilt));
+		if (tilt != NULL)
+		  {
+		    tilt->x = data[count];
+		    tilt->y = data[count + 1];
+
+		    dt_element* element = malloc (sizeof (dt_element));
+		    if (element != NULL)
+		      {
+			element->type = TYPE_TILT;
+			element->data = tilt;
+
+			/* Add the wrapped tilt information to the list. */
+			list = g_slist_append (list, element);
+		      }
+		  }
+		else
+		  printf ("Could not allocate enough memory.\r\n");
+	      }
 	  }
 	  break;
-	case 128:
-	  {
-	    stats.objects++;
-	  }
-	  break;
+	  /*--------------------------------------------------------.
+	   | UNKNOWN BLOCK DESCRIPTORS.                             |
+	   | DES LENGTH  U  (U=Unknown)                             |
+	   | 1   1       ?  bytes                                   |
+	   '--------------------------------------------------------*/
 	case 194:
 	case 197:
 	case 199:
@@ -137,9 +198,8 @@ parse_wpi (const char* filename)
 	   | 241 { 0|1|128 }                                        |
 	   | 1   1            byte                                  |
 	   '--------------------------------------------------------*/
-	case 241:
+	case BLOCK_STROKE:
 	  {
-	    stats.strokes++;
 	    /* Move up one position. */
 	    count++;
 
@@ -150,6 +210,9 @@ parse_wpi (const char* filename)
 		if (stroke != NULL) 
 		  {
 		    stroke->value = data[count + 1];
+
+		    /* Update the statistics when needed. */
+		    if (stroke->value == BEGIN_STROKE) stats.strokes++;
 
 		    /* Wrap the stroke information into a 'dt_element', so it 
 		     * can be added to the list. */

@@ -37,7 +37,18 @@ co_write_svg_file (const char* filename, GSList* data)
 	case TYPE_STROKE:
 	  {
 	    dt_stroke* s = (dt_stroke *)e->data;
-	    fprintf (file, "  <!-- Stroke information: %u -->\n", s->value);
+	    switch (s->value)
+	      {
+	      case BEGIN_STROKE:
+		fprintf (file, "  <!-- Start of stroke -->\n");
+	      break;
+	      case END_STROKE:
+		fprintf (file, "  <!-- End of stroke -->\n");
+		break;
+	      case NEW_LAYER:
+		fprintf (file, "  <!-- New layer -->\n");
+		break;
+	      }
 	  }
 	  break;
 	case TYPE_COORDINATE:
@@ -46,6 +57,18 @@ co_write_svg_file (const char* filename, GSList* data)
 	    fprintf (file, 
 		     "  <rect x=\"%dpt\" y=\"%dpt\" width=\"1cm\" "
 		     "height=\"1cm\" />\n", c->x, c->y);
+	  }
+	  break;
+	case TYPE_PRESSURE:
+	  {
+	    dt_pressure* p = (dt_pressure *)e->data;
+	    fprintf (file, "  <!-- Pressure: %d -->\n", p->pressure);
+	  }
+	  break;
+	case TYPE_TILT:
+	  {
+	    dt_tilt* t = (dt_tilt *)e->data;
+	    fprintf (file, "  <!-- Tilt: (x = %u, y = %u) -->\n", t->x, t->y);
 	  }
 	  break;
 	}
