@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
+#include <glib.h>
+#include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
 #include "../datatypes/statistics.h"
 
@@ -23,9 +25,13 @@
  | PARSE_WPI:                                                                 |
  | This function reads the data and tries to get useful data out of it.       |
  '----------------------------------------------------------------------------*/
-void
+GSList*
 parse_wpi (const char* filename)
 {
+  /* Create a GSList (singly-linked list) that will be the return value of 
+   * this function. */
+  GSList* list = NULL;
+
   /* Open the file read-only in binary mode. The binary mode is important 
    * because ftell() will only correctly return the length when in this mode */
   FILE* file = fopen (filename, "rb");
@@ -53,19 +59,10 @@ parse_wpi (const char* filename)
   /* Read the entire file into memory. */
   fread (data, 1, data_len, file);
 
-  printf("Analyzing ");
-
   /* Find out interesting places. */
   size_t count;
   for (count = 2060; count < data_len; count++)
     {
-      /*
-      if (count % (data_len / 10) == 0)
-	{
-	  printf(".");
-	  fflush(stdout);
-	}
-      */
       switch (data[count])
 	{
 	  /*--------------------------------------------------------.
@@ -76,49 +73,52 @@ parse_wpi (const char* filename)
 	case 97:
 	  {
 	    stats.coordinates++;
+
 	    dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
 	    if (coordinate != NULL)
 	      {
-		//coordinate = { 0, 0 };
-
 		/* 'count' should be moved up 2 bytes so it the X 
 		 * position can be read. */
 		count += 2;
 
-		/* The bitshifting and stuff is taken from "PaperInkConverter". */
+		/* The "<<" operator does bitshifting. A coordinate is stretched
+		 * over two blocks. The first block has to be "shifted" 8 places
+		 * to get the right value. */
 		coordinate->x = (data[count] << 8) + data[count + 1] + 5;
 
 		/* Move over to the Y-coordinate. */
 		count += 2;
 
-		/* The bitshifting and stuff is taken from "PaperInkConverter". */
 		coordinate->y = (((data[count] << 8) + data[count + 1]) << 1) + 5;
-
-		printf("Coordinate (x = %d, y = %d)\r\n", 
-		       coordinate->x, coordinate->y);
 
 		/* Move past the coordinate data so we don't read 
 		 * duplicate data. (Move only 1 because the for-loop will 
-		 * move the other. */
+		 * move the other.) */
 		count += 1;
 
-		/* Clean up the allocated memory because we're not doing 
-		 * anything with it from now on. */
-		free (coordinate);
-		coordinate = NULL;
+		dt_element* element = malloc (sizeof (element));
+		if (element != NULL)
+		  {
+		    element->type = TYPE_COORDINATE;
+		    element->data = coordinate;
+
+		    /* Add the wrapped coordinate to the list. */
+		    list = g_slist_append (list, element);
+		  }
+
 	      }
+	    else
+	      printf ("Could not allocate enough memory.\r\n");
 	  }
 	  break;
 	case 100:
 	  {
 	    stats.pressure++;
-	    //printf("\r\nPRESSURE\r\n");
 	  }
 	  break;
 	case 101:
 	  {
 	    stats.tilt++;
-	    //printf("\r\nTILT\r\n");
 	  }
 	  break;
 	case 128:
@@ -131,44 +131,40 @@ parse_wpi (const char* filename)
 	case 199:
 	  stats.unknown++;
 	  break;
+
+	  /*--------------------------------------------------------.
+	   | PROCESS STROKE INFORMATION.                            |
+	   | 241 { 0|1|128 }                                        |
+	   | 1   1            byte                                  |
+	   '--------------------------------------------------------*/
 	case 241:
 	  {
 	    stats.strokes++;
-	    //printf ("Stroke on %zu\r\n", count);
-	  
 	    /* Move up one position. */
 	    count++;
 
-	    size_t block_size = data[count];
-	    //printf ("Block size: %zu\r\n", block_size);
-
-	    unsigned char block_data[block_size];
-	    size_t a;
-	    //printf ("Block data:\r\n");
-	    for (a = 0; a < block_size; a++)
+	    /* Make sure it's valid stroke information. */
+	    if (data[count] == 3)
 	      {
-		block_data[a] = data[count + 1 + a];
-
-		switch (block_data[a])
+		dt_stroke* stroke = malloc (sizeof (dt_stroke));
+		if (stroke != NULL) 
 		  {
-		  case 0:
-		    //printf("\r\nEND STROKE\r\n");
-		    break;
-		  case 1:
-		    //printf("\r\nBEGIN STROKE\r\n");
-		    break;
-		  case 128:
-		    //printf("\r\nNEW LAYER\r\n");
-		    break;
-		  default:
-		    //printf("%u ", block_data[a]);
-		    break;
+		    stroke->value = data[count + 1];
+
+		    /* Wrap the stroke information into a 'dt_element', so it 
+		     * can be added to the list. */
+		    dt_element* element = malloc (sizeof (dt_element));
+		    if (element != NULL)
+		      {
+			element->type = TYPE_STROKE;
+			element->data = stroke;
+
+			/* Add the wrapped stroke information to the list. */
+			list = g_slist_append (list, element);
+		      }
 		  }
 	      }
- 	  }
-	default:
-	  //printf("%u ", data[count]);
-	  break;
+	  }
 	}
     }
 
@@ -179,4 +175,6 @@ parse_wpi (const char* filename)
 	 "Objects", "Strokes", "Pen XY", "Pressure", "Tilt", "Unknown",
 	 stats.objects, stats.strokes, stats.coordinates, stats.pressure,
 	 stats.tilt, stats.unknown);
+
+  return list;
 }

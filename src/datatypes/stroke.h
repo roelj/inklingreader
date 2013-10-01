@@ -1,6 +1,7 @@
 #ifndef DATATYPES_STROKE_H
 #define DATATYPES_STROKE_H
 
+#include <glib.h>
 #include "coordinate.h"
 
 /*----------------------------------------------------------------------------.
@@ -8,9 +9,7 @@
  '----------------------------------------------------------------------------*/
 typedef struct
 {
-  dt_coordinate pen;
-  dt_coordinate tilt;
-  int pressure;
+  unsigned char value;
 } dt_stroke;
 
 #endif//DATATYPES_STROKE_H

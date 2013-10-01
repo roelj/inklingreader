@@ -1,0 +1,2 @@
+For the "converters" I've chosen to use the namespace "co". This means all
+functions defined in this folder should be prefixed with "co_".

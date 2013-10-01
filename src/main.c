@@ -28,8 +28,9 @@
 #include <stdio.h>
 #include <getopt.h>
 #include "parsers/wpi.h"
-#include "datatypes/stroke.h"
+#include "datatypes/element.h"
 #include "gui/mainwindow.h"
+#include "converters/svg.h"
 
 int
 main (int argc, char** argv)
@@ -65,11 +66,16 @@ main (int argc, char** argv)
      '--------------------------------------------------------------------*/
     case 'f':
       if (optarg)
-	parse_wpi (optarg);
+	{
+	  GSList* coordinates = NULL;
+	  coordinates = parse_wpi (optarg);
+	  co_write_svg_file ("test.svg", coordinates);
+	  //gui_init_mainwindow(argc, argv, coordinates);
+	}
       break;
 
     case 'g':
-      gui_init_mainwindow (argc, argv);
+      gui_init_mainwindow (argc, argv, NULL);
       break;
 
     case 'h':
