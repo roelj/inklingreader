@@ -3,6 +3,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <glib.h>
+
 #include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
 #include "../datatypes/statistics.h"
@@ -74,6 +75,7 @@ parse_wpi (const char* filename)
 	  {
 	    stats.coordinates++;
 
+	    dt_coordinate* prev = (dt_coordinate *)list->data;
 	    dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
 	    if (coordinate != NULL)
 	      {
@@ -84,28 +86,43 @@ parse_wpi (const char* filename)
 		/* The "<<" operator does bitshifting. A coordinate is stretched
 		 * over two blocks. The first block has to be "shifted" 8 places
 		 * to get the right value. */
-		coordinate->x = (data[count] << 8) + data[count + 1] + 5;
+		coordinate->x = ((int)(char)(data[count] << 8) + data[count + 1] + 5) / 10;
 
 		/* Move over to the Y-coordinate. */
 		count += 2;
 
-		coordinate->y = (((data[count] << 8) + data[count + 1])) * 2 + 5;
+		coordinate->y = (((((int)(char)data[count] << 8) + (int)(char)data[count + 1]) << 1) + 5) / 10;
 
 		/* Move past the coordinate data so we don't read 
 		 * duplicate data. (Move only 1 because the for-loop will 
 		 * move the other.) */
 		count += 1;
 
-		dt_element* element = malloc (sizeof (element));
-		if (element != NULL)
+		/* Try to avoid duplicate data without expensive algorithms.
+		 * Most duplicate coordinates are grouped already. If it isn't
+		 * grouped, it should not be treated as duplicate data (two
+		 * points can be the same at intersection). */
+		if (prev->x != coordinate->x || prev->y != coordinate->y)
 		  {
-		    element->type = TYPE_COORDINATE;
-		    element->data = coordinate;
+		    dt_element* element = malloc (sizeof (element));
+		    if (element != NULL)
+		      {
+			element->type = TYPE_COORDINATE;
+			element->data = coordinate;
+			coordinate = NULL;
 
-		    /* Add the wrapped coordinate to the list. */
-		    list = g_slist_append (list, element);
+			/* Add the wrapped coordinate to the list. */
+			list = g_slist_append (list, element);
+		      }
 		  }
 
+		/* Don't add a duplicate entry to the list. Instead, deallocate
+		 * the allocated memory. */
+		else
+		  {
+		    free (coordinate);
+		    coordinate = NULL;
+		  }
 	      }
 	    else
 	      printf ("Could not allocate enough memory.\r\n");
@@ -128,7 +145,7 @@ parse_wpi (const char* filename)
 		if (pressure != NULL)
 		  {
 		    count += 4;
-		    pressure->pressure = (data[count] << 8) + 
+		    pressure->pressure = ((int)(char)data[count] << 8) + 
 		      (data[count + 1]);
 
 		    dt_element* element = malloc (sizeof (dt_element));
@@ -172,6 +189,7 @@ parse_wpi (const char* filename)
 		      {
 			element->type = TYPE_TILT;
 			element->data = tilt;
+			tilt = NULL;
 
 			/* Add the wrapped tilt information to the list. */
 			list = g_slist_append (list, element);

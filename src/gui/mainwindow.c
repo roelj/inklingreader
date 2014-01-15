@@ -1,54 +1,98 @@
 #include "mainwindow.h"
+#include "mainwindow_sig.h"
 #include <gtk/gtk.h>
-#include <gdk/gdk.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+GtkWidget* lbl_status = NULL;
+
+
 void
 gui_init_mainwindow (int argc, char** argv)
 {
-
   /*--------------------------------------------------------------------------.
    | WIDGETS                                                                  |
    '--------------------------------------------------------------------------*/
   GtkWidget* window = NULL;
-  GtkWidget* window_bg = NULL;
-  GtkWidget* window_vbox = NULL;
 
-  GdkRGBA bg_color;
+  GtkWidget* btn_load = NULL;
+  GtkWidget* menu_load = NULL;
+  GtkWidget* menu_load_file = NULL;
+  GtkWidget* menu_load_directory = NULL;
+
+  GtkWidget* document_view = NULL;
+
+  GtkWidget* vbox_window = NULL;
+  GtkWidget* hbox_menu_top = NULL;
+
 
   /*--------------------------------------------------------------------------.
-   | INIT                                                                     |
+   | INIT AND CREATION OF WIDGETS                                             |
    '--------------------------------------------------------------------------*/
   gtk_init (&argc, &argv);
+
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
-  gtk_window_set_title (GTK_WINDOW (window), "InklingTool");
-  gtk_widget_set_size_request (window, WINDOW_WIDTH, WINDOW_HEIGHT);
+  btn_load = gtk_menu_button_new ();
+  menu_load = gtk_menu_new ();
+  menu_load_file = gtk_menu_item_new_with_label ("Open file");
+  menu_load_directory = gtk_menu_item_new_with_label ("Open directory");
+
+  vbox_window = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
+  hbox_menu_top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
+
+  document_view = gtk_drawing_area_new ();
+  lbl_status = gtk_label_new ("Please open a file or folder.");
 
   /*--------------------------------------------------------------------------.
-   | SETUP                                                                    |
+   | FURTHER CONFIGURATION                                                    |
    '--------------------------------------------------------------------------*/
-  window_bg = gtk_layout_new (NULL, NULL);
+  gtk_window_set_title (GTK_WINDOW (window), "InklingTool");
+  gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
+  gtk_widget_set_size_request (window, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-  gdk_rgba_parse (&bg_color, "#333333");
-  gtk_widget_override_background_color (window_bg, GTK_STATE_NORMAL, &bg_color);
+  gtk_menu_button_set_direction (GTK_MENU_BUTTON (btn_load), GTK_ARROW_DOWN);
+  gtk_menu_button_set_popup (GTK_MENU_BUTTON (btn_load), menu_load);
+
+  gtk_menu_attach (GTK_MENU (menu_load), menu_load_file, 0, 1, 0, 1);
+  gtk_menu_attach (GTK_MENU (menu_load), menu_load_directory, 0, 1, 1, 2);
+
+  GdkRGBA bg;
+  gdk_rgba_parse (&bg, "#101010");
+  gtk_widget_override_background_color (document_view, GTK_STATE_NORMAL, &bg);
+
 
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
    '--------------------------------------------------------------------------*/
-  window_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), btn_load, 0, 0, 10);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), lbl_status, 1, 0, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_window), document_view, 1, 1, 0);
+  gtk_container_add (GTK_CONTAINER (window), vbox_window);
 
-  gtk_box_pack_start (GTK_BOX (window_vbox), window_bg, TRUE, TRUE, 0);
-  gtk_container_add (GTK_CONTAINER (window), window_vbox);
 
   /*--------------------------------------------------------------------------.
    | SIGNALS                                                                  |
    '--------------------------------------------------------------------------*/
-  g_signal_connect ( G_OBJECT (window), "destroy",
-		     G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (G_OBJECT (window), "destroy", 
+		    G_CALLBACK (gtk_main_quit), NULL);
 
+  g_signal_connect (G_OBJECT (menu_load_file), "activate", 
+		    G_CALLBACK (gui_mainwindow_file_activated), NULL);
+
+  g_signal_connect (G_OBJECT (menu_load_directory), "activate", 
+		    G_CALLBACK (gui_mainwindow_directory_activated), NULL);
+
+  g_signal_connect (G_OBJECT (document_view), "draw",
+                    G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
+
+  /*--------------------------------------------------------------------------.
+   | DISPLAY                                                                  |
+   '--------------------------------------------------------------------------*/
+  gtk_widget_show (GTK_WIDGET (menu_load_file));
+  gtk_widget_show (GTK_WIDGET (menu_load_directory));
 
   gtk_widget_show_all (window);
   gtk_main ();

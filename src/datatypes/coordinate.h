@@ -5,8 +5,8 @@
  | COORDINATE DATATYPE DEFINITION                                             |
  '----------------------------------------------------------------------------*/
 typedef struct {
-  int x;
-  int y;
+  float x;
+  float y;
 } dt_coordinate;
 
 #endif//DATATYPES_COORDINATE_H

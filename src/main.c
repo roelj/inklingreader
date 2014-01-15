@@ -31,6 +31,7 @@
 #include "datatypes/element.h"
 #include "gui/mainwindow.h"
 #include "converters/svg.h"
+#include "converters/cairo_svg.h"
 
 int
 main (int argc, char** argv)
@@ -69,18 +70,27 @@ main (int argc, char** argv)
 	{
 	  GSList* coordinates = NULL;
 	  coordinates = parse_wpi (optarg);
-	  co_write_svg_file ("test.svg", coordinates);
+	  co_write_cairo_svg_file ("test.svg", coordinates);
 	  //gui_init_mainwindow(argc, argv, coordinates);
 	}
       break;
 
     case 'g':
-      gui_init_mainwindow (argc, argv, NULL);
+      gui_init_mainwindow (argc, argv);
       break;
 
     case 'h':
-      break;
+      {
+	int count = 0;
+	size_t option_len = sizeof (struct option);
 
+	printf ("Available options:\r\n");
+	for (; count < (sizeof (options) / option_len) - 1; count++)
+	  printf ("  --%-10s: -%c\r\n", 
+		  ((struct option)options[count]).name,
+		  ((struct option)options[count]).val);
+      }
+      break;
     case 'v':
       break;
 

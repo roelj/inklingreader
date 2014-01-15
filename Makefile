@@ -1,27 +1,50 @@
-CC	= gcc
-TARGET	= build/InklingReader
-OPT	= -Wall -g -O2
-GTKLIBS	= `pkg-config --cflags --libs gtk+-3.0` -DGTK_DISABLE_DEPRECATED=1
-GLIBS   = `pkg-config --cflags --libs glib-2.0` -DGTK_DISABLE_DEPRECATED=1
-LIBS	=
-OBJECTS	= gui_mainwindow.o co_svg.o parsers_wpi.o main.o
+#!/usr/bin/make -f
+# Copyright (C) 2013  Roel Janssen <roel@moefel.org>
+#
+# This file is part of moefel 
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
-first: all
+SHELL		= /bin/sh
 
-parsers_wpi.o: src/parsers/wpi.h src/parsers/wpi.c
-	$(CC) $(OPT) $(LIBS) $(GLIBS) -c src/parsers/wpi.c -o parsers_wpi.o
+CC		= gcc
+VPATH		= src:src/gui:src/converters:src/parsers
+LDLIBS		= `pkg-config gtk+-3.0 glib-2.0 cairo --libs`
+LDFLAGS		= `pkg-config gtk+-3.0 glib-2.0 cairo --cflags`
+CFLAGS		= -Wall -Os -g0 -DNDEBUG $(LDFLAGS) #-DGTK_DISABLE_DEPRECATED=1
 
-co_svg.o: src/converters/svg.h src/converters/svg.c
-	$(CC) $(OPT) $(LIBS) $(GLIBS) -c src/converters/svg.c -o co_svg.o
+OBJECTS		= main.o mainwindow.o mainwindow_sig.o svg.o cairo_svg.o wpi.o
+NAME		= InklingReader
 
-main.o: src/main.c
-	$(CC) $(GTKLIBS) $(OPT) $(LIBS) -c src/main.c -o main.o
+.PHONY: all
+all: $(NAME)
 
-gui_mainwindow.o: src/gui/mainwindow.h src/gui/mainwindow.c
-	$(CC) $(OPT) $(GTKLIBS) -c src/gui/mainwindow.c -o gui_mainwindow.o
+$(NAME): $(OBJECTS)
+	$(CC) $(LDLIBS) $(CFLAGS) $(OBJECTS) -o $(NAME)
 
-all: $(OBJECTS)
-	$(CC) $(OPT) $(GTKLIBS) $(LIBS) $(OBJECTS) -o $(TARGET)
-
+.PHONY: clean
 clean:
-	rm -rf *.o
+	@$(RM) -rf $(OBJECTS)
+
+.PHONY: clean-all
+clean-all:
+	@$(MAKE) clean
+	@rm -rf *~ */*~ */*/*~ */*/*/*~
+
+.PHONY: module-info
+module-info:
+	@printf "%-25s %s\r\n" "MODULE NAME" "SIZE"; \
+	echo "------------------------  ----------"; \
+	ls -lS | egrep "\.o$$|$(NAME)$$" | awk '{printf "%-25s %6.2f K\r\n", $$9, $$5 / 1000}'
