@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2013  Roel Janssen <roel@moefel.org>
  *
- * This file is part of WacomInkling
+ * This file is part of InklingReader
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
