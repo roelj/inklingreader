@@ -1,0 +1,35 @@
+* InklingReader features
+
+In this category, possible new features are described. Feel free to implement
+any of them!
+
+  - [ ] Research the 'online-mode' option
+	
+	In the user manual 'online-mode' is mentioned. According to the manual, 
+	pen strokes can be directly received by the computer when the receiver
+	is connected to the computer.
+
+	Recording strokes from there wouldn't be too difficult, since cursor
+	movement can be tracked. Storing the strokes is not a feature provided
+	by the Inkling SketchManager, nevertheless it's a cool feature to look
+	into.
+
+  - [ ] Handwriting recognition
+	
+	The sketches can contain text. Ideally, this handwriting should be
+	converted to a plain-text file, or a LibreOffice or PDF document.
+
+  - [ ] Coloring individual strokes
+	
+	Providing basic editing capabilities like changing stroke colors and
+	stroke thickness makes life easier for those who don't want to work
+	with a full-blown editor like Inkscape.
+
+  - [ ] Inkscape layering support
+	
+	As drawing is moving towards Cairo instead of a custom SVG exporter,
+	the ability to store layering information got lost. This regression
+	should be fixed. The code that produces Inkscape layers is still in
+	the project, and it involves adding a few lines into the SVG.
+
+
