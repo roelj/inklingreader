@@ -17,16 +17,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-SHELL		= /bin/sh
+SHELL           = /bin/sh
 
-CC		= gcc
-VPATH		= src:src/gui:src/converters:src/parsers
-LDLIBS		= `pkg-config gtk+-3.0 glib-2.0 cairo --libs`
-LDFLAGS		= `pkg-config gtk+-3.0 glib-2.0 cairo --cflags`
-CFLAGS		= -Wall -Os -g0 -DNDEBUG $(LDFLAGS) #-DGTK_DISABLE_DEPRECATED=1
+CC              = gcc
+VPATH           = src:src/gui:src/converters:src/parsers
+LDLIBS          = `pkg-config gtk+-3.0 glib-2.0 cairo --libs`
+LDFLAGS         = `pkg-config gtk+-3.0 glib-2.0 cairo --cflags`
+CFLAGS          = -Wall -Os -g0 -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 
-OBJECTS		= main.o mainwindow.o mainwindow_sig.o svg.o cairo_svg.o wpi.o
-NAME		= InklingReader
+OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o cairo_svg.o wpi.o
+NAME            = InklingReader
 
 .PHONY: all
 all: $(NAME)
