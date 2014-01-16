@@ -1,7 +1,7 @@
 * InklingReader features
 
-In this category, possible new features are described. Feel free to implement
-any of them!
+  In this category, possible new features are described. Feel free to implement
+  any of them!
 
   - [ ] Research the 'online-mode' option
 	
@@ -32,4 +32,30 @@ any of them!
 	should be fixed. The code that produces Inkscape layers is still in
 	the project, and it involves adding a few lines into the SVG.
 
+  - [ ] Handle pressure data correctly.
+
+** Inner working of the format
+
+   There's not much known about the WPI data format. Below you can find what 
+   we have figured out already. Feel free to add your discoveries as well.
+
+*** Header differs per device
+
+    It seems that files originating from different Wacom Inkling devices 
+    actually have a different header. The difference starts at the 323 byte in
+    the file. What this difference is, is not certain at this point. I've only
+    compared data from two Inkling devices.
+
+    The difference could be a firmware version string, or a unique device ID.
+    The former would be most useful and therefore most probable. The latter 
+    could possibly reveal who wrote what.
+
+*** Blocks
+
+    + The format seems to have a couple of 'blocks' to describe actions:
+      - Stroke
+      - Coordinate
+      - Pressure
+      - Tilt
+      - New layer
 

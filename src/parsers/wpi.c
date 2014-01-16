@@ -74,8 +74,6 @@ p_wpi_parse (const char* filename)
   size_t data_len = ftell(file);
   fseek(file, 0L, SEEK_SET);
 
-  printf ("Filesize: %zu bytes.\r\n", data_len);
-
   /* Set up an array that can keep the entire file in memory. */
   unsigned char data[data_len];
   memset (&data, 0, data_len);
@@ -88,6 +86,41 @@ p_wpi_parse (const char* filename)
 
   /* Read the entire file into memory. */
   fread (data, 1, data_len, file);
+
+
+  /* The first 322 bytes seem to be equal for every WPI file. I've encoded 
+   * these 322 bytes using the base64 encoding algorithm. The result of this
+   * encoding can be found in the variable 'header'. Comparing the first 322
+   * bytes from the loaded file can filter out malformed WPI files. */
+  char* header = 
+    "AQbwAh4AEQk10/Kz8hcAIQ8AAmJaCQAAYQcAAAAAJiQAAAAAAAAAAAAAAcvr//+UATud///GAU"
+    "Yw//+0ATEj///9IyTyLIA/7ax2tjxZCjsLFaI/R55iOkhvmbWb1oA/EwieQAAAJy0AAAAH///l"
+    "+hjdFX0L6vfWCFey/odHABikBnMS616JF2Qd9ZlzAflX/92H8QOAJQ8AAgIBAAADAAACAAAA8Q"
+    "MAKLQBAAAAzwEAAAAQAAADAAAAAAAAAQARAAADAAAAekLSLAAgAAADAAAAAAAAAAAhAAADAAAA"
+    "rQAAAAAkAAADAAAAAgAAAAAlAAADAAAAWgAAAAAmAAADAAAAQQAAAAAnAAADAAAAZHS8ygAwAA"
+    "AFAAAA1P7//wAAAAAUAAAAATAAAAUAAAAsAQAAAAAAABQAAAAAMwAAAwAAAA==";
+
+  size_t header_len = 322;
+  char* file_header = malloc (header_len + 1);
+
+  if (file_header == NULL)
+    {
+      printf ("%s: Cannot check file header.\r\n", __func__);
+      return NULL;
+    }
+
+  file_header = memset (file_header, '\0', header_len + 1);
+  file_header = memcpy (file_header, data, header_len);
+  file_header = g_base64_encode ((unsigned char*)file_header, header_len);
+
+  if (strcmp (file_header, header))
+    {
+      printf ("This file is not a (supported) WPI file.\r\n");
+      return NULL;
+    }
+
+  free (file_header);
+  file_header = NULL;
 
   /* Find out interesting places. The first 2060 bytes can be skipped (according to 
    * the PaperInkConverter program). */
