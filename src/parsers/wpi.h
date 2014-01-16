@@ -22,6 +22,6 @@
 
 #include <glib.h>
 
-GSList* parse_wpi (const char* filename);
+GSList* p_wpi_parse (const char* filename);
 
 #endif//PARSERS_WPI_H

@@ -23,6 +23,11 @@
  | I tried to make the code compilable on all major GNU distributions. I      |
  | based this project on code provided by Herbert Ellebruch's                 |
  | PaperInkRecognizer. Unfortunately his code is for Windows only.            |
+ |                                                                            |
+ | Namespaces used throughout the program:                                    |
+ | - p_:     Parsers                                                          |
+ | - gui_:   Graphical User Interface                                         |
+ | - co_:    Converters                                                       |
  '----------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -69,7 +74,7 @@ main (int argc, char** argv)
       if (optarg)
 	{
 	  GSList* coordinates = NULL;
-	  coordinates = parse_wpi (optarg);
+	  coordinates = p_wpi_parse (optarg);
 	  co_write_cairo_svg_file ("test.svg", coordinates);
 	  //gui_init_mainwindow(argc, argv, coordinates);
 	}

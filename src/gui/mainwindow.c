@@ -25,7 +25,7 @@
 #define WINDOW_HEIGHT 600
 
 GtkWidget* lbl_status = NULL;
-
+GSList* documents = NULL;
 
 void
 gui_init_mainwindow (int argc, char** argv)
@@ -63,6 +63,7 @@ gui_init_mainwindow (int argc, char** argv)
 
   document_view = gtk_drawing_area_new ();
   lbl_status = gtk_label_new ("Please open a file or folder.");
+
 
   /*--------------------------------------------------------------------------.
    | FURTHER CONFIGURATION                                                    |
@@ -106,6 +107,7 @@ gui_init_mainwindow (int argc, char** argv)
 
   g_signal_connect (G_OBJECT (document_view), "draw",
                     G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
+
 
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |
