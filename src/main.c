@@ -43,6 +43,7 @@ main (int argc, char** argv)
 {
   int arg = 0;
   int index = 0;
+  GSList* coordinates = NULL;
 
   /*--------------------------------------------------------------------------.
    | OPTIONS                                                                  |
@@ -52,6 +53,7 @@ main (int argc, char** argv)
   static struct option options[] =
   {
     { "file",            required_argument, 0, 'f' },
+    { "to",              required_argument, 0, 't' },
     { "gui",             no_argument,       0, 'g' },
     { "help",            no_argument,       0, 'h' },
     { "version",         no_argument,       0, 'v' },
@@ -61,7 +63,7 @@ main (int argc, char** argv)
   while ( arg != -1 )
   {
     /* Make sure to list all short options in the string below. */
-    arg = getopt_long (argc, argv, "f:gvh", options, &index);
+    arg = getopt_long (argc, argv, "f:t:gvh", options, &index);
 
     switch (arg)
     {
@@ -72,12 +74,12 @@ main (int argc, char** argv)
      '--------------------------------------------------------------------*/
     case 'f':
       if (optarg)
-	{
-	  GSList* coordinates = NULL;
-	  coordinates = p_wpi_parse (optarg);
-	  co_write_cairo_svg_file ("test.svg", coordinates);
-	  //gui_init_mainwindow(argc, argv, coordinates);
-	}
+	coordinates = p_wpi_parse (optarg);
+      break;
+
+    case 't':
+      if (optarg)
+	co_write_svg_file (optarg, coordinates);
       break;
 
     case 'g':
@@ -85,16 +87,12 @@ main (int argc, char** argv)
       break;
 
     case 'h':
-      {
-	int count = 0;
-	size_t option_len = sizeof (struct option);
-
-	printf ("Available options:\r\n");
-	for (; count < (sizeof (options) / option_len) - 1; count++)
-	  printf ("  --%-10s: -%c\r\n", 
-		  ((struct option)options[count]).name,
-		  ((struct option)options[count]).val);
-      }
+      printf ("\r\nAvailable options:\r\n"
+	      "  --file,    -f     Specify the WPI file to convert.\r\n"
+	      "  --to,      -t     Specify the file to write to.\r\n"
+	      "  --gui,     -g     Start the graphical user interface.\r\n"
+	      "  --version, -v     Show versioning information.\r\n"
+	      "  --help,    -h     Show this message.\r\n\r\n");
       break;
     case 'v':
       break;

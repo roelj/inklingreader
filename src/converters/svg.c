@@ -76,8 +76,8 @@ co_write_svg_file (const char* filename, GSList* data)
 	      {
 	      case BEGIN_STROKE:
 		{
-		  fprintf (file, "  <g id=\"group%d\" stroke=\"#000000\" "
-			   "stroke-width=\"1\"><path d=\"", group);
+		  fprintf (file, "  <g id=\"group%d\" fill=\"none\" stroke=\"#000000\" "
+			   "stroke-width=\"2\"><path fill=\"none\" stroke=\"#000000\" d=\"", group);
 		  has_been_positioned = 0;
 		  group++;
 		}
@@ -117,7 +117,7 @@ co_write_svg_file (const char* filename, GSList* data)
 	    else
 	      has_been_positioned = 1;
 
-	    fprintf (file, " %c%f,%f", type, c->x, c->y);
+	    fprintf (file, " %c %f %f", type, c->x / 10.0, c->y / 10.0);
 
 	    free (c);
 	    c = NULL;
