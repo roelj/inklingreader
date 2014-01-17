@@ -23,6 +23,13 @@
 #include <string.h>
 #include "../datatypes/element.h"
 
+/* These are correction values that are used to calculate the actual position
+ * of a path on a page. Whether these are the same for each document is not
+ * certain yet, but it seems to work for several of my documents. */
+#define SHRINK 27.0
+#define OFFSET_X 375.0
+#define OFFSET_Y 37.5
+
 /*----------------------------------------------------------------------------.
  | CO_WRITE_SVG_FILE                                                          |
  | This function writes data points to an SVG file.                           |
@@ -77,7 +84,7 @@ co_write_svg_file (const char* filename, GSList* data)
 	      case BEGIN_STROKE:
 		{
 		  fprintf (file, "  <g id=\"group%d\" fill=\"none\" stroke=\"#000000\" "
-			   "stroke-width=\"2\"><path fill=\"none\" stroke=\"#000000\" d=\"", group);
+			   "stroke-width=\"1\"><path fill=\"none\" stroke=\"#000000\" d=\"", group);
 		  has_been_positioned = 0;
 		  group++;
 		}
@@ -117,7 +124,11 @@ co_write_svg_file (const char* filename, GSList* data)
 	    else
 	      has_been_positioned = 1;
 
-	    fprintf (file, " %c %f %f", type, c->x / 10.0, c->y / 10.0);
+	    float x = c->x / SHRINK + OFFSET_X;
+	    float y = c->y / SHRINK + OFFSET_Y;
+
+	    if (x > 0 && y > 0)
+	      fprintf (file, " %c %f %f", type, x, y);
 
 	    free (c);
 	    c = NULL;

@@ -135,7 +135,6 @@ p_wpi_parse (const char* filename)
 	  '--------------------------------------------------------*/
       case BLOCK_COORDINATE:
 	{
-	  printf ("BLOCK_COORDINATE\r\n");
 	  stats.coordinates++;
 
 	  dt_coordinate* prev = (dt_coordinate *)list->data;
@@ -201,7 +200,6 @@ p_wpi_parse (const char* filename)
 	  '--------------------------------------------------------*/
       case BLOCK_PRESSURE:
 	{
-	  printf ("BLOCK_PRESSURE\r\n");
 	  stats.pressure++;
 
 	  /* Make sure the block data has the expected size. */
@@ -242,7 +240,6 @@ p_wpi_parse (const char* filename)
 	  '--------------------------------------------------------*/
       case BLOCK_TILT:
 	{
-	  printf ("BLOCK_TILT\r\n");
 	  stats.tilt++;
 
 	  /* Make sure the block data has the expected size. */
@@ -303,12 +300,7 @@ p_wpi_parse (const char* filename)
 
 		  /* Update the statistics when needed. */
 		  if (stroke->value == BEGIN_STROKE) 
-		    {
-		      stats.strokes++;
-		      printf ("BLOCK_STROKE: BEGIN STROKE\r\n");
-		    }
-		  else
-		    printf ("BLOCK_STROKE: END STROKE\r\n");
+		    stats.strokes++;
 
 		  /* Wrap the stroke information into a 'dt_element', so it 
 		   * can be added to the list. */
@@ -326,15 +318,11 @@ p_wpi_parse (const char* filename)
 	}
       }
 
-  printf ("\r\n");
-
   printf ("\r\nSTATISTICS\r\n%-10s %-10s %-10s %-10s %-10s %-10s\r\n"
 	  "%-10d %-10d %-10d %-10d %-10d %-10d\r\n\r\n", 
 	  "Objects", "Strokes", "Pen XY", "Pressure", "Tilt", "Unknown",
 	  stats.objects, stats.strokes, stats.coordinates, stats.pressure,
 	  stats.tilt, stats.unknown);
-
-  printf ("Maximum stroke pressure: %d\r\n", max_stroke_pressure);
 
   return list;
 }
