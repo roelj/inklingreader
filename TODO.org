@@ -25,12 +25,15 @@
 	stroke thickness makes life easier for those who don't want to work
 	with a full-blown editor like Inkscape.
 
-  - [ ] Inkscape layering support
+  - [X] Inkscape layering support
 	
 	As drawing is moving towards Cairo instead of a custom SVG exporter,
 	the ability to store layering information got lost. This regression
 	should be fixed. The code that produces Inkscape layers is still in
 	the project, and it involves adding a few lines into the SVG.
+
+	FIXED: Not using the Cairo SVG exporter, instead I improved our own
+	exporter tool.
 
   - [ ] Handle pressure data correctly.
 
