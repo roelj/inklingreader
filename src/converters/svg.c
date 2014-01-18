@@ -43,7 +43,7 @@ co_write_svg_file (const char* filename, GSList* data)
   /*--------------------------------------------------------------------------.
    | WRITE SVG HEADER                                                         |
    '--------------------------------------------------------------------------*/
-  char* header =
+  const char* header =
     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" 
     "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n"
     "  \"http://www.w3.org/Graphics/SVG/2.2/DTD/svg11.dtd\">\n"
@@ -51,7 +51,7 @@ co_write_svg_file (const char* filename, GSList* data)
     "  xmlns=\"http://www.w3.org/2000/svg\"\n"
     "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n";
 
-  fwrite (header, strlen(header), 1, file);
+  fwrite (header, strlen (header), 1, file);
 
   /* Write a document title and a create a layer for Inkscape. */
   fprintf (file, "<title>%s</title>\n"
@@ -64,6 +64,7 @@ co_write_svg_file (const char* filename, GSList* data)
   unsigned int group = 0;
   unsigned int layer = 1;
   unsigned char has_been_positioned = 0;
+  unsigned char is_in_stroke = 0;
 
   /*--------------------------------------------------------------------------.
    | WRITE DATA POINTS                                                        |
@@ -83,21 +84,28 @@ co_write_svg_file (const char* filename, GSList* data)
 	      {
 	      case BEGIN_STROKE:
 		{
-		  fprintf (file, "  <g id=\"group%d\" fill=\"none\" stroke=\"#000000\" "
-			   "stroke-width=\"1\"><path fill=\"none\" stroke=\"#000000\" d=\"", group);
+		  fprintf (file, "  <g id=\"group%d\" style=\"fill: none; "
+			   "stroke: #000000; stroke-width: 1\">\n    <path "
+			   "fill=\"none\" stroke=\"#000000\" d=\"", group);
+
 		  has_been_positioned = 0;
+		  is_in_stroke = 1;
 		  group++;
 		}
 	      break;
 	      case END_STROKE:
 		{
-		  fprintf (file, "\" /></g>\n");
+		  if (is_in_stroke == 1)
+		    {
+		      fprintf (file, "\" />\n  </g>\n");
+		      is_in_stroke = 0;
+		    }
 		}
 		break;
 	      case NEW_LAYER:
 		{
 		  fprintf (file, 
-			   "</g>\n<g inkscape:label=\"Layer %d\" inkscape:"
+			   "\n  </g>\n<g inkscape:label=\"Layer %d\" inkscape:"
 			   "groupmode=\"layer\" id=\"layer%d\">\n", 
 			   layer, layer);
 		  layer++;
@@ -114,24 +122,25 @@ co_write_svg_file (const char* filename, GSList* data)
 	   '------------------------------------------------------------------*/
 	case TYPE_COORDINATE:
 	  {
-	    dt_coordinate* c = (dt_coordinate *)e->data;
-	    char type = 'M';
-
-	    if (has_been_positioned > 0)
+	    if (is_in_stroke == 1)
 	      {
-		type = 'L';
+		dt_coordinate* c = (dt_coordinate *)e->data;
+		char* type = "M";
+
+		if (has_been_positioned > 0)
+		  type = " L";
+		else
+		  has_been_positioned = 1;
+
+		float x = c->x / SHRINK + OFFSET_X;
+		float y = c->y / SHRINK + OFFSET_Y;
+
+		if (x > 0 && y > 0)
+		  fprintf (file, "%s %f %f", type, x, y);
+
+		free (c);
+		c = NULL;
 	      }
-	    else
-	      has_been_positioned = 1;
-
-	    float x = c->x / SHRINK + OFFSET_X;
-	    float y = c->y / SHRINK + OFFSET_Y;
-
-	    if (x > 0 && y > 0)
-	      fprintf (file, " %c %f %f", type, x, y);
-
-	    free (c);
-	    c = NULL;
 	  }
 	  break;
 	case TYPE_PRESSURE:

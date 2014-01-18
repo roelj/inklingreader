@@ -48,6 +48,13 @@
 GSList*
 p_wpi_parse (const char* filename)
 {
+  /* This function is called in several situations. Declaring it once
+   * here as inline saves some space in the compiled object. */
+  inline void mem_error ()
+  {
+    printf ("%s: Could not allocate enough memory.\r\n", __func__);
+  }
+
   /* Create a GSList (singly-linked list) that will be the return value of 
    * this function. */
   GSList* list = NULL;
@@ -66,6 +73,11 @@ p_wpi_parse (const char* filename)
    * because ftell() will only correctly return the length when in this mode */
   FILE* file = fopen (filename, "rb");
 
+  if (file == NULL)
+    {
+      printf ("Cannot open file '%s'\r\n", filename);
+      return NULL;
+    }
   /* Determine the size of the file.
    * FIXME: Filesize limit is now around 2GB. It would be cooler when
    * the size is virtually unlimited. In practice, we're fine with the
@@ -105,7 +117,8 @@ p_wpi_parse (const char* filename)
 
   if (file_header == NULL)
     {
-      printf ("%s: Cannot check file header.\r\n", __func__);
+      mem_error();
+      fclose (file);
       return NULL;
     }
 
@@ -116,6 +129,8 @@ p_wpi_parse (const char* filename)
   if (strcmp (file_header, header))
     {
       printf ("This file is not a (supported) WPI file.\r\n");
+      free (file_header);
+      fclose (file);
       return NULL;
     }
 
@@ -125,7 +140,7 @@ p_wpi_parse (const char* filename)
   /* Find out interesting places. The first 2060 bytes can be skipped (according to 
    * the PaperInkConverter program). */
   size_t count;
-  for (count = 2060; count < data_len; count++)
+  for (count = 2040; count < data_len; count++)
     switch (data[count])
       {
 	/*--------------------------------------------------------.
@@ -189,7 +204,7 @@ p_wpi_parse (const char* filename)
 		}
 	    }
 	  else
-	    printf ("Could not allocate enough memory.\r\n");
+	    mem_error();
 	}
 	break;
 
@@ -228,7 +243,7 @@ p_wpi_parse (const char* filename)
 		    }
 		}
 	      else
-		printf ("Could not allocate enough memory.\r\n");
+		mem_error();
 	    }
 	}
 	break;
@@ -265,7 +280,7 @@ p_wpi_parse (const char* filename)
 		    }
 		}
 	      else
-		printf ("Could not allocate enough memory.\r\n");
+		mem_error();
 	    }
 	}
 	break;
@@ -318,11 +333,6 @@ p_wpi_parse (const char* filename)
 	}
       }
 
-  printf ("\r\nSTATISTICS\r\n%-10s %-10s %-10s %-10s %-10s %-10s\r\n"
-	  "%-10d %-10d %-10d %-10d %-10d %-10d\r\n\r\n", 
-	  "Objects", "Strokes", "Pen XY", "Pressure", "Tilt", "Unknown",
-	  stats.objects, stats.strokes, stats.coordinates, stats.pressure,
-	  stats.tilt, stats.unknown);
-
+  fclose (file);
   return list;
 }
