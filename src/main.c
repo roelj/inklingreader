@@ -37,6 +37,11 @@
 #include "gui/mainwindow.h"
 #include "converters/svg.h"
 
+#include <malloc.h>
+#include <sys/types.h>
+#include <string.h>
+#include <dirent.h>
+
 int
 main (int argc, char** argv)
 {
@@ -51,21 +56,68 @@ main (int argc, char** argv)
    '--------------------------------------------------------------------------*/
   static struct option options[] =
   {
-    { "file",            required_argument, 0, 'f' },
-    { "to",              required_argument, 0, 't' },
-    { "gui",             no_argument,       0, 'g' },
-    { "help",            no_argument,       0, 'h' },
-    { "version",         no_argument,       0, 'v' },
-    { 0,                 0,                 0, 0   }
+    { "convert-directory", required_argument, 0, 'c' },
+    { "file",              required_argument, 0, 'f' },
+    { "to",                required_argument, 0, 't' },
+    { "gui",               no_argument,       0, 'g' },
+    { "help",              no_argument,       0, 'h' },
+    { "version",           no_argument,       0, 'v' },
+    { 0,                   0,                 0, 0   }
   };
 
   while ( arg != -1 )
   {
     /* Make sure to list all short options in the string below. */
-    arg = getopt_long (argc, argv, "f:t:gvh", options, &index);
+    arg = getopt_long (argc, argv, "c:f:t:gvh", options, &index);
 
     switch (arg)
     {
+    case 'c':
+      {
+	if (optarg)
+	  {
+	    char* path = optarg;
+
+	    DIR* directory;
+	    struct dirent* entry;
+
+	    directory = opendir (path);
+	    while ((entry = readdir (directory)) != NULL)
+	      {
+		/* Don't show files starting with a dot, '.' and '..' and only show 
+		 * files with the WPI extension (others are not relevant). */
+		char* extension = entry->d_name + strlen (entry->d_name) - 3;
+		if (entry->d_name[0] != '.' && !strcmp (extension, "WPI"))
+		  {
+		    size_t name_len = strlen (path) + strlen (entry->d_name) + 2;
+		    char* name = malloc (name_len);
+		    char* new_name = malloc (name_len);
+		    if (name == NULL || new_name == NULL) break;
+
+		    /* Construct a string that holds "path/name". */
+		    snprintf (name, name_len, "%s/%s", path, entry->d_name);
+
+		    /* Parse a file.*/
+		    coordinates = p_wpi_parse (name);
+
+		    /* Construct a string for the new filename. */
+		    snprintf (new_name, name_len - 3, "%s/%s", path, entry->d_name);
+		    strcat (new_name, "svg");
+
+		    /* Convert a file. */
+		    co_write_svg_file (new_name, coordinates);
+
+		    /* Clean up. 
+		     * TODO: coordinates is leaking a lot of of memory! */
+		    coordinates = NULL;
+		    free (name);
+		    free (new_name);
+		  }
+	      }
+	    closedir (directory);
+	  }
+      }
+      break;
     /*--------------------------------------------------------------------.
      | OPTION: FILE                                                       |
      | The user can provide a file to parse and convert to something      |
@@ -87,11 +139,12 @@ main (int argc, char** argv)
 
     case 'h':
       printf ("\r\nAvailable options:\r\n"
-	      "  --file,    -f     Specify the WPI file to convert.\r\n"
-	      "  --to,      -t     Specify the file to write to.\r\n"
-	      "  --gui,     -g     Start the graphical user interface.\r\n"
-	      "  --version, -v     Show versioning information.\r\n"
-	      "  --help,    -h     Show this message.\r\n\r\n");
+	      "  --convert-directory  -c  Convert all WPI files in a directory.\r\n"
+	      "  --file,              -f  Specify the WPI file to convert.\r\n"
+	      "  --to,                -t  Specify the file to write to.\r\n"
+	      "  --gui,               -g  Start the graphical user interface.\r\n"
+	      "  --version,           -v  Show versioning information.\r\n"
+	      "  --help,              -h  Show this message.\r\n\r\n");
       break;
     case 'v':
       break;

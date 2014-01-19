@@ -342,9 +342,6 @@ p_wpi_parse (const char* filename)
 	}
       }
 
-  printf ("Outer boundary (top, right, bottom, left): (%f, %f, %f, %f)\r\n", 
-	  stats.top, stats.right, stats.bottom, stats.left);
-
   fclose (file);
   return list;
 }

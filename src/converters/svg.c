@@ -48,8 +48,8 @@ co_write_svg_file (const char* filename, GSList* data)
       printf ("%s: Couldn't allocate enough memory.\r\n", __func__);
       return 1;
     }
-  else
-    printf ("Allocated      %lu bytes.\r\n", output_len);
+  //else
+  //  printf ("Allocated      %lu bytes.\r\n", output_len);
 
   /*--------------------------------------------------------------------------.
    | WRITE SVG HEADER                                                         |
@@ -195,7 +195,7 @@ co_write_svg_file (const char* filename, GSList* data)
   output = realloc (output, output_len);
   output[written] = '\0';
 
-  printf ("Reallocated to %d bytes.\r\n", (int)output_len);
+  //printf ("Reallocated to %d bytes.\r\n", (int)output_len);
 
   FILE* file;
   file = fopen (filename, "w");
@@ -204,6 +204,7 @@ co_write_svg_file (const char* filename, GSList* data)
   else
     printf ("%s: Couldn't write to '%s'.\r\n", __func__, filename);
 
+  free (output);
   fclose (file);
   return 0;
 }
