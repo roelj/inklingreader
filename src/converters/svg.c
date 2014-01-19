@@ -67,14 +67,17 @@ co_write_svg_file (const char* filename, GSList* data)
 
   /* Write a document title and a create a layer for Inkscape. */
   written += sprintf (output + written, "<title>%s</title>\n"
-	   "<g inkscape:label=\"Layer 0\" inkscape:groupmode=\"layer\" "
-	   "id=\"layer0\">\n", filename);
+		      "<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
+		      "<rect style=\"fill:#ffffff;stroke:none\" id=\"background\" "
+		      "width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n"
+		      "<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
+		      "id=\"layer1\">\n", filename);
 
   /*--------------------------------------------------------------------------.
    | COUNTING VARIABLES                                                       |
    '--------------------------------------------------------------------------*/
   unsigned int group = 0;
-  unsigned int layer = 1;
+  unsigned int layer = 2;
   unsigned char has_been_positioned = 0;
   unsigned char is_in_stroke = 0;
 

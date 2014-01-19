@@ -30,6 +30,7 @@ typedef struct {
   int pressure;
   int tilt;
   int unknown;
+  float top, right, bottom, left;
 } dt_statistics;
 
 #endif//DATATYPES_STATISTICS_H
