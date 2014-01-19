@@ -1,3 +1,6 @@
 InklingReader
 *.o
+*.svg
+*.WPI
+*.pdf
 non-git/*
