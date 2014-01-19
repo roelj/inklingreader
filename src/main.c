@@ -36,7 +36,6 @@
 #include "datatypes/element.h"
 #include "gui/mainwindow.h"
 #include "converters/svg.h"
-#include "converters/cairo_svg.h"
 
 int
 main (int argc, char** argv)

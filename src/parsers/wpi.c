@@ -96,9 +96,9 @@ p_wpi_parse (const char* filename)
   /* Initialize all members of 'stats' to '0'. */
   memset (&stats, 0, sizeof (dt_statistics));
 
-  /* Read the entire file into memory. */
+  /* Read the entire file into memory. This should give us some speed advantage
+   * while processing the data. */
   fread (data, 1, data_len, file);
-
 
   /* The first 322 bytes seem to be equal for every WPI file. I've encoded 
    * these 322 bytes using the base64 encoding algorithm. The result of this
@@ -137,17 +137,19 @@ p_wpi_parse (const char* filename)
   free (file_header);
   file_header = NULL;
 
-  /* Find out interesting places. The first 2060 bytes can be skipped (according to 
-   * the PaperInkConverter program). */
+  /* Find out interesting places. The first 2040 bytes can be skipped (according
+   * to the PaperInkConverter program). This data seems to tell something about
+   * the Inkling device (this could be firmware versions, or a unique identifier
+   * for each Inkling device. */
   size_t count;
   for (count = 2040; count < data_len; count++)
     switch (data[count])
       {
 	/*--------------------------------------------------------.
-	  | PROCESS X/Y DATA FROM THE PEN.                         |
-	  | 97  06  X   Y                                          |
-	  | 1   1   2   2   bytes                                  |
-	  '--------------------------------------------------------*/
+	 | PROCESS X/Y DATA FROM THE PEN.                         |
+	 | 97  06  X   Y                                          |
+	 | 1   1   2   2   bytes                                  |
+	 '--------------------------------------------------------*/
       case BLOCK_COORDINATE:
 	{
 	  stats.coordinates++;
@@ -170,7 +172,7 @@ p_wpi_parse (const char* filename)
 	      count += 2;
 
 	      coordinate->y = ((int)(char)data[count]) << 8;
-	      coordinate->y = (((int)coordinate->y + (int)data[count + 1]) << 1)  + 5;
+	      coordinate->y = (((int)coordinate->y + (int)data[count + 1]) << 1) + 5;
 
 	      /* Move past the coordinate data so we don't read 
 	       * duplicate data. (Move only 1 because the for-loop will 
@@ -188,10 +190,17 @@ p_wpi_parse (const char* filename)
 		    {
 		      element->type = TYPE_COORDINATE;
 		      element->data = coordinate;
-		      coordinate = NULL;
 
 		      /* Add the wrapped coordinate to the list. */
 		      list = g_slist_append (list, element);
+
+		      /* Figure out the boundaries on the drawing. */
+		      if (coordinate->y > stats.top) stats.top = coordinate->y;
+		      if (coordinate->y < stats.bottom) stats.bottom = coordinate->y;
+		      if (coordinate->x < stats.left) stats.left = coordinate->x;
+		      if (coordinate->x > stats.right) stats.right = coordinate->x;
+
+		      coordinate = NULL;
 		    }
 		}
 
@@ -209,10 +218,10 @@ p_wpi_parse (const char* filename)
 	break;
 
 	/*--------------------------------------------------------.
-	  | PROCESS PRESSURE INFORMATION.                          |
-	  | 100 06  U  U  Pressure (U=Unknown)                     |
-	  | 1   1   1  1  2         bytes                          |
-	  '--------------------------------------------------------*/
+	 | PROCESS PRESSURE INFORMATION.                          |
+	 | 100 06  U  U  Pressure (U=Unknown)                     |
+	 | 1   1   1  1  2         bytes                          |
+	 '--------------------------------------------------------*/
       case BLOCK_PRESSURE:
 	{
 	  stats.pressure++;
@@ -249,10 +258,10 @@ p_wpi_parse (const char* filename)
 	break;
 
 	/*--------------------------------------------------------.
-	  | PROCESS TILT INFORMATION.                              |
-	  | 101 06  X  Y  U  U  (U=Unknown)                        |
-	  | 1   1   1  1  1  1  bytes                              |
-	  '--------------------------------------------------------*/
+	 | PROCESS TILT INFORMATION.                              |
+	 | 101 06  X  Y  U  U  (U=Unknown)                        |
+	 | 1   1   1  1  1  1  bytes                              |
+	 '--------------------------------------------------------*/
       case BLOCK_TILT:
 	{
 	  stats.tilt++;
@@ -285,10 +294,10 @@ p_wpi_parse (const char* filename)
 	}
 	break;
 	/*--------------------------------------------------------.
-	  | UNKNOWN BLOCK DESCRIPTORS.                             |
-	  | DES LENGTH  U  (U=Unknown)                             |
-	  | 1   1       ?  bytes                                   |
-	  '--------------------------------------------------------*/
+	 | UNKNOWN BLOCK DESCRIPTORS.                             |
+	 | DES LENGTH  U  (U=Unknown)                             |
+	 | 1   1       ?  bytes                                   |
+	 '--------------------------------------------------------*/
       case 194:
       case 197:
       case 199:
@@ -296,10 +305,10 @@ p_wpi_parse (const char* filename)
 	break;
 
 	/*--------------------------------------------------------.
-	  | PROCESS STROKE INFORMATION.                            |
-	  | 241 { 0|1|128 }                                        |
-	  | 1   1            byte                                  |
-	  '--------------------------------------------------------*/
+	 | PROCESS STROKE INFORMATION.                            |
+	 | 241 { 0|1|128 }                                        |
+	 | 1   1            byte                                  |
+	 '--------------------------------------------------------*/
       case BLOCK_STROKE:
 	{
 	  /* Move up one position. */
@@ -332,6 +341,9 @@ p_wpi_parse (const char* filename)
 	    }
 	}
       }
+
+  printf ("Outer boundary (top, right, bottom, left): (%f, %f, %f, %f)\r\n", 
+	  stats.top, stats.right, stats.bottom, stats.left);
 
   fclose (file);
   return list;

@@ -37,8 +37,19 @@
 int
 co_write_svg_file (const char* filename, GSList* data)
 {
-  FILE* file;
-  file = fopen (filename, "w");
+  int written = 0;
+
+  /* On average, 10 bytes are written per list item. There's no mechanism in 
+   * place to allocate more. So this is something to look into.  */
+  size_t output_len = 10 * g_slist_length (data) + 60;
+  char* output = malloc (output_len);
+  if (output == NULL)
+    {
+      printf ("%s: Couldn't allocate enough memory.\r\n", __func__);
+      return 1;
+    }
+  else
+    printf ("Allocated      %lu bytes.\r\n", output_len);
 
   /*--------------------------------------------------------------------------.
    | WRITE SVG HEADER                                                         |
@@ -51,10 +62,11 @@ co_write_svg_file (const char* filename, GSList* data)
     "  xmlns=\"http://www.w3.org/2000/svg\"\n"
     "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n";
 
-  fwrite (header, strlen (header), 1, file);
+  written += sprintf (output + written, header);
+  //fwrite (header, strlen (header), 1, file);
 
   /* Write a document title and a create a layer for Inkscape. */
-  fprintf (file, "<title>%s</title>\n"
+  written += sprintf (output + written, "<title>%s</title>\n"
 	   "<g inkscape:label=\"Layer 0\" inkscape:groupmode=\"layer\" "
 	   "id=\"layer0\">\n", filename);
 
@@ -84,7 +96,7 @@ co_write_svg_file (const char* filename, GSList* data)
 	      {
 	      case BEGIN_STROKE:
 		{
-		  fprintf (file, "  <g id=\"group%d\" style=\"fill: none; "
+		  written += sprintf (output + written, "  <g id=\"group%d\" style=\"fill: none; "
 			   "stroke: #000000; stroke-width: 1\">\n    <path "
 			   "fill=\"none\" stroke=\"#000000\" d=\"", group);
 
@@ -97,14 +109,14 @@ co_write_svg_file (const char* filename, GSList* data)
 		{
 		  if (is_in_stroke == 1)
 		    {
-		      fprintf (file, "\" />\n  </g>\n");
+		      written += sprintf (output + written, "\" />\n  </g>\n");
 		      is_in_stroke = 0;
 		    }
 		}
 		break;
 	      case NEW_LAYER:
 		{
-		  fprintf (file, 
+		  written += sprintf (output + written, 
 			   "\n  </g>\n<g inkscape:label=\"Layer %d\" inkscape:"
 			   "groupmode=\"layer\" id=\"layer%d\">\n", 
 			   layer, layer);
@@ -136,7 +148,7 @@ co_write_svg_file (const char* filename, GSList* data)
 		float y = c->y / SHRINK + OFFSET_Y;
 
 		if (x > 0 && y > 0)
-		  fprintf (file, "%s %f %f", type, x, y);
+		  written += sprintf (output + written, "%s %f %f", type, x, y);
 
 		free (c);
 		c = NULL;
@@ -146,7 +158,7 @@ co_write_svg_file (const char* filename, GSList* data)
 	case TYPE_PRESSURE:
 	  {
 	    dt_pressure* p = (dt_pressure *)e->data;
-	    //fprintf (file, "    <!-- Pressure: %d -->\n", p->pressure);
+	    //written += sprintf (output + written, "    <!-- Pressure: %d -->\n", p->pressure);
 
 	    free (p);
 	    p = NULL;
@@ -155,7 +167,7 @@ co_write_svg_file (const char* filename, GSList* data)
 	case TYPE_TILT:
 	  {
 	    dt_tilt* t = (dt_tilt *)e->data;
-	    //fprintf (file, " L%u,%u", t->x, t->y);
+	    //written += sprintf (output + written, " L%u,%u", t->x, t->y);
 
 	    free (t);
 	    t = NULL;
@@ -173,8 +185,22 @@ co_write_svg_file (const char* filename, GSList* data)
       data = data->next;
     }
 
-  fprintf (file, "</g>\n</svg>");
-  fclose (file);
+  written += sprintf (output + written, "</g>\n</svg>");
 
+
+  output_len = written + 1;
+  output = realloc (output, output_len);
+  output[written] = '\0';
+
+  printf ("Reallocated to %d bytes.\r\n", (int)output_len);
+
+  FILE* file;
+  file = fopen (filename, "w");
+  if (file != NULL)
+    fwrite (output, strlen (output), 1, file);
+  else
+    printf ("%s: Couldn't write to '%s'.\r\n", __func__, filename);
+
+  fclose (file);
   return 0;
 }
