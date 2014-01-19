@@ -154,7 +154,10 @@ p_wpi_parse (const char* filename)
 	{
 	  stats.coordinates++;
 
-	  dt_coordinate* prev = (dt_coordinate *)list->data;
+	  dt_coordinate* prev = NULL;
+	  if (list != NULL)
+	     prev = (dt_coordinate *)list->data;
+
 	  dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
 	  if (coordinate != NULL)
 	    {
@@ -183,7 +186,7 @@ p_wpi_parse (const char* filename)
 	       * Most duplicate coordinates are grouped already. If it isn't
 	       * grouped, it should not be treated as duplicate data (two
 	       * points can be the same at intersection). */
-	      if (prev->x != coordinate->x || prev->y != coordinate->y)
+	      if (prev != NULL && (prev->x != coordinate->x || prev->y != coordinate->y))
 		{
 		  dt_element* element = malloc (sizeof (element));
 		  if (element != NULL)

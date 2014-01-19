@@ -37,17 +37,26 @@
 int
 co_write_svg_file (const char* filename, GSList* data)
 {
+  if (g_slist_length (data) == 0)
+    {
+      printf ("%s: No useful data was found in the file.\r\n", __func__);
+      return 1;
+    }
+
   int written = 0;
 
-  /* On average, 10 bytes are written per list item. There's no mechanism in 
-   * place to allocate more. So this is something to look into.  */
-  size_t output_len = 10 * g_slist_length (data) + 60;
+  /* On average, 10 bytes are written per list item. The header and background 
+   * layer take 571 bytes, so these are added to the amount to allocate. 
+   * There's no mechanism in place to allocate more. So this is something 
+   * to look into. */
+  size_t output_len = 10 * g_slist_length (data) + 571;
   char* output = malloc (output_len);
   if (output == NULL)
     {
       printf ("%s: Couldn't allocate enough memory.\r\n", __func__);
       return 1;
     }
+
   //else
   //  printf ("Allocated      %lu bytes.\r\n", output_len);
 
@@ -194,8 +203,6 @@ co_write_svg_file (const char* filename, GSList* data)
   output_len = written + 1;
   output = realloc (output, output_len);
   output[written] = '\0';
-
-  //printf ("Reallocated to %d bytes.\r\n", (int)output_len);
 
   FILE* file;
   file = fopen (filename, "w");
