@@ -192,7 +192,7 @@ p_wpi_parse (const char* filename)
 		      element->data = coordinate;
 
 		      /* Add the wrapped coordinate to the list. */
-		      list = g_slist_append (list, element);
+		      list = g_slist_prepend (list, element);
 
 		      /* Figure out the boundaries on the drawing. */
 		      if (coordinate->y > stats.top) stats.top = coordinate->y;
@@ -248,7 +248,7 @@ p_wpi_parse (const char* filename)
 		      element->data = pressure;
 
 		      /* Add the wrapped tilt information to the list. */
-		      list = g_slist_append (list, element);
+		      list = g_slist_prepend (list, element);
 		    }
 		}
 	      else
@@ -285,7 +285,7 @@ p_wpi_parse (const char* filename)
 		      tilt = NULL;
 
 		      /* Add the wrapped tilt information to the list. */
-		      list = g_slist_append (list, element);
+		      list = g_slist_prepend (list, element);
 		    }
 		}
 	      else
@@ -335,13 +335,14 @@ p_wpi_parse (const char* filename)
 		      element->data = stroke;
 
 		      /* Add the wrapped stroke information to the list. */
-		      list = g_slist_append (list, element);
+		      list = g_slist_prepend (list, element);
 		    }
 		}
 	    }
 	}
       }
 
+  list = g_slist_reverse (list);
   fclose (file);
   return list;
 }
