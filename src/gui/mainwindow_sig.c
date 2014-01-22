@@ -19,8 +19,9 @@
 
 #include "mainwindow_sig.h"
 #include "../converters/svg.h"
+#include "../converters/png.h"
+#include "../converters/pdf.h"
 #include "../parsers/wpi.h"
-//#include "../pixmaps/no-preview.xpm"
 
 #include <malloc.h>
 #include <string.h>
@@ -28,7 +29,6 @@
 #include <dirent.h>
 #include <librsvg/rsvg.h>
 #include <cairo-pdf.h>
-
 
 #define BTN_DOCUMENT_WIDTH  100
 #define BTN_DOCUMENT_HEIGHT 100
@@ -54,9 +54,18 @@ char*
 gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 {
   char *filename = NULL;
-  GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open File", 
-    GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
-    "Open", GTK_RESPONSE_ACCEPT, NULL);
+
+  GtkWidget *dialog = NULL;
+
+
+  if (action == GTK_FILE_CHOOSER_ACTION_OPEN)
+    dialog = gtk_file_chooser_dialog_new ("Open file", 
+      GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
+     "Open", GTK_RESPONSE_ACCEPT, NULL);
+  else if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
+    dialog = gtk_file_chooser_dialog_new ("Save file", 
+      GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
+     "Save", GTK_RESPONSE_ACCEPT, NULL);
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
@@ -94,6 +103,11 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
       g_free (filename);
     }
 
+  if (handle != NULL)
+    {
+      g_object_unref (handle);
+      handle = NULL;
+    }
   current_view = VIEW_DOCUMENT;
 }
 
@@ -105,7 +119,7 @@ void
 gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 {
   GtkWidget *parent = gtk_widget_get_toplevel (widget);
-  char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
+  char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_SAVE);
 
   if (filename != NULL)
     {
@@ -117,33 +131,10 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 	  if (status != NULL)
 	    {
 	      if (!strcmp (ext, "png") && CAIRO_HAS_PNG_FUNCTIONS)
-		{
-		  cairo_surface_t* surface = NULL;
-		  surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, 
-							A4_WIDTH * 1.25, 
-							A4_HEIGHT * 1.25);
-
-		  cairo_t* cr = cairo_create (surface);
-		  rsvg_handle_render_cairo (handle, cr);
-		  cairo_surface_write_to_png (surface, filename);
-
-		  cairo_destroy (cr);
-		  cairo_surface_destroy (surface);
-		}
+		co_png_export_to_file_from_handle (filename, handle);
 
 	      else if (!strcmp (ext, "pdf") && CAIRO_HAS_MIME_SURFACE)
-		{
-		  cairo_surface_t* surface = NULL;
-		  surface = cairo_pdf_surface_create (filename, A4_WIDTH, A4_HEIGHT);
-
-		  cairo_t* cr = cairo_create (surface);
-		  rsvg_handle_render_cairo (handle, cr);
-		  cairo_surface_show_page (surface);
-		  cairo_surface_finish (surface);
-
-		  cairo_destroy (cr);
-		  cairo_surface_destroy (surface);
-		}
+		co_pdf_export_to_file_from_handle (filename, handle);
 
 	      snprintf (status, status_len, "The file has been saved as: %s", filename);
 	      gtk_label_set_text (GTK_LABEL (lbl_status), status);

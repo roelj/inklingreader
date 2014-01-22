@@ -5,7 +5,9 @@ This project is an attempt to create a GNU/Linux-friendly version of the Wacom
 Inkling SketchManager. Instead of integrating with proprietary programs, this
 program aims to be compatible with free software alternatives like Inkscape.
 
-Currently the program can convert a WPI file into an Inkscape SVG file.
+The program can:
+* Display WPI files
+* Export to Inkscape SVG (preserving layers), PDF and PNG
 
 
 Dependencies
@@ -15,10 +17,9 @@ Make sure you have the following libraries, development packages and build
 tools installed:
 
 * GCC
-
 * Make
-
 * Gtk+-3.0, GLib-2.0 and Cairo
+* Librsvg-2.0
 
 
 License
