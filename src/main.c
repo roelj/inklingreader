@@ -105,7 +105,7 @@ main (int argc, char** argv)
 		    strcat (new_name, "svg");
 
 		    /* Convert a file. */
-		    co_write_svg_file (new_name, coordinates);
+		    co_svg_create_file (new_name, coordinates);
 
 		    /* Clean up. 
 		     * TODO: coordinates is leaking a lot of of memory! */
@@ -130,7 +130,7 @@ main (int argc, char** argv)
 
     case 't':
       if (optarg)
-	co_write_svg_file (optarg, coordinates);
+	co_svg_create_file (optarg, coordinates);
       break;
 
     case 'g':

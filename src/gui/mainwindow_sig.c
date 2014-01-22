@@ -18,7 +18,7 @@
  */
 
 #include "mainwindow_sig.h"
-#include "../converters/cairo_svg.h"
+#include "../converters/svg.h"
 #include "../parsers/wpi.h"
 #include "../pixmaps/no-preview.xpm"
 
@@ -26,6 +26,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <librsvg/rsvg.h>
 
 #define BTN_DOCUMENT_WIDTH  100
 #define BTN_DOCUMENT_HEIGHT 100
@@ -194,7 +195,13 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
     case VIEW_DOCUMENT:
       {
 	if (parsed_data != NULL)
-	  co_display_cairo_surface (cr, parsed_data);
+	  {
+	    char* svg_data = co_svg_create (parsed_data, "");
+	    size_t svg_data_len = strlen (svg_data);
+	    RsvgHandle* handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
+	    if (handle != NULL)
+	      rsvg_handle_render_cairo (handle, cr);
+	  }
       }
       break;
     case VIEW_DIRECTORY:

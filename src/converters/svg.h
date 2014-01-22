@@ -23,6 +23,7 @@
 
 #include <glib.h>
 
-int co_write_svg_file (const char* filename, GSList* data);
+int co_svg_create_file (const char* filename, GSList* data);
+char* co_svg_create (GSList* data, const char* title);
 
 #endif//CONVERTERS_SVG_H

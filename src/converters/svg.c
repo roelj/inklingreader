@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../datatypes/element.h"
+#include "../optimizers/straight_lines.h"
 
 /* These are correction values that are used to calculate the actual position
  * of a path on a page. Whether these are the same for each document is not
@@ -35,12 +36,36 @@
  | This function writes data points to an SVG file.                           |
  '----------------------------------------------------------------------------*/
 int
-co_write_svg_file (const char* filename, GSList* data)
+co_svg_create_file (const char* filename, GSList* data)
+{
+  char* output = co_svg_create (data, filename);
+  if (data != NULL)
+    {
+      FILE* file;
+      file = fopen (filename, "w");
+      if (file != NULL)
+	fwrite (output, strlen (output), 1, file);
+      else
+	{
+	  printf ("%s: Couldn't write to '%s'.\r\n", __func__, filename);
+	  return 1;
+	}
+
+      free (output);
+      fclose (file);
+      return 0;
+    }
+
+  return 1;
+}
+
+char* 
+co_svg_create (GSList* data, const char* title)
 {
   if (g_slist_length (data) == 0)
     {
       printf ("%s: No useful data was found in the file.\r\n", __func__);
-      return 1;
+      return NULL;
     }
 
   int written = 0;
@@ -54,7 +79,7 @@ co_write_svg_file (const char* filename, GSList* data)
   if (output == NULL)
     {
       printf ("%s: Couldn't allocate enough memory.\r\n", __func__);
-      return 1;
+      return NULL;
     }
 
   //else
@@ -80,7 +105,7 @@ co_write_svg_file (const char* filename, GSList* data)
 		      "<rect style=\"fill:#ffffff;stroke:none\" id=\"background\" "
 		      "width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n"
 		      "<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
-		      "id=\"layer1\">\n", filename);
+		      "id=\"layer1\">\n", title);
 
   /*--------------------------------------------------------------------------.
    | COUNTING VARIABLES                                                       |
@@ -149,21 +174,25 @@ co_write_svg_file (const char* filename, GSList* data)
 	    if (is_in_stroke == 1)
 	      {
 		dt_coordinate* c = (dt_coordinate *)e->data;
-		char* type = "M";
+		//c = opt_straight_lines_filter (data);
+		if (c != NULL)
+		  {
+		    char* type = "M";
 
-		if (has_been_positioned > 0)
-		  type = " L";
-		else
-		  has_been_positioned = 1;
+		    if (has_been_positioned > 0)
+		      type = " L";
+		    else
+		      has_been_positioned = 1;
 
-		float x = c->x / SHRINK + OFFSET_X;
-		float y = c->y / SHRINK + OFFSET_Y;
+		    float x = c->x / SHRINK + OFFSET_X;
+		    float y = c->y / SHRINK + OFFSET_Y;
 
-		if (x > 0 && y > 0)
-		  written += sprintf (output + written, "%s %f %f", type, x, y);
+		    if (x > 0 && y > 0)
+		      written += sprintf (output + written, "%s %f,%f", type, x, y);
 
-		free (c);
-		c = NULL;
+		    free (c);
+		    c = NULL;
+		  }
 	      }
 	  }
 	  break;
@@ -199,19 +228,9 @@ co_write_svg_file (const char* filename, GSList* data)
 
   written += sprintf (output + written, "</g>\n</svg>");
 
-
   output_len = written + 1;
   output = realloc (output, output_len);
   output[written] = '\0';
 
-  FILE* file;
-  file = fopen (filename, "w");
-  if (file != NULL)
-    fwrite (output, strlen (output), 1, file);
-  else
-    printf ("%s: Couldn't write to '%s'.\r\n", __func__, filename);
-
-  free (output);
-  fclose (file);
-  return 0;
+  return output;
 }
