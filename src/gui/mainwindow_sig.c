@@ -20,21 +20,28 @@
 #include "mainwindow_sig.h"
 #include "../converters/svg.h"
 #include "../parsers/wpi.h"
-#include "../pixmaps/no-preview.xpm"
+//#include "../pixmaps/no-preview.xpm"
 
 #include <malloc.h>
 #include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <librsvg/rsvg.h>
+#include <cairo-pdf.h>
+
 
 #define BTN_DOCUMENT_WIDTH  100
 #define BTN_DOCUMENT_HEIGHT 100
+#define A4_WIDTH 595.0
+#define A4_HEIGHT 842.0
 
 extern GtkWidget* lbl_status;
 extern GSList* documents;
 
+#define DOCUMENT_PADDING 25.0
+
 GSList* parsed_data = NULL;
+RsvgHandle* handle = NULL;
 int current_view = -1;
 char* directory_name = NULL;
 
@@ -90,6 +97,67 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
   current_view = VIEW_DOCUMENT;
 }
 
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_EXPORT_ACTIVATED                                            |
+ | This callback function handles activating the "Export file" menu button.   |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_export_activated (GtkWidget* widget, void* data)
+{
+  GtkWidget *parent = gtk_widget_get_toplevel (widget);
+  char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
+
+  if (filename != NULL)
+    {
+      char* ext = filename + strlen (filename) - 3;
+      if (!strcmp (ext, "png") || !strcmp (ext, "svg") || !strcmp (ext, "pdf"))
+	{	
+	  size_t status_len = 29 + strlen (filename);
+	  char* status = malloc (status_len);
+	  if (status != NULL)
+	    {
+	      if (!strcmp (ext, "png") && CAIRO_HAS_PNG_FUNCTIONS)
+		{
+		  cairo_surface_t* surface = NULL;
+		  surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, 
+							A4_WIDTH * 1.25, 
+							A4_HEIGHT * 1.25);
+
+		  cairo_t* cr = cairo_create (surface);
+		  rsvg_handle_render_cairo (handle, cr);
+		  cairo_surface_write_to_png (surface, filename);
+
+		  cairo_destroy (cr);
+		  cairo_surface_destroy (surface);
+		}
+
+	      else if (!strcmp (ext, "pdf") && CAIRO_HAS_MIME_SURFACE)
+		{
+		  cairo_surface_t* surface = NULL;
+		  surface = cairo_pdf_surface_create (filename, A4_WIDTH, A4_HEIGHT);
+
+		  cairo_t* cr = cairo_create (surface);
+		  rsvg_handle_render_cairo (handle, cr);
+		  cairo_surface_show_page (surface);
+		  cairo_surface_finish (surface);
+
+		  cairo_destroy (cr);
+		  cairo_surface_destroy (surface);
+		}
+
+	      snprintf (status, status_len, "The file has been saved as: %s", filename);
+	      gtk_label_set_text (GTK_LABEL (lbl_status), status);
+	      free (status);
+	    }
+	}
+      else
+	gtk_label_set_text (GTK_LABEL (lbl_status), 
+	  "Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.");
+	
+      g_free (filename);
+    }
+}
+
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_DIRECTORY_ACTIVATED                                         |
@@ -138,8 +206,6 @@ gui_mainwindow_directory_draw (GtkWidget* widget, const char* path)
 	  gtk_widget_set_size_request (da_document, BTN_DOCUMENT_WIDTH, BTN_DOCUMENT_HEIGHT);
 	  gtk_container_add (GTK_CONTAINER (btn_document), da_document);
 
-	  gtk_layout_put (GTK_LAYOUT (widget), btn_document, 120 * x, 120);
-
 	  free (name);
 	  x++; 
 	  y++;
@@ -156,31 +222,7 @@ gui_mainwindow_directory_draw (GtkWidget* widget, const char* path)
 void 
 gui_mainwindow_dir_entry_draw (GtkWidget* widget, cairo_t* cr, void* data)
 {
-  char* filename = (char*)data;
-
-  int w = gtk_widget_get_allocated_width (widget);
-  int h = gtk_widget_get_allocated_height (widget);
-
-  /* Randomly let some peers appear as online. */
-  GdkPixbuf *icon = gdk_pixbuf_new_from_xpm_data ((const char**)no_preview_xpm);
-
-  int iw = gdk_pixbuf_get_width (icon);
-  int ih = gdk_pixbuf_get_height (icon);
-
-  gdk_cairo_set_source_pixbuf (cr, icon, w / 2 - iw / 2, h / 2 - ih / 2);
-  cairo_paint (cr);
-
-  cairo_select_font_face (cr, "Cantarell", CAIRO_FONT_SLANT_NORMAL, 
-			  CAIRO_FONT_WEIGHT_NORMAL);
-
-  cairo_set_font_size (cr, 16);
-
-  cairo_text_extents_t extents;
-  cairo_text_extents (cr, filename, &extents);
-
-  cairo_move_to (cr, w / 2 - extents.width / 2, h - 5);
-  cairo_set_source_rgba (cr, 0, 0, 0, 1);
-  cairo_show_text (cr, filename);
+  //char* filename = (char*)data;
 }
 
 /*----------------------------------------------------------------------------.
@@ -194,14 +236,24 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
     {
     case VIEW_DOCUMENT:
       {
-	if (parsed_data != NULL)
+	double w = gtk_widget_get_allocated_width (widget);
+	double ratio = w / (A4_WIDTH * 1.25) / 1.25;
+	double padding = (w - (A4_WIDTH * 1.25 * ratio)) / 2;
+
+	cairo_translate (cr, padding, 30.0);
+	cairo_scale (cr, ratio, ratio);
+
+	if (parsed_data != NULL && handle == NULL)
 	  {
 	    char* svg_data = co_svg_create (parsed_data, "");
 	    size_t svg_data_len = strlen (svg_data);
-	    RsvgHandle* handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
-	    if (handle != NULL)
-	      rsvg_handle_render_cairo (handle, cr);
+	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
+	    //rsvg_handle_render_cairo_sub (handle, cr, "#layer1");
+	    rsvg_handle_render_cairo (handle, cr);
 	  }
+	else
+	  //rsvg_handle_render_cairo_sub (handle, cr, "#layer1");
+	  rsvg_handle_render_cairo (handle, cr);
       }
       break;
     case VIEW_DIRECTORY:

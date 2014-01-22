@@ -39,6 +39,7 @@ gui_init_mainwindow (int argc, char** argv)
   GtkWidget* menu_load = NULL;
   GtkWidget* menu_load_file = NULL;
   GtkWidget* menu_load_directory = NULL;
+  GtkWidget* menu_load_export = NULL;
 
   GtkWidget* document_view = NULL;
 
@@ -57,6 +58,7 @@ gui_init_mainwindow (int argc, char** argv)
   menu_load = gtk_menu_new ();
   menu_load_file = gtk_menu_item_new_with_label ("Open file");
   menu_load_directory = gtk_menu_item_new_with_label ("Open directory");
+  menu_load_export = gtk_menu_item_new_with_label ("Export");
 
   vbox_window = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
   hbox_menu_top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
@@ -77,6 +79,7 @@ gui_init_mainwindow (int argc, char** argv)
 
   gtk_menu_attach (GTK_MENU (menu_load), menu_load_file, 0, 1, 0, 1);
   gtk_menu_attach (GTK_MENU (menu_load), menu_load_directory, 0, 1, 1, 2);
+  gtk_menu_attach (GTK_MENU (menu_load), menu_load_export, 0, 1, 2, 3);
 
   GdkRGBA bg;
   gdk_rgba_parse (&bg, "#101010");
@@ -105,6 +108,9 @@ gui_init_mainwindow (int argc, char** argv)
   g_signal_connect (G_OBJECT (menu_load_directory), "activate", 
 		    G_CALLBACK (gui_mainwindow_directory_activated), NULL);
 
+  g_signal_connect (G_OBJECT (menu_load_export), "activate", 
+		    G_CALLBACK (gui_mainwindow_export_activated), NULL);
+
   g_signal_connect (G_OBJECT (document_view), "draw",
                     G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
 
@@ -114,6 +120,7 @@ gui_init_mainwindow (int argc, char** argv)
    '--------------------------------------------------------------------------*/
   gtk_widget_show (GTK_WIDGET (menu_load_file));
   gtk_widget_show (GTK_WIDGET (menu_load_directory));
+  gtk_widget_show (GTK_WIDGET (menu_load_export));
 
   gtk_widget_show_all (window);
   gtk_main ();
