@@ -54,6 +54,6 @@ module-info:
 ## once to avoid problems with the linker.
 .PHONY: win32
 win32:
-	$(CC) $(LBLIBS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
+	$(CC) $(LDLIBS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
 	src/parsers/wpi.c src/converters/svg.c src/converters/png.c src/converters/pdf.c \
 	src/optimizers/straight_lines.c $(CFLAGS) -o $(NAME)
