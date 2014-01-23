@@ -161,9 +161,6 @@ co_svg_create (GSList* data, const char* title)
 		}
 		break;
 	      }
-
-	    free (s);
-	    s = NULL;
 	  }
 	  break;
 	  /*------------------------------------------------------------------.
@@ -189,40 +186,27 @@ co_svg_create (GSList* data, const char* title)
 
 		    if (x > 0 && y > 0)
 		      written += sprintf (output + written, "%s %f,%f", type, x, y);
-
-		    free (c);
-		    c = NULL;
 		  }
 	      }
 	  }
 	  break;
 	case TYPE_PRESSURE:
 	  {
-	    dt_pressure* p = (dt_pressure *)e->data;
+	    //dt_pressure* p = (dt_pressure *)e->data;
 	    //written += sprintf (output + written, "    <!-- Pressure: %d -->\n", p->pressure);
-
-	    free (p);
-	    p = NULL;
 	  }
 	  break;
 	case TYPE_TILT:
 	  {
-	    dt_tilt* t = (dt_tilt *)e->data;
+	    //dt_tilt* t = (dt_tilt *)e->data;
 	    //written += sprintf (output + written, " L%u,%u", t->x, t->y);
-
-	    free (t);
-	    t = NULL;
-	  }
-	  break;
-	default:
-	  {
-	    free (e->data);
-	    e->data = NULL;
 	  }
 	  break;
 	}
 
-      free (data->data);
+      free (e->data);
+      free (e);
+      e = NULL;
       data = data->next;
     }
 
