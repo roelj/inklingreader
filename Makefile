@@ -49,3 +49,11 @@ module-info:
 	@printf "%-25s %s\r\n" "MODULE NAME" "SIZE"; \
 	echo "------------------------  ----------"; \
 	ls -lS | egrep "\.o$$|$(NAME)$$" | awk '{printf "%-25s %6.2f K\r\n", $$9, $$5 / 1000}'
+
+## To compile the application for Windows we need to pass all source files at 
+## once to avoid problems with the linker.
+.PHONY: win32
+win32:
+	$(CC) $(LBLIBS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
+	src/parsers/wpi.c src/converters/svg.c src/converters/png.c src/converters/pdf.c \
+	src/optimizers/straight_lines.c $(CFLAGS) -o $(NAME)

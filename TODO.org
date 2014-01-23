@@ -37,6 +37,18 @@
 
   - [ ] Handle pressure data correctly.
 
+  - [-] Get all features to work on Windows as well.
+
+	- [X] Compile for Windows
+	- [X] Convert a file with the Windows binary
+        - [ ] Convert all files in a directory with the Windows binary
+	- [ ] Use the graphical user interface with the Windows binary
+	      - [ ] Open a file
+		    - [ ] Export as PDF
+                    - [ ] Export as PNG
+                    - [ ] Export as SVG
+			  
+
 ** Inner working of the format
 
    There's not much known about the WPI data format. Below you can find what 
