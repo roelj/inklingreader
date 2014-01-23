@@ -82,9 +82,9 @@ p_wpi_parse (const char* filename)
    * FIXME: Filesize limit is now around 2GB. It would be cooler when
    * the size is virtually unlimited. In practice, we're fine with the
    * 2GB limit. */
-  fseek(file, 0L, SEEK_END);
-  size_t data_len = ftell(file);
-  fseek(file, 0L, SEEK_SET);
+  fseek (file, 0L, SEEK_END);
+  size_t data_len = ftell (file);
+  fseek (file, 0L, SEEK_SET);
 
   /* Set up an array that can keep the entire file in memory. */
   unsigned char data[data_len];
@@ -113,7 +113,7 @@ p_wpi_parse (const char* filename)
     "AFAAAA1P7//wAAAAAUAAAAATAAAAUAAAAsAQAAAAAAABQAAAAAMwAAAwAAAA==";
 
   size_t header_len = 322;
-  char* file_header = malloc (header_len + 1);
+  char* file_header = malloc (header_len);
 
   if (file_header == NULL)
     {
@@ -122,7 +122,6 @@ p_wpi_parse (const char* filename)
       return NULL;
     }
 
-  file_header = memset (file_header, '\0', header_len + 1);
   file_header = memcpy (file_header, data, header_len);
   file_header = g_base64_encode ((unsigned char*)file_header, header_len);
 
@@ -154,10 +153,6 @@ p_wpi_parse (const char* filename)
 	{
 	  stats.coordinates++;
 
-	  dt_coordinate* prev = NULL;
-	  if (list != NULL)
-	     prev = (dt_coordinate *)list->data;
-
 	  dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
 	  if (coordinate != NULL)
 	    {
@@ -182,36 +177,21 @@ p_wpi_parse (const char* filename)
 	       * move the other.) */
 	      count += 1;
 
-	      /* Try to avoid duplicate data without expensive algorithms.
-	       * Most duplicate coordinates are grouped already. If it isn't
-	       * grouped, it should not be treated as duplicate data (two
-	       * points can be the same at intersection). */
-	      if (prev != NULL && (prev->x != coordinate->x || prev->y != coordinate->y))
+	      dt_element* element = malloc (sizeof (dt_element));
+	      if (element != NULL)
 		{
-		  dt_element* element = malloc (sizeof (element));
-		  if (element != NULL)
-		    {
-		      element->type = TYPE_COORDINATE;
-		      element->data = coordinate;
+		  element->type = TYPE_COORDINATE;
+		  element->data = coordinate;
 
-		      /* Add the wrapped coordinate to the list. */
-		      list = g_slist_prepend (list, element);
+		  /* Add the wrapped coordinate to the list. */
+		  list = g_slist_prepend (list, element);
 
-		      /* Figure out the boundaries on the drawing. */
-		      if (coordinate->y > stats.top) stats.top = coordinate->y;
-		      if (coordinate->y < stats.bottom) stats.bottom = coordinate->y;
-		      if (coordinate->x < stats.left) stats.left = coordinate->x;
-		      if (coordinate->x > stats.right) stats.right = coordinate->x;
+		  /* Figure out the boundaries on the drawing. */
+		  if (coordinate->y > stats.top) stats.top = coordinate->y;
+		  if (coordinate->y < stats.bottom) stats.bottom = coordinate->y;
+		  if (coordinate->x < stats.left) stats.left = coordinate->x;
+		  if (coordinate->x > stats.right) stats.right = coordinate->x;
 
-		      coordinate = NULL;
-		    }
-		}
-
-	      /* Don't add a duplicate entry to the list. Instead, deallocate
-	       * the allocated memory. */
-	      else
-		{
-		  free (coordinate);
 		  coordinate = NULL;
 		}
 	    }

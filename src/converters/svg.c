@@ -99,13 +99,16 @@ co_svg_create (GSList* data, const char* title)
   written += sprintf (output + written, header);
   //fwrite (header, strlen (header), 1, file);
 
+  if (title != NULL)
+    written += sprintf (output + written, "<title>%s</title>\n", title);
+
   /* Write a document title and a create a layer for Inkscape. */
-  written += sprintf (output + written, "<title>%s</title>\n"
+  written += sprintf (output + written,
 		      "<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
 		      "<rect style=\"fill:#ffffff;stroke:none\" id=\"background\" "
 		      "width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n"
 		      "<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
-		      "id=\"layer1\">\n", title);
+		      "id=\"layer1\">\n");
 
   /*--------------------------------------------------------------------------.
    | COUNTING VARIABLES                                                       |
@@ -205,8 +208,10 @@ co_svg_create (GSList* data, const char* title)
 	}
 
       free (e->data);
+      e->data = NULL;
       free (e);
       e = NULL;
+
       data = data->next;
     }
 
