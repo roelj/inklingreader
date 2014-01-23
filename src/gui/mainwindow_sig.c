@@ -133,7 +133,7 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 	      if (!strcmp (ext, "png") && CAIRO_HAS_PNG_FUNCTIONS)
 		co_png_export_to_file_from_handle (filename, handle);
 
-	      else if (!strcmp (ext, "pdf") && CAIRO_HAS_MIME_SURFACE)
+	      else if (!strcmp (ext, "pdf"))
 		co_pdf_export_to_file_from_handle (filename, handle);
 
 	      snprintf (status, status_len, "The file has been saved as: %s", filename);
