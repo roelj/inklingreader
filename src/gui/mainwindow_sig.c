@@ -54,9 +54,7 @@ char*
 gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 {
   char *filename = NULL;
-
   GtkWidget *dialog = NULL;
-
 
   if (action == GTK_FILE_CHOOSER_ACTION_OPEN)
     dialog = gtk_file_chooser_dialog_new ("Open file", 
@@ -83,32 +81,50 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 void
 gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 {
-  GtkWidget *parent = gtk_widget_get_toplevel (widget);
-  char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
+  char* filename = NULL;
 
-  if (filename != NULL)
+  /* The filename can be passed by 'data'. Otherwise we need to show a
+   * dialog to the user to choose a file. */
+  if (data)
+    filename = (char*)data;
+  else
     {
-      size_t status_len = 18 + strlen (filename);
-      char* status = malloc (status_len);
-      if (status != NULL)
+      GtkWidget *parent = gtk_widget_get_toplevel (widget);
+      filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
+    }
+
+  /* When the filename is not NULL anymore, we can process it. */
+  if (filename)
+    {
+      parsed_data = p_wpi_parse (filename);
+
+      /* Only continue when data has been parsed. */
+      if (parsed_data)
 	{
-	  snprintf (status, status_len, "Now displaying: %s", filename);
-
-	  gtk_label_set_text (GTK_LABEL (lbl_status), status);
-	  parsed_data = p_wpi_parse (filename);
-
-	  free (status);
+	  size_t status_len = 18 + strlen (filename);
+	  char* status = malloc (status_len);
+	  if (status)
+	    {
+	      snprintf (status, status_len, "Now displaying: %s", filename);
+	      gtk_label_set_text (GTK_LABEL (lbl_status), status);
+	      free (status);
+	    }
 	}
 
-      g_free (filename);
-    }
+      /* Clean up the filename if it was gathered using the dialog. */
+      if (!data)
+	g_free (filename);
 
-  if (handle != NULL)
-    {
-      g_object_unref (handle);
-      handle = NULL;
+      /* Clean up the (old) RsvgHandle data when it's set at this point. */
+      if (handle)
+	{
+	  g_object_unref (handle);
+	  handle = NULL;
+	}
+
+      /* Make sure we are in VIEW_DOCUMENT mode. */
+      current_view = VIEW_DOCUMENT;
     }
-  current_view = VIEW_DOCUMENT;
 }
 
 /*----------------------------------------------------------------------------.
@@ -234,16 +250,14 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 	cairo_translate (cr, padding, 30.0);
 	cairo_scale (cr, ratio, ratio);
 
-	if (parsed_data != NULL && handle == NULL)
+	if (parsed_data && !handle)
 	  {
-	    char* svg_data = co_svg_create (parsed_data, "");
+	    char* svg_data = co_svg_create (parsed_data, NULL);
 	    size_t svg_data_len = strlen (svg_data);
 	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
-	    //rsvg_handle_render_cairo_sub (handle, cr, "#layer1");
 	    rsvg_handle_render_cairo (handle, cr);
 	  }
-	else
-	  //rsvg_handle_render_cairo_sub (handle, cr, "#layer1");
+	else if (handle)
 	  rsvg_handle_render_cairo (handle, cr);
       }
       break;

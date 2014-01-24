@@ -24,6 +24,6 @@
  | MAINWINDOW                                                           |
  | The GUI functionality starts here.                                   |
  '----------------------------------------------------------------------*/
-void gui_init_mainwindow (int argc, char** argv);
+void gui_init_mainwindow (int argc, char** argv, const char* filename);
 
 #endif//GUI_MAINWINDOW_H

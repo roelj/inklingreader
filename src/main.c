@@ -123,7 +123,7 @@ main (int argc, char** argv)
 	  { "convert-directory", required_argument, 0, 'c' },
 	  { "file",              required_argument, 0, 'f' },
 	  { "to",                required_argument, 0, 't' },
-	  { "gui",               no_argument,       0, 'g' },
+	  { "gui",               optional_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
 	  { 0,                   0,                 0, 0   }
@@ -132,7 +132,7 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "c:f:t:gvh", options, &index);
+	  arg = getopt_long (argc, argv, "c:f:t:g:vh", options, &index);
 
 	  switch (arg)
 	    {
@@ -168,7 +168,7 @@ main (int argc, char** argv)
 	       | Start the graphical user interface.                                |
 	       '--------------------------------------------------------------------*/
 	    case 'g':
-	      gui_init_mainwindow (argc, argv);
+	      gui_init_mainwindow (argc, argv, optarg);
 	      break;
 
 	      /*--------------------------------------------------------------------.

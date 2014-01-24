@@ -28,7 +28,7 @@ GtkWidget* lbl_status = NULL;
 GSList* documents = NULL;
 
 void
-gui_init_mainwindow (int argc, char** argv)
+gui_init_mainwindow (int argc, char** argv, const char* filename)
 {
   /*--------------------------------------------------------------------------.
    | WIDGETS                                                                  |
@@ -123,5 +123,9 @@ gui_init_mainwindow (int argc, char** argv)
   gtk_widget_show (GTK_WIDGET (menu_load_export));
 
   gtk_widget_show_all (window);
+
+  if (filename)
+    gui_mainwindow_file_activated (NULL, (char*)filename);
+
   gtk_main ();
 }
