@@ -30,6 +30,7 @@
 #define SHRINK 27.0
 #define OFFSET_X 375.0
 #define OFFSET_Y 37.5
+#define COLOR "#00007c"
 
 /*----------------------------------------------------------------------------.
  | CO_WRITE_SVG_FILE                                                          |
@@ -136,9 +137,8 @@ co_svg_create (GSList* data, const char* title)
 	      {
 	      case BEGIN_STROKE:
 		{
-		  written += sprintf (output + written, "  <g id=\"group%d\" style=\"fill: none; "
-			   "stroke: #000000; stroke-width: 1\">\n    <path "
-			   "fill=\"none\" stroke=\"#000000\" d=\"", group);
+		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
+				      "style=\"fill:none; stroke:%s\" d=\"", group, COLOR);
 
 		  has_been_positioned = 0;
 		  is_in_stroke = 1;
@@ -187,8 +187,12 @@ co_svg_create (GSList* data, const char* title)
 		    float x = c->x / SHRINK + OFFSET_X;
 		    float y = c->y / SHRINK + OFFSET_Y;
 
-		    if (x > 0 && y > 0)
-		      written += sprintf (output + written, "%s %f,%f", type, x, y);
+		    /* When the data is within the borders of an A4 page, add
+		     * it. This prevents weird stripes and clutter from 
+		     * disturbing the document. */
+		    if (x > 0 && y > 100 && y < 1050)
+		      written += sprintf (output + written, "%s %f,%f", 
+					  type, x, y);
 		  }
 	      }
 	  }
@@ -196,13 +200,11 @@ co_svg_create (GSList* data, const char* title)
 	case TYPE_PRESSURE:
 	  {
 	    //dt_pressure* p = (dt_pressure *)e->data;
-	    //written += sprintf (output + written, "    <!-- Pressure: %d -->\n", p->pressure);
 	  }
 	  break;
 	case TYPE_TILT:
 	  {
 	    //dt_tilt* t = (dt_tilt *)e->data;
-	    //written += sprintf (output + written, " L%u,%u", t->x, t->y);
 	  }
 	  break;
 	}
