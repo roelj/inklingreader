@@ -89,16 +89,13 @@ co_svg_create (GSList* data, const char* title)
   /*--------------------------------------------------------------------------.
    | WRITE SVG HEADER                                                         |
    '--------------------------------------------------------------------------*/
-  const char* header =
+  written += sprintf (output + written,
     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" 
     "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n"
     "  \"http://www.w3.org/Graphics/SVG/2.2/DTD/svg11.dtd\">\n"
     "<svg width=\"210mm\" height=\"297mm\" version=\"1.1\""
     "  xmlns=\"http://www.w3.org/2000/svg\"\n"
-    "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n";
-
-  written += sprintf (output + written, header);
-  //fwrite (header, strlen (header), 1, file);
+    "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n");
 
   if (title != NULL)
     written += sprintf (output + written, "<title>%s</title>\n", title);
@@ -222,6 +219,9 @@ co_svg_create (GSList* data, const char* title)
   output_len = written + 1;
   output = realloc (output, output_len);
   output[written] = '\0';
+
+  g_slist_free (data);
+  data = NULL;
 
   return output;
 }

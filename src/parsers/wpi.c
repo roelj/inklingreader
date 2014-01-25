@@ -98,7 +98,11 @@ p_wpi_parse (const char* filename)
 
   /* Read the entire file into memory. This should give us some speed advantage
    * while processing the data. */
-  fread (data, 1, data_len, file);
+  if (fread (data, 1, data_len, file) != data_len)
+    {
+      printf ("An error occurred when reading the file.\r\n");
+      return NULL;
+    }
 
   /* The first 322 bytes seem to be equal for every WPI file. I've encoded 
    * these 322 bytes using the base64 encoding algorithm. The result of this
