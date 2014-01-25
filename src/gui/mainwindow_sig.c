@@ -22,6 +22,7 @@
 #include "../converters/png.h"
 #include "../converters/pdf.h"
 #include "../parsers/wpi.h"
+#include "../datatypes/element.h"
 
 #include <malloc.h>
 #include <string.h>
@@ -42,8 +43,33 @@ extern GSList* documents;
 
 GSList* parsed_data = NULL;
 RsvgHandle* handle = NULL;
+char* svg_data = NULL;
 int current_view = -1;
 char* directory_name = NULL;
+
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_MENU_FILE_ACTIVATE                                          |
+ | This event handler handles the activation of a menu item within the "File" |
+ | menu.                                                                      |
+ '----------------------------------------------------------------------------*/
+void 
+gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data)
+{
+  const char* label = gtk_menu_item_get_label (GTK_MENU_ITEM (widget));
+
+  if (!strcmp (label, "Open file"))
+    gui_mainwindow_file_activated (widget, data);
+
+  else if (!strcmp (label, "Open directory"))
+    gui_mainwindow_directory_activated (widget, data);
+
+  else if (!strcmp (label, "Export file"))
+    gui_mainwindow_export_activated (widget, data);
+
+  else if (!strcmp (label, "Quit"))
+    gui_mainwindow_quit ();
+}
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_FILE_DIALOG                                                 |
@@ -122,6 +148,13 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	  handle = NULL;
 	}
 
+      /* Clean up the (old) SVG data. */
+      if (svg_data)
+	{
+	  free (svg_data);
+	  svg_data = NULL;
+	}
+
       /* Make sure we are in VIEW_DOCUMENT mode. */
       current_view = VIEW_DOCUMENT;
     }
@@ -151,6 +184,16 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 
 	      else if (!strcmp (ext, "pdf"))
 		co_pdf_export_to_file_from_handle (filename, handle);
+
+	      else if (!strcmp (ext, "svg"))
+		{
+		  FILE* file;
+		  file = fopen (filename, "w");
+		  if (file != NULL)
+		    fwrite (svg_data, strlen (svg_data), 1, file);
+
+		  fclose (file);
+		}
 
 	      snprintf (status, status_len, "The file has been saved as: %s", filename);
 	      gtk_label_set_text (GTK_LABEL (lbl_status), status);
@@ -252,7 +295,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 
 	if (parsed_data && !handle)
 	  {
-	    char* svg_data = co_svg_create (parsed_data, NULL);
+	    svg_data = co_svg_create (parsed_data, NULL);
 	    size_t svg_data_len = strlen (svg_data);
 	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
 	    rsvg_handle_render_cairo (handle, cr);
@@ -269,4 +312,23 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
       break;
     }
   return 0;
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_QUIT                                                        |
+ | Clean up when quitting.                                                    |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_quit ()
+{
+  if (svg_data != NULL)
+    free (svg_data);
+
+  if (handle != NULL)
+    g_object_unref (handle);
+
+  if (parsed_data != NULL)
+    g_slist_free (parsed_data);
+
+  gtk_main_quit();
 }
