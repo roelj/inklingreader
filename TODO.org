@@ -35,7 +35,13 @@
 	FIXED: Not using the Cairo SVG exporter, instead I improved our own
 	exporter tool.
 
-  - [ ] Handle pressure data correctly.
+  - [X] Handle pressure data correctly.
+
+  - [ ] Add a command-line option to disable pressure data and set a fixed 
+	stroke width (possibly two options: 1. disable pressure, 2. define 
+	stroke width).
+
+  - [ ] Ability to merge files into one.
 
   - [-] Get all features to work on Windows as well.
 
