@@ -24,8 +24,10 @@
  | COORDINATE DATATYPE DEFINITION                                             |
  '----------------------------------------------------------------------------*/
 typedef struct {
+  unsigned char type;
   float x;
   float y;
+  float pressure;
 } dt_coordinate;
 
 #endif//DATATYPES_COORDINATE_H

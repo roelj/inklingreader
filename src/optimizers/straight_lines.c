@@ -35,7 +35,7 @@ opt_straight_lines_filter (GSList* current)
   dt_coordinate* current_co = NULL;
   if (list != NULL)
     {
-      current_co = (dt_coordinate *)((dt_element *)list->data)->data;
+      current_co = (dt_coordinate *)list->data;
       dt_coordinate* next_co = NULL;
 
       while (list->next != NULL)
@@ -44,7 +44,7 @@ opt_straight_lines_filter (GSList* current)
 	  dt_element* e = (dt_element *)list->data;
 	  if (e->type == TYPE_COORDINATE)
 	    {
-	      next_co = (dt_coordinate *)((dt_element *)list->data)->data;
+	      next_co = (dt_coordinate *)list->data;
 	      current_co->x = (next_co->x + current_co->x) / 2;
 	    }
 	  else if (e->type == BLOCK_STROKE)

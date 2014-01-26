@@ -93,7 +93,7 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
    '--------------------------------------------------------------------------*/
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 10);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 0);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), lbl_status, 1, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), document_view, 1, 1, 0);

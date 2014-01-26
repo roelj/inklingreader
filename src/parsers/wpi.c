@@ -160,6 +160,7 @@ p_wpi_parse (const char* filename)
 	  dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
 	  if (coordinate != NULL)
 	    {
+	      coordinate->type = TYPE_COORDINATE;
 	      /* 'count' should be moved up 2 bytes so the X position can be 
 	       * read. */
 	      count += 2;
@@ -181,23 +182,12 @@ p_wpi_parse (const char* filename)
 	       * move the other.) */
 	      count += 1;
 
-	      dt_element* element = malloc (sizeof (dt_element));
-	      if (element != NULL)
-		{
-		  element->type = TYPE_COORDINATE;
-		  element->data = coordinate;
+	      list = g_slist_prepend (list, coordinate);
 
-		  /* Add the wrapped coordinate to the list. */
-		  list = g_slist_prepend (list, element);
-
-		  /* Figure out the boundaries on the drawing. */
-		  if (coordinate->y > stats.top) stats.top = coordinate->y;
-		  if (coordinate->y < stats.bottom) stats.bottom = coordinate->y;
-		  if (coordinate->x < stats.left) stats.left = coordinate->x;
-		  if (coordinate->x > stats.right) stats.right = coordinate->x;
-
-		  coordinate = NULL;
-		}
+	      if (coordinate->y > stats.top) stats.top = coordinate->y;
+	      if (coordinate->y < stats.bottom) stats.bottom = coordinate->y;
+	      if (coordinate->x < stats.left) stats.left = coordinate->x;
+	      if (coordinate->x > stats.right) stats.right = coordinate->x;
 	    }
 	  else
 	    mem_error();
@@ -219,6 +209,7 @@ p_wpi_parse (const char* filename)
 	      dt_pressure* pressure = malloc (sizeof (dt_pressure));
 	      if (pressure != NULL)
 		{
+		  pressure->type = TYPE_PRESSURE;
 		  count += 4;
 		  pressure->pressure = (int)data[count] << 8;
 		  pressure->pressure = pressure->pressure + data[count + 1];
@@ -228,15 +219,7 @@ p_wpi_parse (const char* filename)
 		  if (pressure->pressure > max_stroke_pressure)
 		    max_stroke_pressure = pressure->pressure;
 
-		  dt_element* element = malloc (sizeof (dt_element));
-		  if (element != NULL)
-		    {
-		      element->type = TYPE_PRESSURE;
-		      element->data = pressure;
-
-		      /* Add the wrapped tilt information to the list. */
-		      list = g_slist_prepend (list, element);
-		    }
+		  list = g_slist_prepend (list, pressure);
 		}
 	      else
 		mem_error();
@@ -261,19 +244,11 @@ p_wpi_parse (const char* filename)
 	      dt_tilt* tilt = malloc (sizeof (dt_tilt));
 	      if (tilt != NULL)
 		{
+		  tilt->type = TYPE_TILT;
 		  tilt->x = data[count];
 		  tilt->y = data[count + 1];
 
-		  dt_element* element = malloc (sizeof (dt_element));
-		  if (element != NULL)
-		    {
-		      element->type = TYPE_TILT;
-		      element->data = tilt;
-		      tilt = NULL;
-
-		      /* Add the wrapped tilt information to the list. */
-		      list = g_slist_prepend (list, element);
-		    }
+		  list = g_slist_prepend (list, tilt);
 		}
 	      else
 		mem_error();
@@ -307,23 +282,14 @@ p_wpi_parse (const char* filename)
 	      dt_stroke* stroke = malloc (sizeof (dt_stroke));
 	      if (stroke != NULL) 
 		{
+		  stroke->type = TYPE_STROKE;
 		  stroke->value = data[count + 1];
 
 		  /* Update the statistics when needed. */
 		  if (stroke->value == BEGIN_STROKE) 
 		    stats.strokes++;
 
-		  /* Wrap the stroke information into a 'dt_element', so it 
-		   * can be added to the list. */
-		  dt_element* element = malloc (sizeof (dt_element));
-		  if (element != NULL)
-		    {
-		      element->type = TYPE_STROKE;
-		      element->data = stroke;
-
-		      /* Add the wrapped stroke information to the list. */
-		      list = g_slist_prepend (list, element);
-		    }
+		  list = g_slist_prepend (list, stroke);
 		}
 	    }
 	}

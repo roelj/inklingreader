@@ -30,6 +30,7 @@
 #define SHRINK 27.0
 #define OFFSET_X 375.0
 #define OFFSET_Y 37.5
+#define PRESSURE_FACTOR 2000.0
 #define COLOR "#00007c"
 
 /*----------------------------------------------------------------------------.
@@ -75,7 +76,7 @@ co_svg_create (GSList* data, const char* title)
    * layer take 571 bytes, so these are added to the amount to allocate. 
    * There's no mechanism in place to allocate more. So this is something 
    * to look into. */
-  size_t output_len = 10 * g_slist_length (data) + 571;
+  size_t output_len = 20 * g_slist_length (data) + 571;
   char* output = malloc (output_len);
   if (output == NULL)
     {
@@ -116,6 +117,8 @@ co_svg_create (GSList* data, const char* title)
   unsigned char has_been_positioned = 0;
   unsigned char is_in_stroke = 0;
 
+  GSList* stroke_data = NULL; 
+
   /*--------------------------------------------------------------------------.
    | WRITE DATA POINTS                                                        |
    '--------------------------------------------------------------------------*/
@@ -129,13 +132,13 @@ co_svg_create (GSList* data, const char* title)
 	   '------------------------------------------------------------------*/
 	case TYPE_STROKE:
 	  {
-	    dt_stroke* s = (dt_stroke *)e->data;
+	    dt_stroke* s = (dt_stroke *)e;
 	    switch (s->value)
 	      {
 	      case BEGIN_STROKE:
 		{
 		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
-				      "style=\"fill:none; stroke:%s\" d=\"", group, COLOR);
+				      "style=\"fill:%s; stroke:none\" d=\"", group, COLOR);
 
 		  has_been_positioned = 0;
 		  is_in_stroke = 1;
@@ -146,7 +149,23 @@ co_svg_create (GSList* data, const char* title)
 		{
 		  if (is_in_stroke == 1)
 		    {
-		      written += sprintf (output + written, "\" />\n  </g>\n");
+		      while (stroke_data != NULL)
+			{
+			  dt_coordinate* c = (dt_coordinate*)stroke_data->data;
+			  float x = c->x / SHRINK + OFFSET_X;
+			  float y = c->y / SHRINK + OFFSET_Y;
+
+			  // When the data is within the borders of an A4 page, add
+			  // it. This prevents weird stripes and clutter from 
+			  // disturbing the document.
+			  if (x > 0 && y > 100 && y < 1050)
+			    written += sprintf (output + written, " L %f,%f", 
+						x + c->pressure, y + c->pressure);
+
+			  stroke_data = stroke_data->next;
+			}
+
+		      written += sprintf (output + written, " z\" />\n  </g>\n");
 		      is_in_stroke = 0;
 		    }
 		}
@@ -170,10 +189,23 @@ co_svg_create (GSList* data, const char* title)
 	  {
 	    if (is_in_stroke == 1)
 	      {
-		dt_coordinate* c = (dt_coordinate *)e->data;
-		//c = opt_straight_lines_filter (data);
+		dt_coordinate* c = (dt_coordinate *)e;
+
 		if (c != NULL)
 		  {
+		    if (data->next != NULL)
+		      {
+			dt_element* elem = (dt_element*)data->next->data;
+			if (elem != NULL && elem->type == TYPE_PRESSURE)
+			  {
+			    dt_pressure* p = (dt_pressure*)elem;
+			    c->pressure = p->pressure;
+			    c->pressure = c->pressure / PRESSURE_FACTOR;
+			  }
+		      }
+
+		    stroke_data = g_slist_prepend (stroke_data, c);
+
 		    char* type = "M";
 
 		    if (has_been_positioned > 0)
@@ -184,16 +216,18 @@ co_svg_create (GSList* data, const char* title)
 		    float x = c->x / SHRINK + OFFSET_X;
 		    float y = c->y / SHRINK + OFFSET_Y;
 
-		    /* When the data is within the borders of an A4 page, add
-		     * it. This prevents weird stripes and clutter from 
-		     * disturbing the document. */
+		    // When the data is within the borders of an A4 page, add
+		    // it. This prevents weird stripes and clutter from 
+		    // disturbing the document.
 		    if (x > 0 && y > 100 && y < 1050)
 		      written += sprintf (output + written, "%s %f,%f", 
-					  type, x, y);
+					  type, x - c->pressure, y - c->pressure);
+
 		  }
 	      }
 	  }
 	  break;
+	  /*
 	case TYPE_PRESSURE:
 	  {
 	    //dt_pressure* p = (dt_pressure *)e->data;
@@ -204,12 +238,11 @@ co_svg_create (GSList* data, const char* title)
 	    //dt_tilt* t = (dt_tilt *)e->data;
 	  }
 	  break;
+	  */
 	}
 
-      free (e->data);
-      e->data = NULL;
-      free (e);
-      e = NULL;
+      //free (e);
+      //e = NULL;
 
       data = data->next;
     }

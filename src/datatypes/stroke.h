@@ -25,6 +25,7 @@
  '----------------------------------------------------------------------------*/
 typedef struct
 {
+  unsigned char type;
   unsigned char value;
 } dt_stroke;
 

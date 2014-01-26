@@ -24,6 +24,7 @@
  | FILE STATISTICS DEFINITION                                                 |
  '----------------------------------------------------------------------------*/
 typedef struct {
+  unsigned char type;
   int objects;
   int strokes;
   int coordinates;

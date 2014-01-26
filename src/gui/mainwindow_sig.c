@@ -298,10 +298,16 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 	    svg_data = co_svg_create (parsed_data, NULL);
 	    size_t svg_data_len = strlen (svg_data);
 	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
+
 	    rsvg_handle_render_cairo (handle, cr);
+	    rsvg_handle_close (handle, NULL);
 	  }
 	else if (handle)
-	  rsvg_handle_render_cairo (handle, cr);
+	  {
+	    rsvg_handle_write (handle, (const unsigned char*)svg_data, strlen (svg_data), NULL);
+	    rsvg_handle_render_cairo (handle, cr);
+	    rsvg_handle_close (handle, NULL);
+	  }
       }
       break;
     case VIEW_DIRECTORY:

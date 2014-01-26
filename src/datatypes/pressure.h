@@ -26,6 +26,7 @@
 
 typedef struct
 {
+  unsigned char type;
   int pressure;
 } dt_pressure;
 

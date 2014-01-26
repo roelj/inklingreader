@@ -42,16 +42,15 @@
 
 /*----------------------------------------------------------------------------.
  | ELEMENT                                                                    |
- | This type acts as a wrapper for elements in a list. The list type provides |
- | a void* to the data. To be able to recognize which type is being stored,   |
- | the TYPE_ definition provides the answer. All possible types that are      |
- | defined above.                                                             |
+ | This struct contains the common element in all datatypes defined here:     |
+ | a specifier for which type of element the struct is. In a list, these      |
+ | structs are all pointers to void. To know which type a struct is, the      |
+ | 'type' field is used.                                                      |
  '----------------------------------------------------------------------------*/
 
 typedef struct
 {
   unsigned char type;
-  void* data;
 } dt_element;
 
 #endif//DATATYPES_ELEMENT_H

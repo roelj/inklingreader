@@ -26,6 +26,7 @@
 
 typedef struct
 {
+  unsigned char type;
   unsigned char x;
   unsigned char y;
 } dt_tilt;
