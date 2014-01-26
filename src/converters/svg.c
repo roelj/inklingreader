@@ -33,6 +33,7 @@
 #define OFFSET_Y 37.5
 #define PRESSURE_FACTOR 2000.0
 #define COLOR "#00007c"
+#define SPIKE_THRESHOLD 20.0
 
 /*----------------------------------------------------------------------------.
  | CO_WRITE_SVG_FILE                                                          |
@@ -158,23 +159,25 @@ co_svg_create (GSList* data, const char* title)
 			  float x = c->x / SHRINK + OFFSET_X;
 			  float y = c->y / SHRINK + OFFSET_Y;
 
-			  // When the data is within the borders of an A4 page, add
-			  // it. This prevents weird stripes and clutter from 
-			  // disturbing the document.
-			  // When points are exactly the same, skip them.
-			  if (x != previous_x && y != previous_y &&
-			      x > 0 && y > 100 && y < 1050)
-			    {
-			      float length = sqrt ((x - previous_x) * (x - previous_x) +
-						   (y - previous_y) * (y - previous_y));
-			      // Avoid division by zero. If length is zero, delta_x and
+                          // When points are too far away, skip them.
+                          // When points are exactly the same, skip them.
+                          // When the data is within the borders of an A4 page, add
+                          // it. This prevents weird stripes and clutter from 
+                          // disturbing the document.
+			  float distance = sqrt ((x - previous_x) * (x - previous_x) +
+					       (y - previous_y) * (y - previous_y));
+                          if ( distance <= SPIKE_THRESHOLD &&
+                              x != previous_x && y != previous_y &&
+                              x > 0 && y > 100 && y < 1050)
+                            {
+			      // Avoid division by zero. If distance is zero, delta_x and
 			      // delta_y are also zero.
-			      if (length == 0)
-				length = 1;
+                              if (distance == 0)
+                                distance = 1;
 
 			      written += sprintf (output + written, " L %f,%f",
-						  x + (previous_y - y) / length * c->pressure,
-						  y + (x - previous_x) / length * c->pressure);
+						  x + (previous_y - y) / distance * c->pressure,
+						  y + (x - previous_x) / distance * c->pressure);
 			      previous_x = x;
 			      previous_y = y;
 			    }
@@ -248,17 +251,20 @@ co_svg_create (GSList* data, const char* title)
 		    // disturbing the document.
 		    if (x > 0 && y > 100 && y < 1050)
 		      {
-			float length = sqrt ((x - previous_x) * (x - previous_x) +
+			float distance = sqrt ((x - previous_x) * (x - previous_x) +
 					     (y - previous_y) * (y - previous_y));
-			// Avoid division by zero. If length is zero, delta_x and
+			// Avoid division by zero. If distance is zero, delta_x and
 			// delta_y are also zero.
-			if (length == 0)
-			  length = 1;
+                        if (distance == 0)
+                          distance = 1;
+                        if (distance > SPIKE_THRESHOLD)
+                          break;
+
 
 			written += sprintf (output + written, "%s %f,%f", 
 					    type,
-					    x + (previous_y - y) / length * c->pressure,
-					    y + (x - previous_x) / length * c->pressure);
+					    x + (previous_y - y) / distance * c->pressure,
+					    y + (x - previous_x) / distance * c->pressure);
 			previous_x = x;
 			previous_y = y;
 		      }
