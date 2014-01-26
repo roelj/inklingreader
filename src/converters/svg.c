@@ -161,7 +161,9 @@ co_svg_create (GSList* data, const char* title)
 			  // When the data is within the borders of an A4 page, add
 			  // it. This prevents weird stripes and clutter from 
 			  // disturbing the document.
-			  if (x > 0 && y > 100 && y < 1050)
+			  // When points are exactly the same, skip them.
+			  if (x != previous_x && y != previous_y &&
+			      x > 0 && y > 100 && y < 1050)
 			    {
 			      float length = sqrt ((x - previous_x) * (x - previous_x) +
 						   (y - previous_y) * (y - previous_y));
@@ -227,7 +229,12 @@ co_svg_create (GSList* data, const char* title)
 		    char* type = "M";
 
 		    if (has_been_positioned > 0)
+		    {
+		      // When points are exactly the same, skip them.
+		      if (x == previous_x && y == previous_y)
+		      	break;
 		      type = " L";
+		    }
 		    else
 		      {  //begin a new stroke
 			previous_x = x;//
