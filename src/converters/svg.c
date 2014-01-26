@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "../datatypes/element.h"
 #include "../optimizers/straight_lines.h"
 
@@ -116,6 +117,8 @@ co_svg_create (GSList* data, const char* title)
   unsigned int layer = 2;
   unsigned char has_been_positioned = 0;
   unsigned char is_in_stroke = 0;
+  float previous_x = 0;
+  float previous_y = 0;
 
   GSList* stroke_data = NULL; 
 
@@ -159,8 +162,20 @@ co_svg_create (GSList* data, const char* title)
 			  // it. This prevents weird stripes and clutter from 
 			  // disturbing the document.
 			  if (x > 0 && y > 100 && y < 1050)
-			    written += sprintf (output + written, " L %f,%f", 
-						x + c->pressure, y + c->pressure);
+			    {
+			      float length = sqrt ((x - previous_x) * (x - previous_x) +
+						   (y - previous_y) * (y - previous_y));
+			      // Avoid division by zero. If length is zero, delta_x and
+			      // delta_y are also zero.
+			      if (length == 0)
+				length = 1;
+
+			      written += sprintf (output + written, " L %f,%f",
+						  x + (previous_y - y) / length * c->pressure,
+						  y + (x - previous_x) / length * c->pressure);
+			      previous_x = x;
+			      previous_y = y;
+			    }
 
 			  stroke_data = stroke_data->next;
 			}
@@ -206,22 +221,40 @@ co_svg_create (GSList* data, const char* title)
 
 		    stroke_data = g_slist_prepend (stroke_data, c);
 
+		    float x = c->x / SHRINK + OFFSET_X;
+		    float y = c->y / SHRINK + OFFSET_Y;
+		    
 		    char* type = "M";
 
 		    if (has_been_positioned > 0)
 		      type = " L";
 		    else
-		      has_been_positioned = 1;
+		      {  //begin a new stroke
+			previous_x = x;//
+			previous_y = y;//
+			has_been_positioned = 1;
+		      }
 
-		    float x = c->x / SHRINK + OFFSET_X;
-		    float y = c->y / SHRINK + OFFSET_Y;
 
 		    // When the data is within the borders of an A4 page, add
 		    // it. This prevents weird stripes and clutter from 
 		    // disturbing the document.
 		    if (x > 0 && y > 100 && y < 1050)
-		      written += sprintf (output + written, "%s %f,%f", 
-					  type, x - c->pressure, y - c->pressure);
+		      {
+			float length = sqrt ((x - previous_x) * (x - previous_x) +
+					     (y - previous_y) * (y - previous_y));
+			// Avoid division by zero. If length is zero, delta_x and
+			// delta_y are also zero.
+			if (length == 0)
+			  length = 1;
+
+			written += sprintf (output + written, "%s %f,%f", 
+					    type,
+					    x + (previous_y - y) / length * c->pressure,
+					    y + (x - previous_x) / length * c->pressure);
+			previous_x = x;
+			previous_y = y;
+		      }
 
 		  }
 	      }
