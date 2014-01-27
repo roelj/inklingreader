@@ -32,7 +32,7 @@ co_pdf_export_to_file_from_handle (const char* filename, RsvgHandle* handle)
   int status = 0;
 
   cairo_surface_t* surface = NULL;
-  surface = cairo_pdf_surface_create (filename, A4_WIDTH, A4_HEIGHT);
+  surface = cairo_pdf_surface_create (filename, A4_WIDTH * 1.25, A4_HEIGHT * 1.25);
 
   cairo_t* cr = cairo_create (surface);
   rsvg_handle_render_cairo (handle, cr);
