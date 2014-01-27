@@ -309,7 +309,8 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 	    rsvg_handle_close (handle, NULL);
 	  }
 
-	gtk_widget_set_size_request(widget, w, h);
+	gtk_widget_set_size_request(widget, 0, h);
+
       }
       break;
     case VIEW_DIRECTORY:
