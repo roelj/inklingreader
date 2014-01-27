@@ -127,9 +127,9 @@ p_wpi_parse (const char* filename)
     }
 
   file_header = memcpy (file_header, data, header_len);
-  file_header = g_base64_encode ((unsigned char*)file_header, header_len);
+  gchar* base64_header = g_base64_encode ((unsigned char*)file_header, header_len);
 
-  if (strcmp (file_header, header))
+  if (strcmp (base64_header, header))
     {
       printf ("This file is not a (supported) WPI file.\r\n");
       free (file_header);
@@ -137,6 +137,7 @@ p_wpi_parse (const char* filename)
       return NULL;
     }
 
+  g_free (base64_header);
   free (file_header);
   file_header = NULL;
 

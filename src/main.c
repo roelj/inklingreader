@@ -142,7 +142,14 @@ export_to_file (GSList* data, const char* to)
       else if (!strcmp (extension, "pdf"))
 	co_pdf_export_to_file (to, svg_data);
       else if (!strcmp (extension, "svg"))
-	co_svg_create_file (to, data);
+	{
+	  FILE* file;
+	  file = fopen (to, "w");
+	  if (file != NULL)
+	    fwrite (svg_data, strlen (svg_data), 1, file);
+
+	  fclose (file);
+	}
       else
 	unsupported ();
 
