@@ -35,6 +35,8 @@
 #include "parsers/wpi.h"
 #include "datatypes/element.h"
 #include "gui/mainwindow.h"
+#include "converters/png.h"
+#include "converters/pdf.h"
 #include "converters/svg.h"
 
 #include <malloc.h>
@@ -43,12 +45,21 @@
 #include <dirent.h>
 
 
+/*----------------------------------------------------------------------------.
+ | SHOW_VERSION                                                               |
+ | This function displays the program's current version.                      |
+ '----------------------------------------------------------------------------*/
 void
 show_version ()
 {
-  printf ("Version: 0.3\r\n");
+  printf ("Version: 0.4\r\n");
 }
 
+
+/*----------------------------------------------------------------------------.
+ | SHOW_HELP                                                                  |
+ | This function displays the possible command-line arguments.                |
+ '----------------------------------------------------------------------------*/
 void 
 show_help ()
 {
@@ -61,6 +72,11 @@ show_help ()
 	  "  --help,              -h  Show this message.\r\n\r\n");
 }
 
+
+/*----------------------------------------------------------------------------.
+ | CONVERT_DIRECTORY                                                          |
+ | This function is a helper to convert all WPI files in a directory to SVG.  |
+ '----------------------------------------------------------------------------*/
 void
 convert_directory (const char* path, GSList* coordinates)
 {
@@ -103,6 +119,44 @@ convert_directory (const char* path, GSList* coordinates)
   closedir (directory);
 }
 
+
+/*----------------------------------------------------------------------------.
+ | EXPORT_TO_FILE                                                             |
+ | This function is a helper to enable exporting to all supported filetypes.  |
+ '----------------------------------------------------------------------------*/
+void
+export_to_file (GSList* data, const char* to)
+{
+  inline void unsupported ()
+  {
+    printf ("Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.\r\n");
+  }
+
+  if (strlen (to) > 3)
+    {
+      const char* extension = to + strlen (to) - 3;
+      char* svg_data = co_svg_create (data, to);
+
+      if (!strcmp (extension, "png"))
+	co_png_export_to_file (to, svg_data);
+      else if (!strcmp (extension, "pdf"))
+	co_pdf_export_to_file (to, svg_data);
+      else if (!strcmp (extension, "svg"))
+	co_svg_create_file (to, data);
+      else
+	unsupported ();
+
+      free (svg_data);
+    }
+  else
+    unsupported ();
+}
+
+
+/*----------------------------------------------------------------------------.
+ | MAIN                                                                       |
+ | Execution of the program starts here.                                      |
+ '----------------------------------------------------------------------------*/
 int
 main (int argc, char** argv)
 {
@@ -113,11 +167,11 @@ main (int argc, char** argv)
       int index = 0;
       GSList* coordinates = NULL;
 
-      /*--------------------------------------------------------------------------.
-	| OPTIONS                                                                  |
-	| An array of structs that list all possible arguments that can be         |
-	| provided by the user.                                                    |
-	'--------------------------------------------------------------------------*/
+      /*----------------------------------------------------------------------.
+       | OPTIONS                                                              |
+       | An array of structs that list all possible arguments that can be     |
+       | provided by the user.                                                |
+       '----------------------------------------------------------------------*/
       static struct option options[] =
 	{
 	  { "convert-directory", required_argument, 0, 'c' },
@@ -136,53 +190,54 @@ main (int argc, char** argv)
 
 	  switch (arg)
 	    {
-	      /*--------------------------------------------------------------------.
-	       | OPTION: CONVERT-DIRECTORY                                          |
-	       | Convert all WPI files in a given directory.                        |
-	       '--------------------------------------------------------------------*/
+	      /*--------------------------------------------------------------.
+	       | OPTION: CONVERT-DIRECTORY                                    |
+	       | Convert all WPI files in a given directory.                  |
+	       '--------------------------------------------------------------*/
 	    case 'c':
 	      if (optarg)
 		convert_directory (optarg, coordinates);
 	      break;
 
-	      /*--------------------------------------------------------------------.
-	       | OPTION: FILE                                                       |
-	       | Use in combination with TO, to convert file.                       |
-	       '--------------------------------------------------------------------*/
+	      /*--------------------------------------------------------------.
+	       | OPTION: FILE                                                 |
+	       | Use in combination with TO, to convert file.                 |
+	       '--------------------------------------------------------------*/
 	    case 'f':
 	      if (optarg)
 		coordinates = p_wpi_parse (optarg);
 	      break;
 
-	      /*--------------------------------------------------------------------.
-	       | OPTION: TO                                                         |
-	       | Use with FILE to convert a file.                                   |
-	       '--------------------------------------------------------------------*/
+	      /*--------------------------------------------------------------.
+	       | OPTION: TO                                                   |
+	       | Use with FILE to convert a file.                             |
+	       '--------------------------------------------------------------*/
 	    case 't':
 	      if (optarg)
-		co_svg_create_file (optarg, coordinates);
+		export_to_file (coordinates, optarg);
+	      //co_svg_create_file (optarg, coordinates);
 	      break;
 
-	      /*--------------------------------------------------------------------.
-	       | OPTION: GUI                                                        |
-	       | Start the graphical user interface.                                |
-	       '--------------------------------------------------------------------*/
+	      /*--------------------------------------------------------------.
+	       | OPTION: GUI                                                  |
+	       | Start the graphical user interface.                          |
+	       '--------------------------------------------------------------*/
 	    case 'g':
 	      gui_init_mainwindow (argc, argv, optarg);
 	      break;
 
-	      /*--------------------------------------------------------------------.
-	       | OPTION: HELP                                                       |
-	       | Show a help message.                                               |
-	       '--------------------------------------------------------------------*/
+	      /*--------------------------------------------------------------.
+	       | OPTION: HELP                                                 |
+	       | Show a help message.                                         |
+	       '--------------------------------------------------------------*/
 	    case 'h':
 	      show_help ();
 	      break;
 
-	      /*--------------------------------------------------------------------.
-	       | OPTION: VERSION                                                    |
-	       | Show version information.                                          |
-	       '--------------------------------------------------------------------*/
+	      /*--------------------------------------------------------------.
+	       | OPTION: VERSION                                              |
+	       | Show version information.                                    |
+	       '--------------------------------------------------------------*/
 	    case 'v':
 	      show_version ();
 	      break;
