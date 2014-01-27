@@ -289,6 +289,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 	double w = gtk_widget_get_allocated_width (widget);
 	double ratio = w / (A4_WIDTH * 1.25) / 1.25;
 	double padding = (w - (A4_WIDTH * 1.25 * ratio)) / 2;
+	double h = w * A4_HEIGHT / A4_WIDTH - padding * 2;
 
 	cairo_translate (cr, padding, 30.0);
 	cairo_scale (cr, ratio, ratio);
@@ -297,17 +298,18 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 	  {
 	    svg_data = co_svg_create (parsed_data, NULL);
 	    size_t svg_data_len = strlen (svg_data);
-	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
 
+	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
 	    rsvg_handle_render_cairo (handle, cr);
 	    rsvg_handle_close (handle, NULL);
 	  }
 	else if (handle)
 	  {
-	    rsvg_handle_write (handle, (const unsigned char*)svg_data, strlen (svg_data), NULL);
 	    rsvg_handle_render_cairo (handle, cr);
 	    rsvg_handle_close (handle, NULL);
 	  }
+
+	gtk_widget_set_size_request(widget, w, h);
       }
       break;
     case VIEW_DIRECTORY:

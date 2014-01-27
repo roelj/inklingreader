@@ -39,6 +39,8 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
    '--------------------------------------------------------------------------*/
   GtkWidget* window = NULL;
   GtkWidget* document_view = NULL;
+  GtkWidget* document_viewport = NULL;
+  GtkWidget* document_container = NULL;
 
   GtkWidget* vbox_window = NULL;
   GtkWidget* hbox_menu_top = NULL;
@@ -57,7 +59,10 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   vbox_window = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
   hbox_menu_top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
 
+  document_container = gtk_scrolled_window_new (NULL, NULL);
+  document_viewport = gtk_viewport_new (NULL, NULL);
   document_view = gtk_drawing_area_new ();
+
   lbl_status = gtk_label_new ("Please open a file or folder.");
 
   menu_bar = gtk_menu_bar_new ();
@@ -89,6 +94,11 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   gdk_rgba_parse (&bg, "#101010");
   gtk_widget_override_background_color (document_view, GTK_STATE_NORMAL, &bg);
 
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (document_container), 
+				  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+  gtk_container_add (GTK_CONTAINER (document_viewport), document_view);
+  gtk_container_add (GTK_CONTAINER (document_container), document_viewport);
 
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
@@ -96,9 +106,8 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 0);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), lbl_status, 1, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
-  gtk_box_pack_start (GTK_BOX (vbox_window), document_view, 1, 1, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
-
 
   /*--------------------------------------------------------------------------.
    | SIGNALS                                                                  |
