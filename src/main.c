@@ -28,21 +28,16 @@
  | - p_:     Parsers                                                          |
  | - gui_:   Graphical User Interface                                         |
  | - co_:    Converters                                                       |
+ | - high_:  Provides functions that combine other functions ("high level").  |
  '----------------------------------------------------------------------------*/
 
 #include <stdio.h>
 #include <getopt.h>
+
 #include "parsers/wpi.h"
 #include "datatypes/element.h"
 #include "gui/mainwindow.h"
-#include "converters/png.h"
-#include "converters/pdf.h"
-#include "converters/svg.h"
-
-#include <malloc.h>
-#include <sys/types.h>
-#include <string.h>
-#include <dirent.h>
+#include "high/conversion.h"
 
 
 /*----------------------------------------------------------------------------.
@@ -72,100 +67,6 @@ show_help ()
 	  "  --help,              -h  Show this message.\r\n\r\n");
 }
 
-
-/*----------------------------------------------------------------------------.
- | CONVERT_DIRECTORY                                                          |
- | This function is a helper to convert all WPI files in a directory to SVG.  |
- '----------------------------------------------------------------------------*/
-void
-convert_directory (const char* path, GSList* coordinates)
-{
-  DIR* directory;
-  struct dirent* entry;
-
-  directory = opendir (path);
-  while ((entry = readdir (directory)) != NULL)
-    {
-      /* Don't show files starting with a dot, '.' and '..' and only show 
-       * files with the WPI extension (others are not relevant). */
-      char* extension = entry->d_name + strlen (entry->d_name) - 3;
-      if (entry->d_name[0] != '.' && !strcmp (extension, "WPI"))
-	{
-	  size_t name_len = strlen (path) + strlen (entry->d_name) + 2;
-	  char* name = malloc (name_len);
-	  char* new_name = malloc (name_len);
-	  if (name == NULL || new_name == NULL) break;
-
-	  /* Construct a string that holds "path/name". */
-	  snprintf (name, name_len, "%s/%s", path, entry->d_name);
-
-	  /* Parse a file.*/
-	  coordinates = p_wpi_parse (name);
-
-	  /* Construct a string for the new filename. */
-	  snprintf (new_name, name_len - 3, "%s/%s", path, entry->d_name);
-	  strcat (new_name, "svg");
-
-	  /* Convert a file. */
-	  co_svg_create_file (new_name, coordinates);
-
-	  /* Clean up. 
-	   * TODO: coordinates is leaking a lot of of memory! */
-	  coordinates = NULL;
-	  free (name);
-	  free (new_name);
-	}
-    }
-  closedir (directory);
-}
-
-
-/*----------------------------------------------------------------------------.
- | EXPORT_TO_FILE                                                             |
- | This function is a helper to enable exporting to all supported filetypes.  |
- '----------------------------------------------------------------------------*/
-void
-export_to_file (GSList* data, const char* to)
-{
-  /* Even though this function is now deprecated, it is a fix for the GLib
-   * version that is shipped with Ubuntu 12.04. */
-  #ifndef GLIB_VERSION_2_36
-  g_type_init ();
-  #endif
-
-  inline void unsupported ()
-  {
-    printf ("Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.\r\n");
-  }
-
-  if (strlen (to) > 3)
-    {
-      const char* extension = to + strlen (to) - 3;
-      char* svg_data = co_svg_create (data, to);
-
-      if (!strcmp (extension, "png"))
-	co_png_export_to_file (to, svg_data);
-      else if (!strcmp (extension, "pdf"))
-	co_pdf_export_to_file (to, svg_data);
-      else if (!strcmp (extension, "svg"))
-	{
-	  FILE* file;
-	  file = fopen (to, "w");
-	  if (file != NULL)
-	    fwrite (svg_data, strlen (svg_data), 1, file);
-
-	  fclose (file);
-	}
-      else
-	unsupported ();
-
-      free (svg_data);
-    }
-  else
-    unsupported ();
-}
-
-
 /*----------------------------------------------------------------------------.
  | MAIN                                                                       |
  | Execution of the program starts here.                                      |
@@ -175,7 +76,6 @@ main (int argc, char** argv)
 {
   if (argc > 1)
     {
-
       int arg = 0;
       int index = 0;
       GSList* coordinates = NULL;
@@ -209,7 +109,7 @@ main (int argc, char** argv)
 	       '--------------------------------------------------------------*/
 	    case 'c':
 	      if (optarg)
-		convert_directory (optarg, coordinates);
+		high_convert_directory (optarg, coordinates);
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -227,7 +127,7 @@ main (int argc, char** argv)
 	       '--------------------------------------------------------------*/
 	    case 't':
 	      if (optarg)
-		export_to_file (coordinates, optarg);
+		high_export_to_file (coordinates, optarg);
 	      //co_svg_create_file (optarg, coordinates);
 	      break;
 

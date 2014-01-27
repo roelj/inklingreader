@@ -20,13 +20,13 @@
 SHELL           = /bin/sh
 
 CC              = gcc
-VPATH           = src:src/gui:src/converters:src/parsers:src/optimizers
+VPATH           = src:src/gui:src/converters:src/parsers:src/high
 LDLIBS          = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --libs`
 LDFLAGS         = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --cflags`
 #CFLAGS          = -Wall -lm -O0 -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 CFLAGS          = -Wall -lm -Os -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o png.o pdf.o wpi.o \
-		  straight_lines.o
+		  conversion.o #straight_lines.o
 NAME            = InklingReader
 
 .PHONY: all
