@@ -33,7 +33,12 @@
 #define OFFSET_X 375.0
 #define OFFSET_Y 37.5
 #define PRESSURE_FACTOR 2000.0
-#define COLOR "#00007c"
+
+#define COLOR_1 "#00007c"
+#define COLOR_2 "#7c0000"
+#define COLOR_3 "#007c00"
+#define COLOR_4 "#7c007c"
+
 #define SPIKE_THRESHOLD 20.0
 
 /*----------------------------------------------------------------------------.
@@ -122,6 +127,8 @@ co_svg_create (GSList* data, const char* title)
    '--------------------------------------------------------------------------*/
   unsigned int group = 0;
   unsigned int layer = 2;
+  unsigned int layer_color = 1;
+  unsigned char has_stroke_data = 0;
   unsigned char has_been_positioned = 0;
   unsigned char is_in_stroke = 0;
   float previous_x = 0;
@@ -147,11 +154,26 @@ co_svg_create (GSList* data, const char* title)
 	      {
 	      case BEGIN_STROKE:
 		{
+		  char* color = COLOR_1;
+		  switch (layer_color)
+		    {
+		    case 2:
+		      color = COLOR_2;
+		      break;
+		    case 3:
+		      color = COLOR_3;
+		      break;
+		    case 4:
+		      color = COLOR_4;
+		      break;
+		    };
+
 		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
-				      "style=\"fill:%s; stroke:none\" d=\"", group, COLOR);
+				      "style=\"fill:%s; stroke:none\" d=\"", group, color);
 
 		  has_been_positioned = 0;
 		  is_in_stroke = 1;
+		  has_stroke_data = 1;
 		  group++;
 		}
 	      break;
@@ -199,11 +221,18 @@ co_svg_create (GSList* data, const char* title)
 		break;
 	      case NEW_LAYER:
 		{
-		  written += sprintf (output + written, 
-			   "\n  </g>\n<g inkscape:label=\"Layer %d\" inkscape:"
-			   "groupmode=\"layer\" id=\"layer%d\">\n", 
-			   layer, layer);
-		  layer++;
+		  if (has_stroke_data == 0)
+		    layer_color++;
+		  else
+		    {
+		      has_stroke_data = 0;
+		      layer_color = 1;
+		      written += sprintf (output + written, 
+		        "\n  </g>\n<g inkscape:label=\"Layer %d\" inkscape:"
+			"groupmode=\"layer\" id=\"layer%d\">\n", 
+			layer, layer);
+		      layer++;
+		    }
 		}
 		break;
 	      }
