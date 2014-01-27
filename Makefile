@@ -56,4 +56,4 @@ module-info:
 win32:
 	$(CC) $(CFLAGS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
 	src/parsers/wpi.c src/converters/svg.c src/converters/png.c src/converters/pdf.c \
-	src/optimizers/straight_lines.c $(LDLIBS) -o $(NAME)
+	src/high/conversion.c $(LDLIBS) -o $(NAME)
