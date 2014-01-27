@@ -127,6 +127,12 @@ convert_directory (const char* path, GSList* coordinates)
 void
 export_to_file (GSList* data, const char* to)
 {
+  /* Even though this function is now deprecated, it is a fix for the GLib
+   * version that is shipped with Ubuntu 12.04. */
+  #ifndef GLIB_VERSION_2_36
+  g_type_init ();
+  #endif
+
   inline void unsupported ()
   {
     printf ("Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.\r\n");
