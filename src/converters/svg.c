@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <locale.h>
 #include "../datatypes/element.h"
 #include "../optimizers/straight_lines.h"
 
@@ -66,6 +67,11 @@ co_svg_create_file (const char* filename, GSList* data)
 char* 
 co_svg_create (GSList* data, const char* title)
 {
+  /* Floating-point numbers should be written with a dot instead of a comma.
+   * To ensure that this happens, (temporarily) set the locale to the "C"
+   * locale for this program. */
+  setlocale (LC_NUMERIC, "C");
+
   if (g_slist_length (data) == 0)
     {
       printf ("%s: No useful data was found in the file.\r\n", __func__);
@@ -182,6 +188,7 @@ co_svg_create (GSList* data, const char* title)
 			      previous_y = y;
 			    }
 
+			  free (c);
 			  stroke_data = stroke_data->next;
 			}
 
@@ -200,6 +207,8 @@ co_svg_create (GSList* data, const char* title)
 		}
 		break;
 	      }
+	    free (s);
+	    s = NULL;
 	  }
 	  break;
 	  /*------------------------------------------------------------------.
@@ -260,7 +269,6 @@ co_svg_create (GSList* data, const char* title)
                         if (distance > SPIKE_THRESHOLD)
                           break;
 
-
 			written += sprintf (output + written, "%s %f,%f", 
 					    type,
 					    x + (previous_y - y) / distance * c->pressure,
@@ -268,17 +276,11 @@ co_svg_create (GSList* data, const char* title)
 			previous_x = x;
 			previous_y = y;
 		      }
-
 		  }
 	      }
 	  }
 	  break;
 	  /*
-	case TYPE_PRESSURE:
-	  {
-	    //dt_pressure* p = (dt_pressure *)e->data;
-	  }
-	  break;
 	case TYPE_TILT:
 	  {
 	    //dt_tilt* t = (dt_tilt *)e->data;
@@ -301,6 +303,9 @@ co_svg_create (GSList* data, const char* title)
 
   g_slist_free (data);
   data = NULL;
+
+  /* Reset to default locale settings. */
+  setlocale (LC_NUMERIC, "");
 
   return output;
 }
