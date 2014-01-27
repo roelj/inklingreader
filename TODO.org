@@ -25,6 +25,9 @@
 	stroke thickness makes life easier for those who don't want to work
 	with a full-blown editor like Inkscape.
 
+	As an extra feature, make a layer a different color when the user 
+	presses the "new layer" multiple times without drawing new data.
+
   - [X] Inkscape layering support
 	
 	As drawing is moving towards Cairo instead of a custom SVG exporter,
@@ -48,11 +51,11 @@
 	- [X] Compile for Windows
 	- [X] Convert a file with the Windows binary
         - [ ] Convert all files in a directory with the Windows binary
-	- [ ] Use the graphical user interface with the Windows binary
-	      - [ ] Open a file
-		    - [ ] Export as PDF
-                    - [ ] Export as PNG
-                    - [ ] Export as SVG
+	- [X] Use the graphical user interface with the Windows binary
+	      - [X] Open a file
+		    - [X] Export as PDF
+                    - [X] Export as PNG
+                    - [X] Export as SVG
 			  
 
 ** Inner working of the format
