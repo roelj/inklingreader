@@ -86,7 +86,7 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | FURTHER CONFIGURATION                                                    |
    '--------------------------------------------------------------------------*/
-  gtk_window_set_title (GTK_WINDOW (window), "InklingTool");
+  gtk_window_set_title (GTK_WINDOW (window), "InklingReader");
   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
   gtk_widget_set_size_request (window, WINDOW_WIDTH, WINDOW_HEIGHT);
 
