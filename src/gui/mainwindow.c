@@ -94,9 +94,6 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   gdk_rgba_parse (&bg, "#101010");
   gtk_widget_override_background_color (document_view, GTK_STATE_NORMAL, &bg);
 
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (document_container), 
-				  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-
   gtk_container_add (GTK_CONTAINER (document_viewport), document_view);
   gtk_container_add (GTK_CONTAINER (document_container), document_viewport);
 
