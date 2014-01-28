@@ -48,11 +48,11 @@
 
   - [ ] Ability to merge files into one.
 
-  - [-] Get all features to work on Windows as well.
+  - [X] Get all features to work on Windows as well.
 
 	- [X] Compile for Windows
 	- [X] Convert a file with the Windows binary
-        - [ ] Convert all files in a directory with the Windows binary
+        - [X] Convert all files in a directory with the Windows binary
 	- [X] Use the graphical user interface with the Windows binary
 	      - [X] Open a file
 		    - [X] Export as PDF
