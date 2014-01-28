@@ -12,6 +12,11 @@ The program can:
 * Automatically use different colors when the "new layer" is pressed multiple times.
 
 
+Screenshot
+----------
+
+![InklingReader screenshot](http://roelj.com/Inkling.png)
+
 Dependencies
 ------------
 
