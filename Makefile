@@ -21,12 +21,12 @@ SHELL           = /bin/sh
 
 CC              = gcc
 VPATH           = src:src/gui:src/converters:src/parsers:src/high
-LDLIBS          = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --libs`
+LDLIBS          = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --libs` -lm
 LDFLAGS         = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --cflags`
-#CFLAGS          = -Wall -lm -O0 -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
-CFLAGS          = -Wall -lm -Os -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
+#CFLAGS          = -Wall -O0 -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
+CFLAGS          = -Wall -Os -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o png.o pdf.o wpi.o \
-		  conversion.o #straight_lines.o
+		  conversion.o configuration.o #straight_lines.o
 NAME            = InklingReader
 
 .PHONY: all
@@ -56,4 +56,4 @@ module-info:
 win32:
 	$(CC) $(CFLAGS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
 	src/parsers/wpi.c src/converters/svg.c src/converters/png.c src/converters/pdf.c \
-	src/high/conversion.c $(LDLIBS) -o $(NAME)
+	src/high/conversion.c src/high/configuration.c $(LDLIBS) -o $(NAME)

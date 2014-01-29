@@ -36,9 +36,14 @@
 
 #include "parsers/wpi.h"
 #include "datatypes/element.h"
+#include "datatypes/configuration.h"
 #include "gui/mainwindow.h"
 #include "high/conversion.h"
+#include "high/configuration.h"
 
+/* This struct stores various run-time configuration options to allow 
+ * customization of the behavior of the program. */
+dt_configuration settings;
 
 /*----------------------------------------------------------------------------.
  | SHOW_VERSION                                                               |
@@ -59,13 +64,15 @@ void
 show_help ()
 {
   printf ("\r\nAvailable options:\r\n"
-	  "  --convert-directory  -c  Convert all WPI files in a directory.\r\n"
+	  "  --colors,            -c  Specify a list of colors (comma separated)\r\n"
+	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
 	  "  --file,              -f  Specify the WPI file to convert.\r\n"
 	  "  --to,                -t  Specify the file to write to.\r\n"
 	  "  --gui,               -g  Start the graphical user interface.\r\n"
 	  "  --version,           -v  Show versioning information.\r\n"
 	  "  --help,              -h  Show this message.\r\n\r\n");
 }
+
 
 /*----------------------------------------------------------------------------.
  | MAIN                                                                       |
@@ -87,7 +94,8 @@ main (int argc, char** argv)
        '----------------------------------------------------------------------*/
       static struct option options[] =
 	{
-	  { "convert-directory", required_argument, 0, 'c' },
+	  { "colors",            required_argument, 0, 'c' },
+	  { "convert-directory", required_argument, 0, 'd' },
 	  { "file",              required_argument, 0, 'f' },
 	  { "to",                required_argument, 0, 't' },
 	  { "gui",               optional_argument, 0, 'g' },
@@ -99,15 +107,24 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "c:f:t:g:vh", options, &index);
+	  arg = getopt_long (argc, argv, "c:d:s:f:t:g:vh", options, &index);
 
 	  switch (arg)
 	    {
 	      /*--------------------------------------------------------------.
+	       | OPTION: COLORS                                               |
+	       | Let's the user specify a range of colors.                    |
+	       '--------------------------------------------------------------*/
+	    case 'c':
+	      if (optarg)
+		settings.colors = high_parse_colors (optarg, &settings.num_colors);
+	      break;
+
+	      /*--------------------------------------------------------------.
 	       | OPTION: CONVERT-DIRECTORY                                    |
 	       | Convert all WPI files in a given directory.                  |
 	       '--------------------------------------------------------------*/
-	    case 'c':
+	    case 'd':
 	      if (optarg)
 		high_convert_directory (optarg, coordinates);
 	      break;
@@ -128,7 +145,6 @@ main (int argc, char** argv)
 	    case 't':
 	      if (optarg)
 		high_export_to_file (coordinates, optarg);
-	      //co_svg_create_file (optarg, coordinates);
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -154,7 +170,6 @@ main (int argc, char** argv)
 	    case 'v':
 	      show_version ();
 	      break;
-
 	    };
 	}
     }

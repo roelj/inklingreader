@@ -23,8 +23,11 @@
 #include <string.h>
 #include <math.h>
 #include <locale.h>
+#include "../datatypes/configuration.h"
 #include "../datatypes/element.h"
 #include "../optimizers/straight_lines.h"
+
+extern dt_configuration settings;
 
 /* These are correction values that are used to calculate the actual position
  * of a path on a page. Whether these are the same for each document is not
@@ -33,13 +36,9 @@
 #define OFFSET_X 375.0
 #define OFFSET_Y 37.5
 #define PRESSURE_FACTOR 2000.0
-
-#define COLOR_1 "#00007c"
-#define COLOR_2 "#7c0000"
-#define COLOR_3 "#007c00"
-#define COLOR_4 "#7c007c"
-
 #define SPIKE_THRESHOLD 20.0
+
+#define DEFAULT_COLOR "#00007c"
 
 /*----------------------------------------------------------------------------.
  | CO_WRITE_SVG_FILE                                                          |
@@ -154,19 +153,11 @@ co_svg_create (GSList* data, const char* title)
 	      {
 	      case BEGIN_STROKE:
 		{
-		  char* color = COLOR_1;
-		  switch (layer_color)
-		    {
-		    case 2:
-		      color = COLOR_2;
-		      break;
-		    case 3:
-		      color = COLOR_3;
-		      break;
-		    case 4:
-		      color = COLOR_4;
-		      break;
-		    };
+		  char* color = DEFAULT_COLOR;
+		  if (layer_color < settings.num_colors)
+		    color = settings.colors[layer_color];
+		  else if (settings.num_colors > 0)
+		    color = settings.colors[0];
 
 		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
 				      "style=\"fill:%s; stroke:none\" d=\"", group, color);
@@ -187,21 +178,21 @@ co_svg_create (GSList* data, const char* title)
 			  float x = c->x / SHRINK + OFFSET_X;
 			  float y = c->y / SHRINK + OFFSET_Y;
 
-                          // When points are too far away, skip them.
-                          // When points are exactly the same, skip them.
-                          // When the data is within the borders of an A4 page, add
-                          // it. This prevents weird stripes and clutter from 
-                          // disturbing the document.
+			  /* When points are too far away, skip them.
+			   * When points are exactly the same, skip them.
+			   * When the data is within the borders of an A4 page, add
+			   * it. This prevents weird stripes and clutter from 
+			   * disturbing the document. */
 			  float distance = sqrt ((x - previous_x) * (x - previous_x) +
-					       (y - previous_y) * (y - previous_y));
-                          if ( distance <= SPIKE_THRESHOLD &&
-                              x != previous_x && y != previous_y &&
-                              x > 0 && y > 100 && y < 1050)
-                            {
-			      // Avoid division by zero. If distance is zero, delta_x and
-			      // delta_y are also zero.
-                              if (distance == 0)
-                                distance = 1;
+						 (y - previous_y) * (y - previous_y));
+			  if ( distance <= SPIKE_THRESHOLD &&
+			       x != previous_x && y != previous_y &&
+			       x > 0 && y > 100 && y < 1050)
+			    {
+			      /* Avoid division by zero. If distance is zero, delta_x and
+			       * delta_y are also zero. */
+			      if (distance == 0)
+				distance = 1;
 
 			      written += sprintf (output + written, " L %f,%f",
 						  x + (previous_y - y) / distance * c->pressure,
