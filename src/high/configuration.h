@@ -20,6 +20,9 @@
 #ifndef HIGH_CONFIGURATION_H
 #define HIGH_CONFIGURATION_H
 
+#include "../datatypes/configuration.h"
+
 char** high_parse_colors (const char* data, int* num_colors);
+void high_configuration_cleanup (dt_configuration* config);
 
 #endif//DATATYPES_CONFIGURATION_H

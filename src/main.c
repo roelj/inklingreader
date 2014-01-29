@@ -32,6 +32,7 @@
  '----------------------------------------------------------------------------*/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <getopt.h>
 
 #include "parsers/wpi.h"
@@ -71,6 +72,16 @@ show_help ()
 	  "  --gui,               -g  Start the graphical user interface.\r\n"
 	  "  --version,           -v  Show versioning information.\r\n"
 	  "  --help,              -h  Show this message.\r\n\r\n");
+}
+
+/*----------------------------------------------------------------------------.
+ | CLEANUP_CONFIGURATION                                                      |
+ | This function should be run to free memory that was malloc'd in the        |
+ | configuration object.                                                      |
+ '----------------------------------------------------------------------------*/
+void cleanup_configuration ()
+{
+  high_configuration_cleanup (&settings);
 }
 
 
@@ -117,7 +128,10 @@ main (int argc, char** argv)
 	       '--------------------------------------------------------------*/
 	    case 'c':
 	      if (optarg)
-		settings.colors = high_parse_colors (optarg, &settings.num_colors);
+		{
+		  settings.colors = high_parse_colors (optarg, &settings.num_colors);
+		  atexit (cleanup_configuration);
+		}
 	      break;
 
 	      /*--------------------------------------------------------------.

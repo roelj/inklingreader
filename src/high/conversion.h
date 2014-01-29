@@ -25,4 +25,4 @@
 void high_export_to_file (GSList* data, const char* to);
 void high_convert_directory (const char* path, GSList* coordinates);
 
-#endif//DATATYPES_ELEMENT_H
+#endif//DATATYPES_CONVERSION_H

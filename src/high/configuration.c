@@ -60,3 +60,25 @@ high_parse_colors (const char* data, int* num_colors)
   *num_colors = count;
   return colors;
 }
+
+/*----------------------------------------------------------------------------.
+ | HIGH_CLEANUP_CONFIGURATION                                                 |
+ | This function cleans up data that was malloc'd in a dt_configuration.      |
+ '----------------------------------------------------------------------------*/
+void
+high_configuration_cleanup (dt_configuration* config)
+{
+  if (config->num_colors > 0)
+    {
+      /* This free()s the memory assigned to the colors. */
+      free (config->colors[0]);
+      config->colors[0] = NULL;
+
+      /* This free()s the memory of the pointers to the colors. */
+      free (config->colors);
+      config->colors = NULL;
+
+      /* Reset the provided colors to zero. */
+      config->num_colors = 0;
+    }
+}
