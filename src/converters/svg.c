@@ -227,6 +227,7 @@ co_svg_create (GSList* data, const char* title)
 		}
 		break;
 	      }
+	    free (s); s = NULL;
 	  }
 	  break;
 	  /*------------------------------------------------------------------.
