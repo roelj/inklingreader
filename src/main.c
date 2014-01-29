@@ -92,6 +92,10 @@ void cleanup_configuration ()
 int
 main (int argc, char** argv)
 {
+  /* A variable that controls whether the graphical user interface should be 
+   * opened or not. 0 means "don't open" and 1 means "open". */
+  unsigned char launch_gui = 0;
+
   if (argc > 1)
     {
       int arg = 0;
@@ -131,6 +135,7 @@ main (int argc, char** argv)
 		{
 		  settings.colors = high_parse_colors (optarg, &settings.num_colors);
 		  atexit (cleanup_configuration);
+		  launch_gui = 1;
 		}
 	      break;
 
@@ -139,8 +144,11 @@ main (int argc, char** argv)
 	       | Convert all WPI files in a given directory.                  |
 	       '--------------------------------------------------------------*/
 	    case 'd':
-	      if (optarg)
-		high_convert_directory (optarg, coordinates);
+	      {
+		if (optarg)
+		  high_convert_directory (optarg, coordinates);
+		launch_gui = 0;
+	      }
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -148,8 +156,11 @@ main (int argc, char** argv)
 	       | Use in combination with TO, to convert file.                 |
 	       '--------------------------------------------------------------*/
 	    case 'f':
-	      if (optarg)
-		coordinates = p_wpi_parse (optarg);
+	      {
+		if (optarg)
+		  coordinates = p_wpi_parse (optarg);
+		launch_gui = 0;
+	      }
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -157,8 +168,11 @@ main (int argc, char** argv)
 	       | Use with FILE to convert a file.                             |
 	       '--------------------------------------------------------------*/
 	    case 't':
-	      if (optarg)
-		high_export_to_file (coordinates, optarg);
+	      {
+		if (optarg)
+		  high_export_to_file (coordinates, optarg);
+		launch_gui = 0;
+	      }
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -166,7 +180,10 @@ main (int argc, char** argv)
 	       | Start the graphical user interface.                          |
 	       '--------------------------------------------------------------*/
 	    case 'g':
-	      gui_init_mainwindow (argc, argv, optarg);
+	      {
+		gui_init_mainwindow (argc, argv, optarg);
+		launch_gui = 0;
+	      }
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -188,7 +205,10 @@ main (int argc, char** argv)
 	}
     }
   else
-    show_help ();
+    launch_gui = 1;
+
+  if (launch_gui == 1)
+    gui_init_mainwindow (argc, argv, NULL);
 
   return 0;
 }
