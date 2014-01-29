@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
-#include <glib.h>
 
 #include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
@@ -59,16 +58,6 @@ p_wpi_parse (const char* filename)
    * this function. */
   GSList* list = NULL;
 
-  /* Variables for keeping track of the pressure. */
-  //int max_layer_pressure = 0;
-  //int max_sliding_pressure = 0;
-  //int current_pen_pressure = 0;
-  int max_stroke_pressure = 0;
-
-  /* Variables for keeping track of the pen tilt. */
-  //unsigned char* pen_tilt_x = NULL;
-  //unsigned char* pen_tilt_y = NULL;
-
   /* Open the file read-only in binary mode. The binary mode is important 
    * because ftell() will only correctly return the length when in this mode */
   FILE* file = fopen (filename, "rb");
@@ -89,12 +78,6 @@ p_wpi_parse (const char* filename)
   /* Set up an array that can keep the entire file in memory. */
   unsigned char data[data_len];
   memset (&data, 0, data_len);
-
-  /* Variable to keep some statistics about the file's contents. */
-  dt_statistics stats;
-
-  /* Initialize all members of 'stats' to '0'. */
-  memset (&stats, 0, sizeof (dt_statistics));
 
   /* Read the entire file into memory. This should give us some speed advantage
    * while processing the data. */
@@ -156,8 +139,6 @@ p_wpi_parse (const char* filename)
 	 '--------------------------------------------------------*/
       case BLOCK_COORDINATE:
 	{
-	  stats.coordinates++;
-
 	  dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
 	  if (coordinate != NULL)
 	    {
@@ -184,11 +165,6 @@ p_wpi_parse (const char* filename)
 	      count += 1;
 
 	      list = g_slist_prepend (list, coordinate);
-
-	      if (coordinate->y > stats.top) stats.top = coordinate->y;
-	      if (coordinate->y < stats.bottom) stats.bottom = coordinate->y;
-	      if (coordinate->x < stats.left) stats.left = coordinate->x;
-	      if (coordinate->x > stats.right) stats.right = coordinate->x;
 	    }
 	  else
 	    mem_error();
@@ -202,8 +178,6 @@ p_wpi_parse (const char* filename)
 	 '--------------------------------------------------------*/
       case BLOCK_PRESSURE:
 	{
-	  stats.pressure++;
-
 	  /* Make sure the block data has the expected size. */
 	  if (data[count + 1] == 6)
 	    {
@@ -214,11 +188,6 @@ p_wpi_parse (const char* filename)
 		  count += 4;
 		  pressure->pressure = (int)data[count] << 8;
 		  pressure->pressure = pressure->pressure + data[count + 1];
-
-		  /* Increase the 'max_stroke_pressure' to the value that was 
-		   * obtained whenever it's bigger than the current value. */
-		  if (pressure->pressure > max_stroke_pressure)
-		    max_stroke_pressure = pressure->pressure;
 
 		  list = g_slist_prepend (list, pressure);
 		}
@@ -235,8 +204,6 @@ p_wpi_parse (const char* filename)
 	 '--------------------------------------------------------*/
       case BLOCK_TILT:
 	{
-	  stats.tilt++;
-
 	  /* Make sure the block data has the expected size. */
 	  if (data[count + 1] == 6)
 	    {
@@ -261,11 +228,10 @@ p_wpi_parse (const char* filename)
 	 | DES LENGTH  U  (U=Unknown)                             |
 	 | 1   1       ?  bytes                                   |
 	 '--------------------------------------------------------*/
-      case 194:
-      case 197:
-      case 199:
-	stats.unknown++;
-	break;
+	//case 194:
+	//case 197:
+	//case 199:
+	//break;
 
 	/*--------------------------------------------------------.
 	 | PROCESS STROKE INFORMATION.                            |
@@ -285,10 +251,6 @@ p_wpi_parse (const char* filename)
 		{
 		  stroke->type = TYPE_STROKE;
 		  stroke->value = data[count + 1];
-
-		  /* Update the statistics when needed. */
-		  if (stroke->value == BEGIN_STROKE) 
-		    stats.strokes++;
 
 		  list = g_slist_prepend (list, stroke);
 		}
