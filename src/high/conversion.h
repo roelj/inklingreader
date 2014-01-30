@@ -24,5 +24,6 @@
 
 void high_export_to_file (GSList* data, const char* to);
 void high_convert_directory (const char* path, GSList* coordinates);
+void high_merge_wpi_files (const char* first, const char* second);
 
 #endif//DATATYPES_CONVERSION_H

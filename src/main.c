@@ -69,6 +69,7 @@ show_help ()
 	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
 	  "  --file,              -f  Specify the WPI file to convert.\r\n"
 	  "  --to,                -t  Specify the file to write to.\r\n"
+	  "  --merge,             -m  Merge two WPI files into one.\r\n"
 	  "  --gui,               -g  Start the graphical user interface.\r\n"
 	  "  --version,           -v  Show versioning information.\r\n"
 	  "  --help,              -h  Show this message.\r\n\r\n");
@@ -101,6 +102,7 @@ main (int argc, char** argv)
       int arg = 0;
       int index = 0;
       GSList* coordinates = NULL;
+      char* merge_val = NULL;
 
       /*----------------------------------------------------------------------.
        | OPTIONS                                                              |
@@ -112,6 +114,7 @@ main (int argc, char** argv)
 	  { "colors",            required_argument, 0, 'c' },
 	  { "convert-directory", required_argument, 0, 'd' },
 	  { "file",              required_argument, 0, 'f' },
+	  { "merge",             required_argument, 0, 'm' },
 	  { "to",                required_argument, 0, 't' },
 	  { "gui",               optional_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
@@ -122,7 +125,7 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "c:d:s:f:t:g:vh", options, &index);
+	  arg = getopt_long (argc, argv, "c:d:s:f:m:t:g:vh", options, &index);
 
 	  switch (arg)
 	    {
@@ -164,13 +167,30 @@ main (int argc, char** argv)
 	      break;
 
 	      /*--------------------------------------------------------------.
+	       | OPTION: MERGE                                                |
+	       | Use with TO to merge two files.                              |
+	       '--------------------------------------------------------------*/
+	    case 'm':
+	      {
+		if (optarg)
+		  merge_val = optarg;
+		launch_gui = 0;
+	      }
+	      break;
+
+	      /*--------------------------------------------------------------.
 	       | OPTION: TO                                                   |
 	       | Use with FILE to convert a file.                             |
 	       '--------------------------------------------------------------*/
 	    case 't':
 	      {
 		if (optarg)
-		  high_export_to_file (coordinates, optarg);
+		  {
+		    if (merge_val)
+		      high_merge_wpi_files (merge_val, optarg);
+		    else
+		      high_export_to_file (coordinates, optarg);
+		  }
 		launch_gui = 0;
 	      }
 	      break;
