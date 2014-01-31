@@ -181,6 +181,8 @@ high_merge_wpi_files (const char* first, const char* second)
 	      fwrite (data, data_len + 1, 1, output);
 	      fclose (output);
 	    }
+
+	  free (data);
 	}
     }
 }
