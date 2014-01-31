@@ -25,6 +25,7 @@ typedef struct
   unsigned char type;
   int num_colors;
   char** colors;
+  char* background;
 } dt_configuration;
 
 #endif//DATATYPES_CONFIGURATION_H

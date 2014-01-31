@@ -65,6 +65,7 @@ void
 show_help ()
 {
   printf ("\r\nAvailable options:\r\n"
+	  "  --background,        -b  Specify the background color for the document\r\n"
 	  "  --colors,            -c  Specify a list of colors (comma separated)\r\n"
 	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
 	  "  --file,              -f  Specify the WPI file to convert.\r\n"
@@ -111,6 +112,7 @@ main (int argc, char** argv)
        '----------------------------------------------------------------------*/
       static struct option options[] =
 	{
+	  { "background",        required_argument, 0, 'b' },
 	  { "colors",            required_argument, 0, 'c' },
 	  { "convert-directory", required_argument, 0, 'd' },
 	  { "file",              required_argument, 0, 'f' },
@@ -125,10 +127,23 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "c:d:s:f:m:t:g:vh", options, &index);
+	  arg = getopt_long (argc, argv, "b:c:d:s:f:m:t:g:vh", options, &index);
 
 	  switch (arg)
 	    {
+	      /*--------------------------------------------------------------.
+	       | OPTION: BACKGROUND                                           |
+	       | Let's the user specify the background color.                 |
+	       '--------------------------------------------------------------*/
+	    case 'b':
+	      if (optarg)
+		{
+		  settings.background = optarg;
+		  launch_gui = 1;
+		}
+	      break;
+
+
 	      /*--------------------------------------------------------------.
 	       | OPTION: COLORS                                               |
 	       | Let's the user specify a range of colors.                    |
