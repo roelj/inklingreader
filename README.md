@@ -8,6 +8,7 @@ program aims to be compatible with free software alternatives like Inkscape.
 The program can:
 
 * Display WPI files
+* Merge WPI files
 * Export to Inkscape SVG (preserving layers), PDF and PNG
 * Automatically use different colors when the "new layer" is pressed multiple times.
 
