@@ -20,20 +20,20 @@
 SHELL           = /bin/sh
 
 CC              = gcc
-VPATH           = src:src/gui:src/converters:src/parsers:src/high
+VPATH           = doc:src:src/gui:src/converters:src/parsers:src/high
 LDLIBS          = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --libs` -lm
 LDFLAGS         = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --cflags`
 #CFLAGS          = -Wall -O0 -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 CFLAGS          = -Wall -Os -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
-OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o png.o pdf.o wpi.o \
-		  conversion.o configuration.o #straight_lines.o
+OBJECTS         = main.o mainwindow.o mainwindow_sig.o settings.o svg.o png.o \
+		  pdf.o wpi.o conversion.o configuration.o #straight_lines.o
 NAME            = InklingReader
 
 .PHONY: all
 all: $(NAME)
 
 $(NAME): $(OBJECTS)
-	$(CC) $(LDLIBS) $(CFLAGS) $(OBJECTS) -o $(NAME)
+	$(CC) $(OBJECTS) -o $(NAME) $(LDLIBS) $(CFLAGS)
 
 .PHONY: clean
 clean:
@@ -57,3 +57,14 @@ win32:
 	$(CC) $(CFLAGS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
 	src/parsers/wpi.c src/converters/svg.c src/converters/png.c src/converters/pdf.c \
 	src/high/conversion.c src/high/configuration.c $(LDLIBS) -o $(NAME)
+
+.PHONY: docs
+docs:
+	$(MAKE) user_manual.dvi;
+	texi2pdf doc/user_manual.texi;
+	$(MAKE) docs-clean
+
+.PHONY: docs-clean
+docs-clean:
+	@cd doc/;rm -rf *.aux *.cp *.fn *.ky *.log *.pg *.toc *.vr *.tp *~
+	@rm -rf *.aux *.cp *.fn *.ky *.log *.pg *.toc *.vr *.tp *~
