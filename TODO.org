@@ -2,7 +2,7 @@
 
   In this category, possible new features are described. Feel free to implement
   any of them!
-
+  
   - [ ] Research the 'online-mode' option
 	
 	In the user manual 'online-mode' is mentioned. According to the manual, 
@@ -13,6 +13,41 @@
 	movement can be tracked. Storing the strokes is not a feature provided
 	by the Inkling SketchManager, nevertheless it's a cool feature to look
 	into.
+
+	UPDATE: I've succesfully captured data that looks useful. Here is the
+	data in hexadecimal format. The three dots indicate there were 
+	multiple packets in between that contain the same data:
+
+	02 f3 03 c2 02 09 fe 03 f2 12
+	...
+	02 f3 03 c2 02 09 fe 03 f2 12
+	02 f3 03 c2 02 09 fe 03 f3 12
+	...
+	02 f3 03 c2 02 09 fe 03 f3 12
+	02 f3 03 c2 02 09 fe 03 f4 12
+	...
+	02 f3 03 c2 02 09 fe 03 f4 12
+	02 f7 03 d1 02 09 fe 03 f4 12
+	02 f9 03 d6 02 09 fe 03 f4 12
+	02 fb 03 dd 02 09 fe 03 f4 12
+	02 fd 03 e2 02 09 fe 03 f4 13
+	02 ff 03 e9 02 09 f9 03 f4 13
+	02 01 04 ef 02 09 f9 03 f4 13
+	02 04 04 f5 02 09 f9 03 f4 13
+	02 06 04 fb 02 09 f7 03 f4 13
+	02 08 04 02 03 09 f7 03 f4 12
+	02 0b 04 07 03 09 f7 03 f4 12
+	02 0d 04 0e 03 09 f4 03 f4 12
+	02 0f 04 13 03 09 f4 03 f4 12
+	02 12 04 1a 03 09 f4 03 f4 12
+	
+	This could be a very small part of a stroke. More testing should make
+	the meaning of the packets clear.
+	
+	The only way to capture packets is to interface with the Inkling in a 
+	special way (this basically means we need a usb device driver). We could
+	see how the Windows driver interacts and mimic that.
+
 
   - [ ] Handwriting recognition
 	
