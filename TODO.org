@@ -63,7 +63,9 @@
   - [X] Make a layer a different color when the user presses the "new layer" 
 	multiple times without drawing new data.
 
-  - [ ] Give the choice for different paper backgrounds.
+  - [-] Give the choice for different paper backgrounds.
+
+	PARTIAL FIX: Background colors can be specified.
 
   - [X] Inkscape layering support
 	
@@ -81,7 +83,7 @@
 	stroke width (possibly two options: 1. disable pressure, 2. define 
 	stroke width).
 
-  - [ ] Ability to merge files into one.
+  - [X] Ability to merge files into one.
 
   - [X] Get all features to work on Windows as well.
 
