@@ -38,6 +38,10 @@ extern dt_configuration settings;
 #define PRESSURE_FACTOR 2000.0
 #define SPIKE_THRESHOLD 20.0
 
+/* Factor to multiply pressure with to get stroke width
+ * TODO: make this configurable by commandline */
+#define STROKE_WIDTH_FACTOR 1.0
+
 #define DEFAULT_COLOR "#00007c"
 
 /*----------------------------------------------------------------------------.
@@ -161,9 +165,12 @@ co_svg_create (GSList* data, const char* title)
 		    color = settings.colors[layer_color];
 		  else if (settings.num_colors > 0)
 		    color = settings.colors[0];
-
-		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
-				      "style=\"fill:%s; stroke:none\" d=\"", group, color);
+                  if (STROKE_WIDTH_FACTOR != 0)
+                    written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
+                                        "style=\"fill:%s; stroke:none\" d=\"", group, color);
+                  else
+                    written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
+                                        "style=\"fill:none; stroke:%s\" d=\"", group, color);
 
 		  has_been_positioned = 0;
 		  is_in_stroke = 1;
@@ -175,41 +182,52 @@ co_svg_create (GSList* data, const char* title)
 		{
 		  if (is_in_stroke == 1)
 		    {
-		      while (stroke_data != NULL)
+		      if (STROKE_WIDTH_FACTOR != 0)
 			{
-			  dt_coordinate* c = (dt_coordinate*)stroke_data->data;
-			  float x = c->x / SHRINK + OFFSET_X;
-			  float y = c->y / SHRINK + OFFSET_Y;
+                          /* Go through all the points in reversed order and add the other edge of the stroke. */
+                          while (stroke_data != NULL)
+                            {
+                              dt_coordinate* c = (dt_coordinate*)stroke_data->data;
+                              float x = c->x / SHRINK + OFFSET_X;
+                              float y = c->y / SHRINK + OFFSET_Y;
 
-			  /* When points are too far away, skip them.
-			   * When points are exactly the same, skip them.
-			   * When the data is within the borders of an A4 page, add
-			   * it. This prevents weird stripes and clutter from 
-			   * disturbing the document. */
-			  float distance = sqrt ((x - previous_x) * (x - previous_x) +
-						 (y - previous_y) * (y - previous_y));
-			  if ( distance <= SPIKE_THRESHOLD &&
-			       x != previous_x && y != previous_y &&
-			       x > 0 && y > 100 && y < 1050)
-			    {
-			      /* Avoid division by zero. If distance is zero, delta_x and
-			       * delta_y are also zero. */
-			      if (distance == 0)
-				distance = 1;
+                              /* When points are too far away, skip them.
+                               * When points are exactly the same, skip them.
+                               * When the data is within the borders of an A4 page, add
+                               * it. This prevents weird stripes and clutter from 
+                               * disturbing the document. */
+                              float distance = sqrt ((x - previous_x) * (x - previous_x) +
+                                                     (y - previous_y) * (y - previous_y));
+                              if ( distance <= SPIKE_THRESHOLD &&
+                                   x != previous_x && y != previous_y &&
+                                   x > 0 && y > 100 && y < 1050)
+                                {
+                                  /* Avoid division by zero. If distance is zero, delta_x and
+                                   * delta_y are also zero. */
+                                  if (distance == 0)
+                                    distance = 1;
 
-			      written += sprintf (output + written, " L %f,%f",
-						  x + (previous_y - y) / distance * c->pressure,
-						  y + (x - previous_x) / distance * c->pressure);
-			      previous_x = x;
-			      previous_y = y;
-			    }
+                                  written += sprintf (output + written, " L %f,%f",
+                                                      x + (previous_y - y) / distance * c->pressure * STROKE_WIDTH_FACTOR,
+                                                      y + (x - previous_x) / distance * c->pressure * STROKE_WIDTH_FACTOR);
+                                  previous_x = x;
+                                  previous_y = y;
+                                }
 
-			  free (c);
-			  stroke_data = stroke_data->next;
-			}
+                              free (c);
+                              stroke_data = stroke_data->next;
+                            }
+                          /* 'Z' means 'closepath' */
+                          written += sprintf (output + written, " z\" />\n  </g>\n");
+                        }
+                      else
+                        {
+                          /* end SVG path. */
+                          written += sprintf (output + written, "\" />\n  </g>\n");
+                        }
 
-		      written += sprintf (output + written, " z\" />\n  </g>\n");
-		      is_in_stroke = 0;
+                      is_in_stroke = 0;
+
 		    }
 		}
 		break;
@@ -293,8 +311,8 @@ co_svg_create (GSList* data, const char* title)
 
 			written += sprintf (output + written, "%s %f,%f", 
 					    type,
-					    x + (previous_y - y) / distance * c->pressure,
-					    y + (x - previous_x) / distance * c->pressure);
+					    x + (previous_y - y) / distance * c->pressure * STROKE_WIDTH_FACTOR,
+					    y + (x - previous_x) / distance * c->pressure * STROKE_WIDTH_FACTOR);
 			previous_x = x;
 			previous_y = y;
 		      }
