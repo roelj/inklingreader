@@ -34,13 +34,26 @@ Tested distributions
 
 The software is built and tested on:
 
-* Debian 7.3
+* Debian 7.3, 7.4
+* CrunchBang Linux 11
 * Fedora 20
-* Ubuntu 12.04
+* Ubuntu 12.04, 13.04
 
 Since the program uses only widely available libraries it should run OK 
 on almost every GNU/Linux distribution. If you have problems getting it
 to work on yours, let us know.
+
+Contributing
+------------
+
+InklingReader can use help! If you're interested in helping, here's a list 
+of things you could do:
+
+* Make use of Autotools to build InklingReader
+* Package InklingReader for any distribution
+* Request features
+* Implement features
+
 
 License
 -------
