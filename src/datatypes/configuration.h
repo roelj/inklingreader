@@ -24,6 +24,7 @@ typedef struct
 {
   unsigned char type;
   int num_colors;
+  float pressure_factor;
   char** colors;
   char* background;
 } dt_configuration;

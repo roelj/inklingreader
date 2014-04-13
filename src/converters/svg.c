@@ -38,10 +38,6 @@ extern dt_configuration settings;
 #define PRESSURE_FACTOR 2000.0
 #define SPIKE_THRESHOLD 20.0
 
-/* Factor to multiply pressure with to get stroke width
- * TODO: make this configurable by commandline */
-#define STROKE_WIDTH_FACTOR 1.0
-
 #define DEFAULT_COLOR "#00007c"
 
 /*----------------------------------------------------------------------------.
@@ -165,7 +161,7 @@ co_svg_create (GSList* data, const char* title)
 		    color = settings.colors[layer_color];
 		  else if (settings.num_colors > 0)
 		    color = settings.colors[0];
-                  if (STROKE_WIDTH_FACTOR != 0)
+                  if (settings.pressure_factor != 0)
                     written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
                                         "style=\"fill:%s; stroke:none\" d=\"", group, color);
                   else
@@ -182,7 +178,7 @@ co_svg_create (GSList* data, const char* title)
 		{
 		  if (is_in_stroke == 1)
 		    {
-		      if (STROKE_WIDTH_FACTOR != 0)
+		      if (settings.pressure_factor != 0)
 			{
                           /* Go through all the points in reversed order and add the other edge of the stroke. */
                           while (stroke_data != NULL)
@@ -208,8 +204,8 @@ co_svg_create (GSList* data, const char* title)
                                     distance = 1;
 
                                   written += sprintf (output + written, " L %f,%f",
-                                                      x + (previous_y - y) / distance * c->pressure * STROKE_WIDTH_FACTOR,
-                                                      y + (x - previous_x) / distance * c->pressure * STROKE_WIDTH_FACTOR);
+                                                      x + (previous_y - y) / distance * c->pressure * settings.pressure_factor,
+                                                      y + (x - previous_x) / distance * c->pressure * settings.pressure_factor);
                                   previous_x = x;
                                   previous_y = y;
                                 }
@@ -311,8 +307,8 @@ co_svg_create (GSList* data, const char* title)
 
 			written += sprintf (output + written, "%s %f,%f", 
 					    type,
-					    x + (previous_y - y) / distance * c->pressure * STROKE_WIDTH_FACTOR,
-					    y + (x - previous_x) / distance * c->pressure * STROKE_WIDTH_FACTOR);
+					    x + (previous_y - y) / distance * c->pressure * settings.pressure_factor,
+					    y + (x - previous_x) / distance * c->pressure * settings.pressure_factor);
 			previous_x = x;
 			previous_y = y;
 		      }

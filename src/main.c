@@ -67,6 +67,7 @@ show_help ()
   printf ("\r\nAvailable options:\r\n"
 	  "  --background,        -b  Specify the background color for the document\r\n"
 	  "  --colors,            -c  Specify a list of colors (comma separated)\r\n"
+	  "  --pressure-factor,   -p  Specify a factor for handling pressure data.\r\n"
 	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
 	  "  --file,              -f  Specify the WPI file to convert.\r\n"
 	  "  --to,                -t  Specify the file to write to.\r\n"
@@ -97,6 +98,7 @@ main (int argc, char** argv)
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
   unsigned char launch_gui = 0;
+  settings.pressure_factor = 1.0;
 
   if (argc > 1)
     {
@@ -117,6 +119,7 @@ main (int argc, char** argv)
 	  { "convert-directory", required_argument, 0, 'd' },
 	  { "file",              required_argument, 0, 'f' },
 	  { "merge",             required_argument, 0, 'm' },
+	  { "pressure-factor",   required_argument, 0, 'p' },
 	  { "to",                required_argument, 0, 't' },
 	  { "gui",               optional_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
@@ -127,7 +130,7 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "b:c:d:s:f:m:t:g:vh", options, &index);
+	  arg = getopt_long (argc, argv, "b:c:d:s:f:m:p:t:g:vh", options, &index);
 
 	  switch (arg)
 	    {
@@ -189,6 +192,18 @@ main (int argc, char** argv)
 	      {
 		if (optarg)
 		  merge_val = optarg;
+		launch_gui = 0;
+	      }
+	      break;
+
+	      /*--------------------------------------------------------------.
+	       | OPTION: PRESSURE-FACTOR                                      |
+	       | Sets the factor for handling pressure data.                  |
+	       '--------------------------------------------------------------*/
+	    case 'p':
+	      {
+		if (optarg)
+		  settings.pressure_factor = atof (optarg);
 		launch_gui = 0;
 	      }
 	      break;
