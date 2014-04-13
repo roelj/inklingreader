@@ -29,6 +29,13 @@
 #include "../datatypes/stroke.h"
 #include "../datatypes/statistics.h"
 
+/* nested inline function turned into global static inline function for clang
+ * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
+static inline void mem_error ()
+{
+  printf ("%s: Could not allocate enough memory.\r\n", __func__);
+}
+
 /*----------------------------------------------------------------------------.
  | BLOCK DESCRIPTORS                                                          |
  | -------------------------------------------------------------------------- |
@@ -50,13 +57,6 @@
 GSList*
 p_wpi_parse (const char* filename)
 {
-  /* This function is called in several situations. Declaring it once
-   * here as inline saves some space in the compiled object. */
-  inline void mem_error ()
-  {
-    printf ("%s: Could not allocate enough memory.\r\n", __func__);
-  }
-
   /* Create a GSList (singly-linked list) that will be the return value of 
    * this function. */
   GSList* list = NULL;
