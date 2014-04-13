@@ -79,22 +79,24 @@
 
   - [X] Handle pressure data correctly.
 
-  - [ ] Add a command-line option to disable pressure data and set a fixed 
+  - [X] Add a command-line option to disable pressure data and set a fixed 
 	stroke width (possibly two options: 1. disable pressure, 2. define 
 	stroke width).
+        
+        FIXED: --pressure-factor handles this.
 
   - [X] Ability to merge files into one.
 
   - [X] Get all features to work on Windows as well.
 
-	- [X] Compile for Windows
-	- [X] Convert a file with the Windows binary
-        - [X] Convert all files in a directory with the Windows binary
-	- [X] Use the graphical user interface with the Windows binary
-	      - [X] Open a file
-		    - [X] Export as PDF
-                    - [X] Export as PNG
-                    - [X] Export as SVG
+    - [X] Compile for Windows
+    - [X] Convert a file with the Windows binary
+    - [X] Convert all files in a directory with the Windows binary
+    - [X] Use the graphical user interface with the Windows binary
+      - [X] Open a file
+	- [X] Export as PDF
+	- [X] Export as PNG
+	- [X] Export as SVG
 			  
 
 ** Inner working of the format
