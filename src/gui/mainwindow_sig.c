@@ -24,7 +24,10 @@
 #include "../parsers/wpi.h"
 #include "../datatypes/element.h"
 
+#include <stdlib.h>
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
 #include <string.h>
 #include <sys/types.h>
 #include <dirent.h>

@@ -20,7 +20,10 @@
 #include "configuration.h"
 
 #include <string.h>
+#include <stdlib.h>
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
 
 /*----------------------------------------------------------------------------.
  | HIGH_PARSE_COLORS                                                          |
