@@ -36,6 +36,7 @@
 #define A4_WIDTH 595.0
 #define A4_HEIGHT 842.0
 
+extern GtkWidget* document_view;
 extern GtkWidget* lbl_status;
 extern GSList* documents;
 
@@ -158,6 +159,9 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
       /* Make sure we are in VIEW_DOCUMENT mode. */
       current_view = VIEW_DOCUMENT;
     }
+
+  gtk_widget_hide (document_view);
+  gtk_widget_show_all (document_view);
 }
 
 /*----------------------------------------------------------------------------.

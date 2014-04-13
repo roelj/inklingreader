@@ -24,6 +24,7 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+GtkWidget* document_view = NULL;
 GtkWidget* lbl_status = NULL;
 GSList* documents = NULL;
 
@@ -38,7 +39,6 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
    | WIDGETS                                                                  |
    '--------------------------------------------------------------------------*/
   GtkWidget* window = NULL;
-  GtkWidget* document_view = NULL;
   GtkWidget* document_viewport = NULL;
   GtkWidget* document_container = NULL;
 
