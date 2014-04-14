@@ -40,6 +40,7 @@ The software is built and tested on:
 * Fedora 20
 * Ubuntu 12.04, 13.04
 * Mac OS X 10.7.5, clang (based on LLVM 3.1svn)
+* Windows 8.1 (with MinGW and GTK 32-bit all-in-one bundle)
 
 Since the program uses only widely available libraries it should run OK 
 on almost every GNU/Linux distribution. If you have problems getting it
