@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=InklingReader
+GenericName=Wacom Inkling Reader
+Comment=Read and convert your Inkling files.
+Type=Application
+Exec=InklingReader
+Icon=InklingReader
+Terminal=false
+Categories=GNOME;Graphics;
+StartupNotify=true
+MimeType=application/x-wacom-inkling;
+

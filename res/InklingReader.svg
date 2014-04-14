@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48"
+   height="48"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="InklingReader.svg"
+   inkscape:export-filename="/home/roel/Projects/WacomInkling/non-git/non-git/Icons/InlingReader-48.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient4024">
+      <stop
+         style="stop-color:#f9f9f9;stop-opacity:1;"
+         offset="0"
+         id="stop4026" />
+      <stop
+         style="stop-color:#e3e3e3;stop-opacity:1;"
+         offset="1"
+         id="stop4028" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath3042">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 122.81598,545.09608 -0.0871,19.19986 38.88051,-1.07664 -1.3363,-18.2285 z"
+         id="path3044"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccc" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="5.6"
+     inkscape:cx="68.778546"
+     inkscape:cy="46.922805"
+     inkscape:document-units="px"
+     inkscape:current-layer="g3174"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1055"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-224.28572,-455.07648)">
+    <g
+       id="g3055"
+       inkscape:export-filename="/home/roel/Projects/WacomInkling/non-git/Icons/no-preview.png"
+       inkscape:export-xdpi="72"
+       inkscape:export-ydpi="72">
+      <g
+         transform="translate(-5.8503917,-5.5202368)"
+         id="g3046">
+        <g
+           id="g3183"
+           transform="matrix(0.55271758,0,0,0.55271758,92.390981,234.71491)">
+          <rect
+             style="opacity:0;fill:#ffffff;fill-opacity:1;stroke:none"
+             id="rect3212"
+             width="86.843628"
+             height="86.843628"
+             x="249.21429"
+             y="408.6749"
+             ry="0"
+             rx="0" />
+          <g
+             id="g3174"
+             transform="matrix(0.88714364,0,0,0.88714364,33.02585,51.021988)">
+            <g
+               id="g3010"
+               transform="matrix(2.6600073,0,0,2.6600073,-759.77785,-679.36379)"
+               style="stroke:#000000">
+              <path
+                 sodipodi:nodetypes="ccccc"
+                 inkscape:connector-curvature="0"
+                 id="path2995"
+                 d="m 383.75,439.32647 c 4.05633,-4.44624 4.51717,-5.92041 5.92367,-9.0639 0.67762,-1.34418 0.5049,-2.62834 0.5049,-3.97182 0.49494,4.71138 3.32211,8.43083 6.50986,11.70336 0.54985,0.63831 1.18111,1.26657 1.52586,1.86807"
+                 style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+              <path
+                 inkscape:connector-curvature="0"
+                 id="path2997"
+                 d="m 390.17857,427.18361 c 0,-3.86905 0,-3.65572 0,-7.52477"
+                 style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                 sodipodi:nodetypes="cc" />
+              <path
+                 sodipodi:nodetypes="ccc"
+                 inkscape:connector-curvature="0"
+                 id="path2999"
+                 d="m 381.78572,417.80391 c 4.08828,5.51055 8.41405,5.67012 8.41405,8.62729 0.18624,-4.77792 9.32358,-3.12146 9.80023,-8.98443"
+                 style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+              <path
+                 transform="translate(1.0491071,5.4264442)"
+                 d="m 393.39287,410.04074 c 0,2.61349 -1.8788,4.73214 -4.19643,4.73214 -2.31762,0 -4.19643,-2.11865 -4.19643,-4.73214 0,-2.61349 1.87881,-4.73214 4.19643,-4.73214 2.31763,0 4.19643,2.11865 4.19643,4.73214 z"
+                 sodipodi:ry="4.7321429"
+                 sodipodi:rx="4.1964288"
+                 sodipodi:cy="410.04074"
+                 sodipodi:cx="389.19644"
+                 id="path3005"
+                 style="fill:none;stroke:#000000"
+                 sodipodi:type="arc" />
+            </g>
+            <text
+               xml:space="preserve"
+               style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+               x="116.90228"
+               y="561.76172"
+               id="text2987"
+               sodipodi:linespacing="125%"
+               transform="matrix(0.94485685,-0.32748365,0.32748365,0.94485685,-0.75892857,-0.08928571)"
+               clip-path="url(#clipPath3042)"><tspan
+                 sodipodi:role="line"
+                 id="tspan2989"
+                 x="116.90228"
+                 y="561.76172"
+                 style="font-size:21px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;font-family:Cantarell;-inkscape-font-specification:Cantarell Bold">WPI</tspan></text>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
