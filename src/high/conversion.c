@@ -19,7 +19,11 @@
 
 #include "conversion.h"
 
+#include <stdlib.h>
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -31,6 +35,12 @@
 #include "../converters/pdf.h"
 #include "../converters/svg.h"
 
+/* nested inline function turned into global static inline function for clang
+ * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
+static inline void unsupported ()
+{
+  printf ("Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.\r\n");
+}
 
 /*----------------------------------------------------------------------------.
  | CONVERT_DIRECTORY                                                          |
@@ -91,11 +101,6 @@ high_export_to_file (GSList* data, const char* to)
   #ifndef GLIB_VERSION_2_36
   g_type_init ();
   #endif
-
-  inline void unsupported ()
-  {
-    printf ("Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.\r\n");
-  }
 
   if (strlen (to) > 3)
     {
