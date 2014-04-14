@@ -10,8 +10,9 @@ The program can:
 * Display WPI files
 * Merge WPI files
 * Export to Inkscape SVG (preserving layers), PDF and PNG
+* Convert all WPI files in a directory to SVG
 * Automatically use different colors when the "new layer" is pressed multiple times.
-
+* Give control over stroke pressure.
 
 Screenshot
 ----------
@@ -24,7 +25,7 @@ Dependencies
 Make sure you have the following libraries, development packages and build 
 tools installed:
 
-* GCC
+* GCC or CLANG
 * Make
 * Gtk+-3.0, GLib-2.0 and Cairo
 * Librsvg-2.0
