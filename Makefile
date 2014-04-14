@@ -23,8 +23,11 @@ CC              = gcc
 VPATH           = doc:src:src/gui:src/converters:src/parsers:src/high
 LDLIBS          = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --libs` -lm
 LDFLAGS         = `pkg-config gtk+-3.0 glib-2.0 librsvg-2.0 cairo --cflags`
-#CFLAGS          = -Wall -O0 -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
-CFLAGS          = -Wall -Os -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
+
+DEBUG		= -Wall -Og -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
+RELEASE		= -Wall -O3 -march=native -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
+CFLAGS          = $(RELEASE)
+
 OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o png.o \
 		  pdf.o wpi.o conversion.o configuration.o #settings.o straight_lines.o
 NAME            = InklingReader
@@ -49,14 +52,6 @@ module-info:
 	@printf "%-25s %s\r\n" "MODULE NAME" "SIZE"; \
 	echo "------------------------  ----------"; \
 	ls -lS | egrep "\.o$$|$(NAME)$$" | awk '{printf "%-25s %6.2f K\r\n", $$9, $$5 / 1000}'
-
-## To compile the application for Windows we need to pass all source files at 
-## once to avoid problems with the linker.
-.PHONY: win32
-win32:
-	$(CC) $(CFLAGS) src/main.c src/gui/mainwindow.c src/gui/mainwindow_sig.c \
-	src/parsers/wpi.c src/converters/svg.c src/converters/png.c src/converters/pdf.c \
-	src/high/conversion.c src/high/configuration.c $(LDLIBS) -o $(NAME)
 
 .PHONY: docs
 docs:
