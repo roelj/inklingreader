@@ -34,12 +34,13 @@
 #include "../converters/png.h"
 #include "../converters/pdf.h"
 #include "../converters/svg.h"
+#include "../converters/json.h"
 
 /* nested inline function turned into global static inline function for clang
  * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
 static inline void unsupported ()
 {
-  printf ("Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.\r\n");
+  printf ("Only PNG (.png), SVG (.svg), PDF (.pdf) and JSON (.json) are supported.\r\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -102,28 +103,33 @@ high_export_to_file (GSList* data, const char* to)
   g_type_init ();
   #endif
 
-  if (strlen (to) > 3)
+  if (strlen (to) > 4)
     {
-      const char* extension = to + strlen (to) - 3;
-      char* svg_data = co_svg_create (data, to);
-
-      if (!strcmp (extension, "png"))
-	co_png_export_to_file (to, svg_data);
-      else if (!strcmp (extension, "pdf"))
-	co_pdf_export_to_file (to, svg_data);
-      else if (!strcmp (extension, "svg"))
-	{
-	  FILE* file;
-	  file = fopen (to, "w");
-	  if (file != NULL)
-	    fwrite (svg_data, strlen (svg_data), 1, file);
-
-	  fclose (file);
-	}
+      const char* extension = to + strlen (to) - 4;
+      if (!strcmp (extension, "json"))
+	co_json_create_file (to, data);
       else
-	unsupported ();
+	{
+	  char* svg_data = co_svg_create (data, to);
 
-      free (svg_data);
+	  if (!strcmp (extension + 1, "png"))
+	    co_png_export_to_file (to, svg_data);
+	  else if (!strcmp (extension + 1, "pdf"))
+	    co_pdf_export_to_file (to, svg_data);
+	  else if (!strcmp (extension + 1, "svg"))
+	    {
+	      FILE* file;
+	      file = fopen (to, "w");
+	      if (file != NULL)
+		fwrite (svg_data, strlen (svg_data), 1, file);
+
+	      fclose (file);
+	    }
+	  else
+	    unsupported ();
+	
+	  free (svg_data);
+	}
     }
   else
     unsupported ();

@@ -28,7 +28,7 @@ DEBUG		= -Wall -Og -g3 -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 RELEASE		= -Wall -O3 -march=native -DNDEBUG -DGTK_DISABLE_DEPRECATED=1 $(LDFLAGS)
 CFLAGS          = $(RELEASE)
 
-OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o png.o \
+OBJECTS         = main.o mainwindow.o mainwindow_sig.o svg.o png.o json.o \
 		  pdf.o wpi.o conversion.o configuration.o #settings.o straight_lines.o
 NAME            = InklingReader
 
