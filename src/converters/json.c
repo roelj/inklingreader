@@ -37,14 +37,11 @@ extern dt_configuration settings;
 #define OFFSET_Y 37.5
 #define SPIKE_THRESHOLD 20.0
 
-#define DEFAULT_COLOR "#00007c"
-
 static void
 skip_warning ()
 {
   printf ("WARNING: An element has been skipped because of malformed input.\r\n");
 }
-
 
 /*----------------------------------------------------------------------------.
  | CO_WRITE_JSON_FILE                                                          |
@@ -54,24 +51,21 @@ int
 co_json_create_file (const char* filename, GSList* data)
 {
   char* output = co_json_create (data, filename);
-  if (data != NULL)
-    {
-      FILE* file;
-      file = fopen (filename, "w");
-      if (file != NULL)
-	fwrite (output, strlen (output), 1, file);
-      else
-	{
-	  printf ("%s: Couldn't write to '%s'.\r\n", __func__, filename);
-	  return 1;
-	}
+  if (data == NULL) return 1;
 
-      free (output);
-      fclose (file);
-      return 0;
+  FILE* file;
+  file = fopen (filename, "w");
+  if (file != NULL)
+    fwrite (output, strlen (output), 1, file);
+  else
+    {
+      printf ("%s: Couldn't write to '%s'.\r\n", __func__, filename);
+      return 1;
     }
 
-  return 1;
+  free (output);
+  fclose (file);
+  return 0;
 }
 
 char*
@@ -266,7 +260,7 @@ co_json_create (GSList* data, const char* title)
 	      {
 		dt_tilt* tilt = (dt_tilt*) next;
 		written += sprintf (output + written, 
-				    ",\r\n         \"tilt\" : [ %d, %d ]", 
+				    ",\r\n         \"tilt\" : { \"x\" : %d, \"y\" : %d }", 
 				    tilt->x, tilt->y);
 	      }
 
