@@ -39,6 +39,13 @@ extern dt_configuration settings;
 
 #define DEFAULT_COLOR "#00007c"
 
+static void
+skip_warning ()
+{
+  printf ("WARNING: An element has been skipped because of malformed input.\r\n");
+}
+
+
 /*----------------------------------------------------------------------------.
  | CO_WRITE_JSON_FILE                                                          |
  | This function writes data points to an JSON file.                           |
@@ -67,7 +74,7 @@ co_json_create_file (const char* filename, GSList* data)
   return 1;
 }
 
-char* 
+char*
 co_json_create (GSList* data, const char* title)
 {
   /* Floating-point numbers should be written with a dot instead of a comma.
@@ -83,11 +90,11 @@ co_json_create (GSList* data, const char* title)
 
   int written = 0;
 
-  /* On average, 10 bytes are written per list item. The header and background 
+  /* On average, 100 bytes are written per list item. The header and background 
    * layer take 571 bytes, so these are added to the amount to allocate. 
    * There's no mechanism in place to allocate more. So this is something 
    * to look into. */
-  size_t output_len = 100 * g_slist_length (data) + 571;
+  size_t output_len = 100 * g_slist_length (data) + 50;
   char* output = malloc (output_len);
   if (output == NULL)
     {
@@ -95,15 +102,10 @@ co_json_create (GSList* data, const char* title)
       return NULL;
     }
 
-  //else
-  //  printf ("Allocated      %lu bytes.\r\n", output_len);
-
   /*--------------------------------------------------------------------------.
    | WRITE JSON HEADER                                                         |
    '--------------------------------------------------------------------------*/
-  written += sprintf (output + written,
-		      "{\r\n"
-		      "  \"0\" : {\r\n");
+  written += sprintf (output + written, "{\r\n  \"0\" : {\r\n");
 
   /*--------------------------------------------------------------------------.
    | COUNTING VARIABLES                                                       |
@@ -113,10 +115,8 @@ co_json_create (GSList* data, const char* title)
   unsigned int layer = 1;
   unsigned int layer_color = 1;
   unsigned char has_stroke_data = 0;
-  unsigned char has_been_positioned = 0;
   unsigned char is_in_stroke = 0;
-  float previous_x = 0;
-  float previous_y = 0;
+  dt_coordinate prev = { TYPE_COORDINATE, 0, 0 };
 
   GSList* stroke_data = NULL; 
 
@@ -126,6 +126,11 @@ co_json_create (GSList* data, const char* title)
   while (data != NULL)
     {
       dt_element* e = (dt_element *)data->data;
+      dt_element* next = NULL;
+
+      /* Provide an easy way to access the next element. */
+      if (data->next != NULL) next = (dt_element *)data->next->data;
+
       switch (e->type)
 	{
 	  /*------------------------------------------------------------------.
@@ -137,82 +142,74 @@ co_json_create (GSList* data, const char* title)
 	    switch (s->value)
 	      {
 	      case BEGIN_STROKE:
-		{
-		  written += sprintf (output + written, "/* BEGIN_STROKE */\r\n");
-		  written += sprintf (output + written, "    \"%d\" : {\r\n", group);
-
-		  has_been_positioned = 0;
-		  is_in_stroke = 1;
-		  has_stroke_data = 1;
-		  group++;
-		}
+		written += sprintf (output + written, "    \"%d\" : {\r\n", group),
+		  is_in_stroke = 1, has_stroke_data = 1, group++;
 	      break;
 	      case END_STROKE:
 		{
-		  written += sprintf (output + written, "/* END_STROKE */\r\n");
-		  if (is_in_stroke == 1)
+		  if (is_in_stroke != 1) { skip_warning (); break; }
+
+		  while (stroke_data != NULL)
 		    {
-		      while (stroke_data != NULL)
+		      dt_coordinate* c = (dt_coordinate*)stroke_data->data;
+		      float x = c->x / SHRINK + OFFSET_X;
+		      float y = c->y / SHRINK + OFFSET_Y;
+
+		      /* When points are too far away, skip them.
+		       * When points are exactly the same, skip them.
+		       * When the data is within the borders of an A4 page, add
+		       * it. This prevents weird stripes and clutter from 
+		       * disturbing the document. */
+		      float distance = sqrt ((x - prev.x) * (x - prev.x) +
+					     (y - prev.y) * (y - prev.y));
+
+		      if (distance <= SPIKE_THRESHOLD)
 			{
-			  dt_coordinate* c = (dt_coordinate*)stroke_data->data;
-			  float x = c->x / SHRINK + OFFSET_X;
-			  float y = c->y / SHRINK + OFFSET_Y;
+			  /* Avoid division by zero. If distance is zero, delta_x and
+			   * delta_y are also zero. */
+			  if (distance == 0) distance = 1;
 
-			  /* When points are too far away, skip them.
-			   * When points are exactly the same, skip them.
-			   * When the data is within the borders of an A4 page, add
-			   * it. This prevents weird stripes and clutter from 
-			   * disturbing the document. */
-			  float distance = sqrt ((x - previous_x) * (x - previous_x) +
-						 (y - previous_y) * (y - previous_y));
-			  if ( distance <= SPIKE_THRESHOLD &&
-			       x != previous_x && y != previous_y &&
-			       x > 0 && y > 100 && y < 1050)
-			    {
-			      /* Avoid division by zero. If distance is zero, delta_x and
-			       * delta_y are also zero. */
-			      if (distance == 0)
-				distance = 1;
+			  written += sprintf (output + written, 
+					      "      \"%d\" : {\r\n"
+					      "        \"x\" : %f,\r\n"
+					      "        \"y\" : %f,\r\n"
+					      "        \"pressure\" : %f",
+					      point,
+					      x + (prev.y - y) / distance * c->pressure,
+					      y + (x - prev.x) / distance * c->pressure,
+					      c->pressure);
 
-			      written += sprintf (output + written, 
-						  "      \"%d\" : {\r\n"
-						  "        \"x\" : %f,\r\n"
-						  "        \"y\" : %f,\r\n"
-						  "        \"p\" : %f\r\n"
-						  "      }\r\n",
-						  point,
-						  x + (previous_y - y) / distance * c->pressure,
-						  y + (x - previous_x) / distance * c->pressure,
-						  c->pressure);
-			      previous_x = x;
-			      previous_y = y;
-			      point++;
-			    }
+			  if (stroke_data->next == NULL)
+			    written += sprintf (output + written, "\r\n       }\r\n");
+			  else
+			    written += sprintf (output + written, "\r\n       },\r\n");
 
-			  free (c);
-			  stroke_data = stroke_data->next;
+			  prev.x = x, prev.y = y, point++;
 			}
+
+		      free (c);
+		      stroke_data = stroke_data->next;
 		    }
-		  written += sprintf (output + written, "    }\r\n");
+
+		  if (data->next == NULL)
+		    written += sprintf (output + written, "\r\n    }\r\n");
+		  else
+		    written += sprintf (output + written, "\r\n    },\r\n");
+
 		  is_in_stroke = 0;
 		}
 		break;
 	      case NEW_LAYER:
 		{
-		  written += sprintf (output + written, "/* NEW_LAYER */\r\n");
-		  if (has_stroke_data == 0)
-		    layer_color++;
+		  if (has_stroke_data == 0) layer_color++;
 		  else
-		    {
-		      has_stroke_data = 0;
-		      layer_color = 1;
+		    has_stroke_data = 0, layer_color = 1, layer++,
 		      written += sprintf (output + written, "  }\r\n  \"%d\" : {\r\n", layer);
-		      layer++;
-		    }
 		}
 		break;
 	      }
-	    free (s); s = NULL;
+
+	    free (s), s = NULL;
 	  }
 	  break;
 	  /*------------------------------------------------------------------.
@@ -220,94 +217,68 @@ co_json_create (GSList* data, const char* title)
 	   '------------------------------------------------------------------*/
 	case TYPE_COORDINATE:
 	  {
-	    if (is_in_stroke == 1)
+	    if (is_in_stroke != 1) { skip_warning (); break; }
+
+	    dt_coordinate* c = (dt_coordinate *)e;
+	    if (next->type == TYPE_PRESSURE)
 	      {
-		dt_coordinate* c = (dt_coordinate *)e;
+		if (settings.pressure_factor != 0)
+		  c->pressure = ((dt_pressure*)next)->pressure / settings.pressure_factor;
 
-		if (c != NULL)
-		  {
-		    if (data->next != NULL)
-		      {
-			dt_element* elem = (dt_element*)data->next->data;
-			if (elem != NULL && elem->type == TYPE_PRESSURE && settings.pressure_factor != 0)
-			  {
-			    dt_pressure* p = (dt_pressure*)elem;
-			    c->pressure = p->pressure / settings.pressure_factor;
-			  }
-		      }
-		    if (settings.pressure_factor != 0)
-		      stroke_data = g_slist_prepend (stroke_data, c);
-
-		    float x = c->x / SHRINK + OFFSET_X;
-		    float y = c->y / SHRINK + OFFSET_Y;
-
-		    if (has_been_positioned > 0)
-		      {
-			// When points are exactly the same, skip them.
-			if (x == previous_x && y == previous_y)
-			  break;
-		      }
-		    else
-		      {  //begin a new stroke
-			previous_x = x;
-			previous_y = y;
-			has_been_positioned = 1;
-		      }
-
-
-		    // When the data is within the borders of an A4 page, add
-		    // it. This prevents weird stripes and clutter from 
-		    // disturbing the document.
-		    if (x > 0 && y > 100 && y < 1050)
-		      {
-			float distance = sqrt ((x - previous_x) * (x - previous_x) +
-					     (y - previous_y) * (y - previous_y));
-			// Avoid division by zero. If distance is zero, delta_x and
-			// delta_y are also zero.
-                        if (distance == 0)
-                          distance = 1;
-                        if (distance > SPIKE_THRESHOLD)
-                          break;
-
-			if (point > 0) 
-			    written += sprintf (output + written, "       },\r\n");
-			else
-			  printf ("point < 1\r\r\n");
-
-			written += sprintf (output + written, 
-					    "       \"%d\" : {\r\n"
-					    "         \"x\" : %f,\r\n"
-					    "         \"y\" : %f,\r\n"
-					    "         \"p\" : %f,\r\n",
-					    point,
-					    x + (previous_y - y) / distance * c->pressure,
-					    y + (x - previous_x) / distance * c->pressure,
-					    c->pressure);
-
-			point++;
-			previous_x = x;
-			previous_y = y;
-		      }
-		  }
+		if (data->next != NULL)
+		  next = (dt_element *)data->next->next->data;
 	      }
-	  }
-	  break;
-	case TYPE_TILT:
-	  {
-	    dt_tilt* t = (dt_tilt *)e;
-	    if (t != NULL)
-	      written += sprintf (output + written,
-				  "         \"tilt\" : {\r\n"
-				  "           \"x\" : %d,\r\n"
-				  "           \"y\" : %d\r\n"
-				  "         },\r\n",
-				  t->x, t->y);
+
+	    float x = c->x / SHRINK + OFFSET_X;
+	    float y = c->y / SHRINK + OFFSET_Y;
+
+	    /* When points are exactly the same, skip them. Otherwise begin a new stroke. */
+	    if (x == prev.x && y == prev.y) break;
+	    else
+	      prev.x = x, prev.y = y;
+
+	    // When the data is within the borders of an A4 page, add
+	    // it. This prevents weird stripes and clutter from 
+	    // disturbing the document.
+	    if (x < 1 || y < 101 || y > 1049) { skip_warning (); break; }
+
+	    if (settings.pressure_factor != 0)
+	      stroke_data = g_slist_prepend (stroke_data, c);
+
+	    float distance = sqrt ((x - prev.x) * (x - prev.x) +
+				   (y - prev.y) * (y - prev.y));
+	    // Avoid division by zero. If distance is zero, delta_x and
+	    // delta_y are also zero.
+	    if (distance == 0) distance = 1;
+	    else if (distance > SPIKE_THRESHOLD) break;
+
+	    written += sprintf (output + written, 
+				"       \"%d\" : {\r\n"
+				"         \"x\" : %f,\r\n"
+				"         \"y\" : %f,\r\n"
+				"         \"pressure\" : %f",
+				point,
+				x + (prev.y - y) / distance * c->pressure,
+				y + (x - prev.x) / distance * c->pressure,
+				c->pressure);
+
+	    if (next->type == TYPE_TILT)
+	      {
+		dt_tilt* tilt = (dt_tilt*) next;
+		written += sprintf (output + written, 
+				    ",\r\n         \"tilt\" : [ %d, %d ]", 
+				    tilt->x, tilt->y);
+	      }
+
+	    if (data->next == NULL)
+	      written += sprintf (output + written, "\r\n       }\r\n");
+	    else
+	      written += sprintf (output + written, "\r\n       },\r\n");
+
+	    point++, prev.x = x, prev.y = y;
 	  }
 	  break;
 	}
-
-      //free (e);
-      //e = NULL;
 
       data = data->next;
     }
