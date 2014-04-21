@@ -23,6 +23,7 @@
 #include "../converters/pdf.h"
 #include "../parsers/wpi.h"
 #include "../datatypes/element.h"
+#include "../datatypes/configuration.h"
 
 #include <stdlib.h>
 #if !defined(__APPLE__)
@@ -37,19 +38,19 @@
 #define BTN_DOCUMENT_WIDTH  100
 #define BTN_DOCUMENT_HEIGHT 100
 #define A4_WIDTH 595.0
-#define A4_HEIGHT 842.0
-
-extern GtkWidget* document_view;
-extern GtkWidget* lbl_status;
-extern GSList* documents;
-
+#define A4_HEIGHT 842.
 #define DOCUMENT_PADDING 25.0
 
-GSList* parsed_data = NULL;
-RsvgHandle* handle = NULL;
-char* svg_data = NULL;
-int current_view = -1;
-char* directory_name = NULL;
+extern GtkWidget* document_view;
+extern GtkWidget* hbox_colors;
+extern GSList* documents;
+extern dt_configuration settings;
+
+static GSList* parsed_data = NULL;
+static RsvgHandle* handle = NULL;
+static char* svg_data = NULL;
+static int current_view = -1;
+static char* directory_name = NULL;
 
 
 /*----------------------------------------------------------------------------.
@@ -128,36 +129,17 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
     {
       parsed_data = p_wpi_parse (filename);
 
-      /* Only continue when data has been parsed. */
-      if (parsed_data)
-	{
-	  size_t status_len = 18 + strlen (filename);
-	  char* status = malloc (status_len);
-	  if (status)
-	    {
-	      snprintf (status, status_len, "Now displaying: %s", filename);
-	      gtk_label_set_text (GTK_LABEL (lbl_status), status);
-	      free (status);
-	    }
-	}
-
       /* Clean up the filename if it was gathered using the dialog. */
       if (!data)
 	g_free (filename);
 
       /* Clean up the (old) RsvgHandle data when it's set at this point. */
       if (handle)
-	{
-	  g_object_unref (handle);
-	  handle = NULL;
-	}
+	g_object_unref (handle), handle = NULL;
 
       /* Clean up the (old) SVG data. */
       if (svg_data)
-	{
-	  free (svg_data);
-	  svg_data = NULL;
-	}
+	free (svg_data), svg_data = NULL;
 
       /* Make sure we are in VIEW_DOCUMENT mode. */
       current_view = VIEW_DOCUMENT;
@@ -182,34 +164,22 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
       char* ext = filename + strlen (filename) - 3;
       if (!strcmp (ext, "png") || !strcmp (ext, "svg") || !strcmp (ext, "pdf"))
 	{	
-	  size_t status_len = 29 + strlen (filename);
-	  char* status = malloc (status_len);
-	  if (status != NULL)
+	  if (!strcmp (ext, "png") && CAIRO_HAS_PNG_FUNCTIONS)
+	    co_png_export_to_file_from_handle (filename, handle);
+
+	  else if (!strcmp (ext, "pdf"))
+	    co_pdf_export_to_file_from_handle (filename, handle);
+
+	  else if (!strcmp (ext, "svg"))
 	    {
-	      if (!strcmp (ext, "png") && CAIRO_HAS_PNG_FUNCTIONS)
-		co_png_export_to_file_from_handle (filename, handle);
+	      FILE* file;
+	      file = fopen (filename, "w");
+	      if (file != NULL)
+		fwrite (svg_data, strlen (svg_data), 1, file);
 
-	      else if (!strcmp (ext, "pdf"))
-		co_pdf_export_to_file_from_handle (filename, handle);
-
-	      else if (!strcmp (ext, "svg"))
-		{
-		  FILE* file;
-		  file = fopen (filename, "w");
-		  if (file != NULL)
-		    fwrite (svg_data, strlen (svg_data), 1, file);
-
-		  fclose (file);
-		}
-
-	      snprintf (status, status_len, "The file has been saved as: %s", filename);
-	      gtk_label_set_text (GTK_LABEL (lbl_status), status);
-	      free (status);
+	      fclose (file);
 	    }
 	}
-      else
-	gtk_label_set_text (GTK_LABEL (lbl_status), 
-	  "Only PNG (.png), SVG (.svg) and PDF (.pdf) are supported.");
 	
       g_free (filename);
     }
@@ -225,9 +195,6 @@ gui_mainwindow_directory_activated (GtkWidget* widget, void* data)
 {
   GtkWidget *parent = gtk_widget_get_toplevel (widget);
   char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
-
-  if (filename != NULL)
-    gtk_label_set_text (GTK_LABEL (lbl_status), "You can now choose a file below.");
 
   current_view = VIEW_DIRECTORY;
   directory_name = filename;
@@ -264,8 +231,7 @@ gui_mainwindow_directory_draw (GtkWidget* widget, const char* path)
 	  gtk_container_add (GTK_CONTAINER (btn_document), da_document);
 
 	  free (name);
-	  x++; 
-	  y++;
+	  x++, y++;
 	}
     }
 
@@ -317,18 +283,58 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 	  }
 
 	gtk_widget_set_size_request(widget, 0, h);
-
       }
       break;
     case VIEW_DIRECTORY:
       {
 	gui_mainwindow_directory_draw (widget, directory_name);
-	free (directory_name); directory_name = NULL;
+	free (directory_name), directory_name = NULL;
       }
       break;
     }
   return 0;
 }
+
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_ADD_COLOR                                                   |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_add_color (GtkWidget* widget, void* data)
+{
+  /* Show the color selection dialog. */
+  GtkWidget* color_chooser = gtk_color_chooser_dialog_new ("Choose a color", NULL);
+  GdkRGBA chosen_color;
+
+  gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (color_chooser), 0);
+  int response = gtk_dialog_run (GTK_DIALOG (color_chooser));
+
+  if (response == GTK_RESPONSE_OK)
+    {
+      gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_chooser), &chosen_color);
+
+      GtkWidget* color = gtk_color_button_new_with_rgba (&chosen_color);
+
+      /* It's not exact due to rounding, but for now it's close enough.. */
+      unsigned int r = chosen_color.red * 0xFF,
+	           g = chosen_color.green * 0xFF,
+	           b = chosen_color.blue * 0xFF;
+
+      if (!settings.colors)
+	settings.colors = malloc (1 * sizeof (char*));
+      else
+	settings.colors = realloc (settings.colors, (settings.num_colors + 1) * sizeof (char*));
+
+      settings.colors[settings.num_colors] = malloc (8);
+      snprintf (settings.colors[settings.num_colors], 8, "#%02X%02x%02x", r, g, b);
+      settings.num_colors++;
+
+      gtk_box_pack_start (GTK_BOX (hbox_colors), color, 0, 0, 0);
+      gtk_widget_show_all (color);
+    }
+  gtk_widget_destroy (color_chooser);
+}
+
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_QUIT                                                        |

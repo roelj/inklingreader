@@ -158,7 +158,7 @@ co_svg_create (GSList* data, const char* title)
 		{
 		  char* color = DEFAULT_COLOR;
 		  if (layer_color < settings.num_colors)
-		    color = settings.colors[layer_color];
+		    color = settings.colors[layer_color - 1];
 		  else if (settings.num_colors > 0)
 		    color = settings.colors[0];
                   if (settings.pressure_factor != 0)

@@ -19,14 +19,17 @@
 
 #include "mainwindow.h"
 #include "mainwindow_sig.h"
+#include "../datatypes/configuration.h"
 #include <gtk/gtk.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
 GtkWidget* document_view = NULL;
-GtkWidget* lbl_status = NULL;
+GtkWidget* hbox_colors = NULL;
 GSList* documents = NULL;
+
+extern dt_configuration settings;
 
 #define MENU_ITEMS_NUM 3
 const char* menu_items[] = { "Open file", "Export file", "Quit" };
@@ -49,6 +52,8 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   GtkWidget* menu_bar_file = NULL;
   GtkWidget* menu_file = NULL;
 
+  GtkWidget* new_color_button = NULL;
+
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
    '--------------------------------------------------------------------------*/
@@ -58,18 +63,31 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
 
   vbox_window = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
   hbox_menu_top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
+  hbox_colors = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   document_container = gtk_scrolled_window_new (NULL, NULL);
   document_viewport = gtk_viewport_new (NULL, NULL);
   document_view = gtk_drawing_area_new ();
 
-  lbl_status = gtk_label_new ("Please open a file or folder.");
-
   menu_bar = gtk_menu_bar_new ();
   menu_bar_file = gtk_menu_item_new_with_label ("File");
   menu_file = gtk_menu_new ();
 
+  new_color_button = gtk_button_new_with_label ("+");
+
+  /* Add the (already existing) colors as buttons to the color bar. */
   int a = 0;
+  while (a < settings.num_colors)
+    {
+      GdkRGBA color;
+      gdk_rgba_parse (&color, settings.colors[a]);
+      GtkWidget* btn_color = gtk_color_button_new_with_rgba (&color);
+      gtk_box_pack_start (GTK_BOX (hbox_colors), btn_color, 0, 0, 0);
+      a++;
+    }
+
+  /* Add the menu items to the menu. */
+  a = 0;
   for (; a < MENU_ITEMS_NUM; a++)
     {
       GtkWidget* menu_item = gtk_menu_item_new_with_label (menu_items[a]);
@@ -101,9 +119,12 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
    | CONTAINERS                                                               |
    '--------------------------------------------------------------------------*/
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 0);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), lbl_status, 1, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
+
+  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), hbox_colors, 0, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
+
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
 
   /*--------------------------------------------------------------------------.
@@ -115,6 +136,8 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   g_signal_connect (G_OBJECT (document_view), "draw",
                     G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
 
+  g_signal_connect (G_OBJECT (new_color_button), "clicked",
+		    G_CALLBACK (gui_mainwindow_add_color), NULL);
 
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |
