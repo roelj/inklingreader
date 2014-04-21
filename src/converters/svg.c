@@ -141,6 +141,7 @@ co_svg_create (GSList* data, const char* title)
   /*--------------------------------------------------------------------------.
    | WRITE DATA POINTS                                                        |
    '--------------------------------------------------------------------------*/
+  GSList* data_head = data;
   while (data != NULL)
     {
       dt_element* e = (dt_element *)data->data;
@@ -157,7 +158,7 @@ co_svg_create (GSList* data, const char* title)
 	      case BEGIN_STROKE:
 		{
 		  char* color = DEFAULT_COLOR;
-		  if (layer_color < settings.num_colors)
+		  if (layer_color <= settings.num_colors)
 		    color = settings.colors[layer_color - 1];
 		  else if (settings.num_colors > 0)
 		    color = settings.colors[0];
@@ -210,7 +211,7 @@ co_svg_create (GSList* data, const char* title)
                                   previous_y = y;
                                 }
 
-                              free (c);
+                              //free (c), c = NULL;
                               stroke_data = stroke_data->next;
                             }
                           /* 'Z' means 'closepath' */
@@ -244,7 +245,7 @@ co_svg_create (GSList* data, const char* title)
 		}
 		break;
 	      }
-	    free (s); s = NULL;
+	    //free (s), s = NULL;
 	  }
 	  break;
 	  /*------------------------------------------------------------------.
@@ -331,14 +332,16 @@ co_svg_create (GSList* data, const char* title)
       data = data->next;
     }
 
+  data = data_head;
+
   written += sprintf (output + written, "</g>\n</svg>");
 
   output_len = written + 1;
   output = realloc (output, output_len);
   output[written] = '\0';
 
-  g_slist_free (data);
-  data = NULL;
+  //g_slist_free (data);
+  //data = NULL;
 
   /* Reset to default locale settings. */
   setlocale (LC_NUMERIC, "");

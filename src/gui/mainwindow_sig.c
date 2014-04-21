@@ -330,7 +330,21 @@ gui_mainwindow_add_color (GtkWidget* widget, void* data)
       settings.num_colors++;
 
       gtk_box_pack_start (GTK_BOX (hbox_colors), color, 0, 0, 0);
-      gtk_widget_show_all (color);
+      gtk_widget_show (color);
+
+      if (svg_data != NULL)
+	{
+	  /* Clean up the (old) RsvgHandle data when it's set at this point. */
+	  if (handle != NULL)
+	    g_object_unref (handle), handle = NULL;
+
+	  /* Clean up the (old) SVG data. */
+	  if (svg_data)
+	    free (svg_data), svg_data = NULL;
+
+	  gtk_widget_hide (document_view);
+	  gtk_widget_show_all (document_view);
+	}
     }
   gtk_widget_destroy (color_chooser);
 }
