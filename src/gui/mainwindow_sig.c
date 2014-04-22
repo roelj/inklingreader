@@ -27,31 +27,27 @@
 #include "../datatypes/configuration.h"
 
 #include <stdlib.h>
-#if !defined(__APPLE__)
+#ifndef __APPLE__
 #include <malloc.h>
 #endif
+
 #include <string.h>
-#include <sys/types.h>
-#include <dirent.h>
 #include <librsvg/rsvg.h>
 #include <cairo-pdf.h>
 
-#define BTN_DOCUMENT_WIDTH  100
-#define BTN_DOCUMENT_HEIGHT 100
 #define A4_WIDTH 595.0
-#define A4_HEIGHT 842.
+#define A4_HEIGHT 842.0
 #define DOCUMENT_PADDING 25.0
 
 extern GtkWidget* document_view;
 extern GtkWidget* hbox_colors;
+extern GtkWidget* window;
 extern GSList* documents;
 extern dt_configuration settings;
 
 static GSList* parsed_data = NULL;
 static RsvgHandle* handle = NULL;
 static char* svg_data = NULL;
-static int current_view = -1;
-static char* directory_name = NULL;
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_REDISPLAY                                                   |
@@ -84,13 +80,10 @@ gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data)
 {
   const char* label = gtk_menu_item_get_label (GTK_MENU_ITEM (widget));
 
-  if (!strcmp (label, "Open file"))
+  if (!strcmp (label, "Open"))
     gui_mainwindow_file_activated (widget, data);
 
-  else if (!strcmp (label, "Open directory"))
-    gui_mainwindow_directory_activated (widget, data);
-
-  else if (!strcmp (label, "Export file"))
+  else if (!strcmp (label, "Export"))
     gui_mainwindow_export_activated (widget, data);
 
   else if (!strcmp (label, "Quit"))
@@ -128,7 +121,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_FILE_ACTIVATED                                              |
- | This callback function handles activating the "Open file" menu button.     |
+ | This callback function handles activating the "Open" menu button.          |
  '----------------------------------------------------------------------------*/
 void
 gui_mainwindow_file_activated (GtkWidget* widget, void* data)
@@ -144,6 +137,12 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
       GtkWidget *parent = gtk_widget_get_toplevel (widget);
       filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
     }
+
+  char* window_title = malloc (16 + strlen (filename) + 1);
+  sprintf (window_title, "InklingReader: %s", filename);
+  gtk_window_set_title (GTK_WINDOW (window), window_title);
+
+  free (window_title);
 
   /* When the filename is not NULL anymore, we can process it. */
   if (filename)
@@ -161,9 +160,6 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
       /* Clean up the (old) SVG data. */
       if (svg_data)
 	free (svg_data), svg_data = NULL;
-
-      /* Make sure we are in VIEW_DOCUMENT mode. */
-      current_view = VIEW_DOCUMENT;
     }
 
   gtk_widget_hide (document_view);
@@ -172,7 +168,7 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_EXPORT_ACTIVATED                                            |
- | This callback function handles activating the "Export file" menu button.   |
+ | This callback function handles activating the "Export" menu button.        |
  '----------------------------------------------------------------------------*/
 void
 gui_mainwindow_export_activated (GtkWidget* widget, void* data)
@@ -209,69 +205,6 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
     }
 }
 
-
-/*----------------------------------------------------------------------------.
- | GUI_MAINWINDOW_DIRECTORY_ACTIVATED                                         |
- | This callback function handles activating the "Open directory" menu item.  |
- '----------------------------------------------------------------------------*/
-void
-gui_mainwindow_directory_activated (GtkWidget* widget, void* data)
-{
-  GtkWidget *parent = gtk_widget_get_toplevel (widget);
-  char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
-
-  current_view = VIEW_DIRECTORY;
-  directory_name = filename;
-}
-
-/*----------------------------------------------------------------------------.
- | GUI_MAINWINDOW_DIRECTORY_DRAW                                              |
- | This function draws documents on 'widget' that are found in 'directory'.   |
- '----------------------------------------------------------------------------*/
-void
-gui_mainwindow_directory_draw (GtkWidget* widget, const char* path)
-{
-  DIR* directory;
-  struct dirent* entry;
-
-  directory = opendir (path);
-  while ((entry = readdir (directory)) != NULL)
-    {
-      /* Don't show files starting with a dot, '.' and '..' and only show 
-       * files with the WPI extension (others are not relevant). */
-      char* extension = entry->d_name + strlen (entry->d_name) - 3;
-      int x = 1, y = 1;
-      if (entry->d_name[0] != '.' && !strcmp (extension, "WPI"))
-	{
-	  size_t name_len = strlen (path) + strlen (entry->d_name) + 2;
-	  char* name = malloc (name_len);
-	  if (name == NULL) break;
-
-	  /* Construct a string that holds "path/name". */
-	  snprintf (name, name_len, "%s/%s", path, entry->d_name);
-	  GtkWidget* btn_document = gtk_button_new ();
-	  GtkWidget* da_document = gtk_drawing_area_new ();
-	  gtk_widget_set_size_request (da_document, BTN_DOCUMENT_WIDTH, BTN_DOCUMENT_HEIGHT);
-	  gtk_container_add (GTK_CONTAINER (btn_document), da_document);
-
-	  free (name);
-	  x++, y++;
-	}
-    }
-
-  closedir (directory);
-}
-
-/*----------------------------------------------------------------------------.
- | GUI_MAINWINDOW_DIR_ENTRY_DRAW                                              |
- | This function draws a placeholder icon and the file's name for a document. |
- '----------------------------------------------------------------------------*/
-void 
-gui_mainwindow_dir_entry_draw (GtkWidget* widget, cairo_t* cr, void* data)
-{
-  //char* filename = (char*)data;
-}
-
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_DOCUMENT_VIEW_DRAW                                          |
  | This callback function handles the drawing on the 'document_view' widget.  |
@@ -279,42 +212,32 @@ gui_mainwindow_dir_entry_draw (GtkWidget* widget, cairo_t* cr, void* data)
 gboolean
 gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 {
-  switch (current_view)
+  if (parsed_data != NULL)
     {
-    case VIEW_DOCUMENT:
-      {
-	double w = gtk_widget_get_allocated_width (widget);
-	double ratio = w / (A4_WIDTH * 1.25) / 1.25;
-	double padding = (w - (A4_WIDTH * 1.25 * ratio)) / 2;
-	double h = w * A4_HEIGHT / A4_WIDTH - padding * 2;
+      double w = gtk_widget_get_allocated_width (widget);
+      double ratio = w / (A4_WIDTH * 1.25) / 1.25;
+      double padding = (w - (A4_WIDTH * 1.25 * ratio)) / 2;
+      double h = w * A4_HEIGHT / A4_WIDTH - padding * 2;
 
-	cairo_translate (cr, padding, 30.0);
-	cairo_scale (cr, ratio, ratio);
+      cairo_translate (cr, padding, 30.0);
+      cairo_scale (cr, ratio, ratio);
 
-	if (parsed_data && !handle)
-	  {
-	    svg_data = co_svg_create (parsed_data, NULL);
-	    size_t svg_data_len = strlen (svg_data);
+      if (parsed_data && !handle)
+	{
+	  svg_data = co_svg_create (parsed_data, NULL);
+	  size_t svg_data_len = strlen (svg_data);
 
-	    handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
-	    rsvg_handle_render_cairo (handle, cr);
-	    rsvg_handle_close (handle, NULL);
-	  }
-	else if (handle)
-	  {
-	    rsvg_handle_render_cairo (handle, cr);
-	    rsvg_handle_close (handle, NULL);
-	  }
+	  handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
+	  rsvg_handle_render_cairo (handle, cr);
+	  rsvg_handle_close (handle, NULL);
+	}
+      else if (handle)
+	{
+	  rsvg_handle_render_cairo (handle, cr);
+	  rsvg_handle_close (handle, NULL);
+	}
 
-	gtk_widget_set_size_request(widget, 0, h);
-      }
-      break;
-    case VIEW_DIRECTORY:
-      {
-	gui_mainwindow_directory_draw (widget, directory_name);
-	free (directory_name), directory_name = NULL;
-      }
-      break;
+      gtk_widget_set_size_request(widget, 0, h);
     }
   return 0;
 }

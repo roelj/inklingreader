@@ -29,13 +29,13 @@
 
 GtkWidget* document_view = NULL;
 GtkWidget* hbox_colors = NULL;
+GtkWidget* window = NULL;
 GSList* documents = NULL;
 
 extern dt_configuration settings;
 
 #define MENU_ITEMS_NUM 3
-const char* menu_items[] = { "Open file", "Export file", "Quit" };
-//const char* menu_items[] = { "Open file", "Open directory", "Export file", "Quit" };
+const char* menu_items[] = { "Open", "Export", "Quit" };
 
 void
 gui_init_mainwindow (int argc, char** argv, const char* filename)
@@ -43,7 +43,6 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | WIDGETS                                                                  |
    '--------------------------------------------------------------------------*/
-  GtkWidget* window = NULL;
   GtkWidget* document_viewport = NULL;
   GtkWidget* document_container = NULL;
 
