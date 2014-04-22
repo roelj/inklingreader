@@ -21,6 +21,7 @@
 #include "../converters/svg.h"
 #include "../converters/png.h"
 #include "../converters/pdf.h"
+#include "../converters/json.h"
 #include "../parsers/wpi.h"
 #include "../datatypes/element.h"
 #include "../datatypes/configuration.h"
@@ -181,16 +182,19 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 
   if (filename != NULL)
     {
-      char* ext = filename + strlen (filename) - 3;
-      if (!strcmp (ext, "png") || !strcmp (ext, "svg") || !strcmp (ext, "pdf"))
-	{	
-	  if (!strcmp (ext, "png") && CAIRO_HAS_PNG_FUNCTIONS)
+      char* ext = filename + strlen (filename) - 4;
+      if (!strcmp (ext, ".png") || !strcmp (ext, ".svg") || !strcmp (ext, ".pdf") || !strcmp (ext, "json"))
+	{
+	  if (!strcmp (ext, ".png") && CAIRO_HAS_PNG_FUNCTIONS)
 	    co_png_export_to_file_from_handle (filename, handle);
 
-	  else if (!strcmp (ext, "pdf"))
+	  else if (!strcmp (ext, ".pdf"))
 	    co_pdf_export_to_file_from_handle (filename, handle);
 
-	  else if (!strcmp (ext, "svg"))
+	  else if (!strcmp (ext, "json"))
+	    co_json_create_file (filename, parsed_data);
+
+	  else if (!strcmp (ext, ".svg"))
 	    {
 	      FILE* file;
 	      file = fopen (filename, "w");
