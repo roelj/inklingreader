@@ -262,9 +262,9 @@ main (int argc, char** argv)
       /* Set a default color before launching the GUI. */
       if (settings.num_colors == 0)
 	{
-	  settings.colors = malloc (1 * sizeof (char*));
+	  settings.colors = malloc (sizeof (char*));
 	  settings.colors[0] = malloc (8);
-	  settings.colors[0] = "#00007c";
+	  snprintf (settings.colors[0], 8, "#00007c");
 	  settings.num_colors = 1;
 	}
 

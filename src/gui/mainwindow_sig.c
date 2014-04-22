@@ -52,7 +52,6 @@ static char* svg_data = NULL;
 static int current_view = -1;
 static char* directory_name = NULL;
 
-
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_REDISPLAY                                                   |
  '----------------------------------------------------------------------------*/
@@ -334,7 +333,15 @@ gui_mainwindow_add_color (GtkWidget* widget, void* data)
     {
       gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_chooser), &chosen_color);
 
+      /* Create a new color button. */
       GtkWidget* color = gtk_color_button_new_with_rgba (&chosen_color);
+
+      /* Attach a signal to it for resetting the color. */
+      int* number = malloc (sizeof (int));
+      *number = settings.num_colors;
+
+      g_signal_connect (G_OBJECT (color), "color-set",
+			G_CALLBACK (gui_mainwindow_set_fg_color), number);
 
       /* It's not exact due to rounding, but for now it's close enough.. */
       unsigned int r = chosen_color.red * 0xFF,
@@ -383,6 +390,38 @@ gui_mainwindow_set_bg_color (GtkWidget* widget, void* data)
       settings.background = malloc (8);
     }
   snprintf (settings.background, 8, "#%02X%02x%02x", r, g, b);
+
+  gui_mainwindow_redisplay();
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_FG_COLOR                                                |
+ | This function is the callback for resetting a foreground color.            |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_fg_color (GtkWidget* widget, void* data)
+{
+  int number = *(int*)data;
+
+  GdkRGBA color;
+  gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (widget), &color);
+
+  /* It's not exact due to rounding, but for now it's close enough.. */
+  unsigned int r = color.red * 0xFF,
+               g = color.green * 0xFF,
+               b = color.blue * 0xFF;
+
+  /* A color could be 'red', which is only 3 characters. We must make sure 
+   * we have 8 bytes available. */
+  if (strlen (settings.colors[number]) <= 7)
+    {
+      printf ("settings.colors[%d] = \"%s\"\r\n", number, settings.colors[number]);
+      if (settings.colors[number] != NULL)
+	free (settings.colors[number]), settings.colors[number] = NULL;
+      settings.colors[number] = malloc (8);
+    }
+
+  snprintf (settings.colors[number], 8, "#%02X%02x%02x", r, g, b);
 
   gui_mainwindow_redisplay();
 }

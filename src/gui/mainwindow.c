@@ -22,6 +22,8 @@
 #include "../datatypes/configuration.h"
 #include <gtk/gtk.h>
 
+#include <malloc.h>
+
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
@@ -96,6 +98,14 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
       GdkRGBA color;
       gdk_rgba_parse (&color, settings.colors[a]);
       GtkWidget* btn_color = gtk_color_button_new_with_rgba (&color);
+
+      /* Attach a signal to it for resetting the color. */
+      int* number = malloc (sizeof (int));
+      *number = a;
+
+      g_signal_connect (G_OBJECT (btn_color), "color-set",
+			G_CALLBACK (gui_mainwindow_set_fg_color), number);
+
       gtk_box_pack_start (GTK_BOX (hbox_colors), btn_color, 0, 0, 0);
     }
 
