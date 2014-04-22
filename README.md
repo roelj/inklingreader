@@ -8,7 +8,7 @@ program aims to be compatible with free software alternatives like Inkscape.
 The program can:
 
 * Display WPI files
-* Merge WPI files
+* Merge WPI files (command-line only)
 * Export to Inkscape SVG (preserving layers), PDF and PNG
 * Convert all WPI files in a directory to SVG
 * Automatically use different colors when the "new layer" is pressed multiple times.
@@ -17,7 +17,7 @@ The program can:
 Screenshot
 ----------
 
-![InklingReader screenshot](http://roelj.com/Inkling.png)
+![InklingReader screenshot](http://roelj.com/Inkling_2.png)
 
 Dependencies
 ------------
