@@ -22,6 +22,17 @@
 
 #include <glib.h>
 
+/**
+ * p_wpi_parse:
+ * This function decodes the WPI format and creates a list of the data using
+ * the available datatypes.
+ */
 GSList* p_wpi_parse (const char* filename);
+
+/**
+ * p_wpi_cleanup:
+ * This function cleans up the data that was created using 'p_wpi_parse'. 
+ */
+void p_wpi_cleanup (GSList* data);
 
 #endif//PARSERS_WPI_H

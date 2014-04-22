@@ -79,9 +79,8 @@ high_convert_directory (const char* path, GSList* coordinates)
 	  /* Convert a file. */
 	  co_svg_create_file (new_name, coordinates);
 
-	  /* Clean up. 
-	   * TODO: coordinates is leaking a lot of of memory! */
-	  coordinates = NULL;
+	  /* Clean up. */
+	  p_wpi_cleanup (coordinates), coordinates = NULL;
 	  free (name);
 	  free (new_name);
 	}
@@ -147,53 +146,55 @@ high_merge_wpi_files (const char* first, const char* second)
   char* ext2 = (char*)second + strlen (second) - 3;
 
   if (strcmp (ext1, "WPI") || strcmp (ext2, "WPI"))
-    printf ("I can only merge files with a .WPI extension.\r\n");
+    {
+      printf ("I can only merge files with a .WPI extension.\r\n");
+      exit (1);
+    }
+
+  FILE* file1 = fopen (first, "rb");
+  FILE* file2 = fopen (second, "rb");
+
+  if (!file1 && !file2)
+    {
+      printf ("Couldn't open all files.\r\n");
+      exit (1);
+    }
+
+  /* Check out the length of the files. */
+  struct stat info1, info2;
+  stat (first, &info1);
+  stat (second, &info2);
+
+  /* Allocate memory to store both files in one variable. */
+  size_t data_len = info1.st_size + info2.st_size - 2040;
+  unsigned char* data = malloc (data_len + 4);
+  size_t written = 0;
+
+  /* Put the contents of the files in the memory. */
+  written += fread (data, 1, info1.st_size, file1);
+  fclose (file1);
+
+  /* Put the data of the second file in a separate layer. */
+  data[written] = BLOCK_STROKE;
+  data[written + 1] = 3;
+  data[written + 2] = NEW_LAYER;
+  written += 3;
+
+  /* Append the data from the second file. */
+  fseek (file2, 2040, SEEK_SET);
+  written += fread (data + written, 1, info2.st_size - 2040, file2);
+  fclose (file2);
+
+  /* Write the combined data to the second file. */
+  FILE* output = fopen (second, "wb");
+  if (!file2)
+    printf ("Couldn't write to '%s'\r\n", second);
   else
     {
-      FILE* file1 = fopen (first, "rb");
-      FILE* file2 = fopen (second, "rb");
-
-      if (!file1 && !file2)
-	printf ("Couldn't open all files.\r\n");
-      else
-	{
-	  /* Check out the length of the files. */
-	  struct stat info1, info2;
-	  stat (first, &info1);
-	  stat (second, &info2);
-
-	  /* Allocate memory to store both files in one variable. */
-	  size_t data_len = info1.st_size + info2.st_size - 2040;
-	  unsigned char* data = malloc (data_len + 4);
-	  size_t written = 0;
-
-	  /* Put the contents of the files in the memory. */
-	  written += fread (data, 1, info1.st_size, file1);
-	  fclose (file1);
-
-	  /* Put the data of the second file in a separate layer. */
-	  data[written] = BLOCK_STROKE;
-	  data[written + 1] = 3;
-	  data[written + 2] = NEW_LAYER;
-	  written += 3;
-
-	  /* Append the data from the second file. */
-	  fseek (file2, 2040, SEEK_SET);
-	  written += fread (data + written, 1, info2.st_size - 2040, file2);
-	  fclose (file2);
-
-	  /* Write the combined data to the second file. */
-	  FILE* output = fopen (second, "wb");
-	  if (!file2)
-	    printf ("Couldn't write to '%s'\r\n", second);
-	  else
-	    {
-	      data[written] = '\0';
-	      fwrite (data, data_len + 1, 1, output);
-	      fclose (output);
-	    }
-
-	  free (data);
-	}
+      data[written] = '\0';
+      fwrite (data, data_len + 1, 1, output);
+      fclose (output);
     }
+
+  free (data);
 }

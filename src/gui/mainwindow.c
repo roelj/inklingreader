@@ -53,6 +53,11 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   GtkWidget* menu_file = NULL;
 
   GtkWidget* new_color_button = NULL;
+  GtkWidget* bg_color_button = NULL;
+  GtkWidget* bg_color_label = NULL;
+  GtkWidget* fg_color_label = NULL;
+  GtkWidget* pressure_label = NULL;
+  GtkWidget* pressure_input = NULL;
 
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -75,20 +80,27 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
 
   new_color_button = gtk_button_new_with_label ("+");
 
+  pressure_label = gtk_label_new ("");
+  pressure_input = gtk_spin_button_new_with_range (0, 5, 0.05);
+
+  GdkRGBA bg_doc_color;
+  gdk_rgba_parse (&bg_doc_color, "#fff");
+  bg_color_button = gtk_color_button_new_with_rgba (&bg_doc_color);
+  bg_color_label = gtk_label_new ("");
+  fg_color_label = gtk_label_new ("");
+
   /* Add the (already existing) colors as buttons to the color bar. */
   int a = 0;
-  while (a < settings.num_colors)
+  for (; a < settings.num_colors; a++)
     {
       GdkRGBA color;
       gdk_rgba_parse (&color, settings.colors[a]);
       GtkWidget* btn_color = gtk_color_button_new_with_rgba (&color);
       gtk_box_pack_start (GTK_BOX (hbox_colors), btn_color, 0, 0, 0);
-      a++;
     }
 
   /* Add the menu items to the menu. */
-  a = 0;
-  for (; a < MENU_ITEMS_NUM; a++)
+  for (a = 0; a < MENU_ITEMS_NUM; a++)
     {
       GtkWidget* menu_item = gtk_menu_item_new_with_label (menu_items[a]);
       gtk_menu_shell_append (GTK_MENU_SHELL (menu_file), menu_item);
@@ -115,14 +127,28 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   gtk_container_add (GTK_CONTAINER (document_viewport), document_view);
   gtk_container_add (GTK_CONTAINER (document_container), document_viewport);
 
+  gtk_label_set_markup (GTK_LABEL (bg_color_label), "<b>Background:</b>");
+  gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>Foreground:</b>");
+  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>Pressure factor:</b>");
+
+  gtk_spin_button_set_value (GTK_SPIN_BUTTON (pressure_input), settings.pressure_factor);
+
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
    '--------------------------------------------------------------------------*/
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
 
-  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_label, 0, 0, 10);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_button, 0, 0, 0);
+
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), fg_color_label, 0, 0, 10);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), hbox_colors, 0, 0, 0);
+  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 0);
+
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_label, 0, 0, 10);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_input, 0, 0, 0);
+
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
@@ -138,6 +164,12 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (new_color_button), "clicked",
 		    G_CALLBACK (gui_mainwindow_add_color), NULL);
+
+  g_signal_connect (G_OBJECT (bg_color_button), "color-set",
+		    G_CALLBACK (gui_mainwindow_set_bg_color), NULL);
+
+  g_signal_connect (G_OBJECT (pressure_input), "value-changed",
+		    G_CALLBACK (gui_mainwindow_set_pressure_input), NULL);
 
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |

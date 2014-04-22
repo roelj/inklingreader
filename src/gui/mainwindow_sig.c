@@ -54,6 +54,27 @@ static char* directory_name = NULL;
 
 
 /*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_REDISPLAY                                                   |
+ '----------------------------------------------------------------------------*/
+static void
+gui_mainwindow_redisplay ()
+{
+  if (svg_data != NULL)
+    {
+      /* Clean up the (old) RsvgHandle data when it's set at this point. */
+      if (handle != NULL)
+	g_object_unref (handle), handle = NULL;
+
+      /* Clean up the (old) SVG data. */
+      if (svg_data)
+	free (svg_data), svg_data = NULL;
+
+      gtk_widget_hide (document_view);
+      gtk_widget_show_all (document_view);
+    }  
+}
+
+/*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_MENU_FILE_ACTIVATE                                          |
  | This event handler handles the activation of a menu item within the "File" |
  | menu.                                                                      |
@@ -332,21 +353,50 @@ gui_mainwindow_add_color (GtkWidget* widget, void* data)
       gtk_box_pack_start (GTK_BOX (hbox_colors), color, 0, 0, 0);
       gtk_widget_show (color);
 
-      if (svg_data != NULL)
-	{
-	  /* Clean up the (old) RsvgHandle data when it's set at this point. */
-	  if (handle != NULL)
-	    g_object_unref (handle), handle = NULL;
-
-	  /* Clean up the (old) SVG data. */
-	  if (svg_data)
-	    free (svg_data), svg_data = NULL;
-
-	  gtk_widget_hide (document_view);
-	  gtk_widget_show_all (document_view);
-	}
+      gui_mainwindow_redisplay();
     }
   gtk_widget_destroy (color_chooser);
+}
+
+
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_BG_COLOR                                                |
+ | This function is the callback for setting the background color.            |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_bg_color (GtkWidget* widget, void* data)
+{
+  GdkRGBA color;
+  gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (widget), &color);
+
+  /* It's not exact due to rounding, but for now it's close enough.. */
+  unsigned int r = color.red * 0xFF,
+               g = color.green * 0xFF,
+               b = color.blue * 0xFF;
+
+  if (settings.background != NULL)
+    settings.background = malloc (8);
+  else
+    {
+      free (settings.background), settings.background = NULL;
+      settings.background = malloc (8);
+    }
+  snprintf (settings.background, 8, "#%02X%02x%02x", r, g, b);
+
+  gui_mainwindow_redisplay();
+}
+
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_PRESSURE_INPUT                                          |
+ | This function is the callback for setting the pressure factor.             |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
+{
+  settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
+  gui_mainwindow_redisplay();
 }
 
 
@@ -364,7 +414,7 @@ gui_mainwindow_quit ()
     g_object_unref (handle);
 
   if (parsed_data != NULL)
-    g_slist_free (parsed_data);
+    p_wpi_cleanup (parsed_data);
 
   gtk_main_quit();
 }

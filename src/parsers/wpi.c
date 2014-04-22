@@ -70,6 +70,7 @@ p_wpi_parse (const char* filename)
       printf ("Cannot open file '%s'\r\n", filename);
       return NULL;
     }
+
   /* Determine the size of the file.
    * FIXME: Filesize limit is now around 2GB. It would be cooler when
    * the size is virtually unlimited. In practice, we're fine with the
@@ -264,4 +265,26 @@ p_wpi_parse (const char* filename)
   list = g_slist_reverse (list);
   fclose (file);
   return list;
+}
+
+/*----------------------------------------------------------------------------.
+ | PARSE_WPI:                                                                 |
+ | This function reads the data and tries to get useful data out of it.       |
+ '----------------------------------------------------------------------------*/
+void
+p_wpi_cleanup (GSList* data)
+{
+  GSList* data_head = data;
+
+  /* Clean up the data elements of the list. */
+  while (data != NULL)
+    {
+      if (data->data)
+	free (data->data), data->data = NULL;
+
+      data = data->next;
+    }
+
+  /* Clean up the list items. */
+  g_slist_free (data_head);
 }

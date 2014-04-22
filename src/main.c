@@ -204,7 +204,7 @@ main (int argc, char** argv)
 	      {
 		if (optarg)
 		  settings.pressure_factor = atof (optarg);
-		launch_gui = 0;
+		launch_gui = 1;
 	      }
 	      break;
 
@@ -258,7 +258,17 @@ main (int argc, char** argv)
     launch_gui = 1;
 
   if (launch_gui == 1)
-    gui_init_mainwindow (argc, argv, NULL);
+    {
+      /* Set a default color before launching the GUI. */
+      if (settings.num_colors == 0)
+	{
+	  settings.colors = malloc (1 * sizeof (char*));
+	  settings.colors[0] = malloc (8);
+	  settings.colors[0] = "#00007c";
+	  settings.num_colors = 1;
+	}
 
+      gui_init_mainwindow (argc, argv, NULL);
+    }
   return 0;
 }
