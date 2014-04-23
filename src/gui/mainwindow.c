@@ -131,7 +131,7 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
 
   GdkRGBA bg;
   gdk_rgba_parse (&bg, "#101010");
-  gtk_widget_override_background_color (document_view, GTK_STATE_NORMAL, &bg);
+  gtk_widget_override_background_color (document_view, GTK_STATE_FLAG_NORMAL, &bg);
 
   gtk_container_add (GTK_CONTAINER (document_viewport), document_view);
   gtk_container_add (GTK_CONTAINER (document_container), document_viewport);
