@@ -53,7 +53,7 @@ dt_configuration settings;
 void
 show_version ()
 {
-  printf ("Version: 0.5\r\n");
+  printf ("Version: 0.6\r\n");
 }
 
 
