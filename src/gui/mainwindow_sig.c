@@ -138,32 +138,35 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
       filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
     }
 
-  char* window_title = malloc (16 + strlen (filename) + 1);
-  sprintf (window_title, "InklingReader: %s", filename);
-  gtk_window_set_title (GTK_WINDOW (window), window_title);
-
-  free (window_title);
-
-  /* When the filename is not NULL anymore, we can process it. */
-  if (filename)
+  if (filename != NULL)
     {
-      parsed_data = p_wpi_parse (filename);
+      char* window_title = malloc (16 + strlen (filename) + 1);
+      sprintf (window_title, "InklingReader: %s", filename);
+      gtk_window_set_title (GTK_WINDOW (window), window_title);
 
-      /* Clean up the filename if it was gathered using the dialog. */
-      if (!data)
-	g_free (filename);
+      free (window_title);
 
-      /* Clean up the (old) RsvgHandle data when it's set at this point. */
-      if (handle)
-	g_object_unref (handle), handle = NULL;
+      /* When the filename is not NULL anymore, we can process it. */
+      if (filename)
+	{
+	  parsed_data = p_wpi_parse (filename);
 
-      /* Clean up the (old) SVG data. */
-      if (svg_data)
-	free (svg_data), svg_data = NULL;
+	  /* Clean up the filename if it was gathered using the dialog. */
+	  if (!data)
+	    g_free (filename);
+
+	  /* Clean up the (old) RsvgHandle data when it's set at this point. */
+	  if (handle)
+	    g_object_unref (handle), handle = NULL;
+
+	  /* Clean up the (old) SVG data. */
+	  if (svg_data)
+	    free (svg_data), svg_data = NULL;
+	}
+
+      gtk_widget_hide (document_view);
+      gtk_widget_show_all (document_view);
     }
-
-  gtk_widget_hide (document_view);
-  gtk_widget_show_all (document_view);
 }
 
 /*----------------------------------------------------------------------------.
