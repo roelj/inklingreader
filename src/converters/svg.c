@@ -25,7 +25,6 @@
 #include <locale.h>
 #include "../datatypes/configuration.h"
 #include "../datatypes/element.h"
-#include "../optimizers/straight_lines.h"
 
 extern dt_configuration settings;
 
