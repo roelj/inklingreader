@@ -345,7 +345,6 @@ gui_mainwindow_set_fg_color (GtkWidget* widget, void* data)
    * we have 8 bytes available. */
   if (strlen (settings.colors[number]) <= 7)
     {
-      printf ("settings.colors[%d] = \"%s\"\r\n", number, settings.colors[number]);
       if (settings.colors[number] != NULL)
 	free (settings.colors[number]), settings.colors[number] = NULL;
       settings.colors[number] = malloc (8);
