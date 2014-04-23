@@ -52,7 +52,6 @@ Contributing
 InklingReader can use help! If you're interested in helping, here's a list 
 of things you could do:
 
-* Make use of Autotools to build InklingReader
 * Package InklingReader for any distribution
 * Request features
 * Implement features
