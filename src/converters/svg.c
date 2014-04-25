@@ -121,7 +121,9 @@ co_svg_create (GSList* data, const char* title)
     written += sprintf (output + written,
 			"<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
 			"<rect style=\"fill:%s;stroke:none\" id=\"background\" "
-			"width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n", 
+			"width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n"
+			"<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
+			"id=\"layer1\">\n",
 			settings.background);
   else
     written += sprintf (output + written,
