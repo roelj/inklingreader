@@ -30,6 +30,27 @@ tools installed:
 * Gtk+-3.0, GLib-2.0 and Cairo
 * Librsvg-2.0
 
+Build instructions
+------------------
+When you have resolved the dependencies listed above you can build 
+the program by running:
+<pre>
+./configure
+make
+</pre>
+
+To compile with CLANG:
+<pre>
+./configure CC=clang
+make
+</pre>
+
+Additionally you can add compiler flags:
+<pre>
+./configure CFLAGS="-Wall -O2 -march=native"
+make
+</pre>
+
 Tested distributions
 --------------------
 
