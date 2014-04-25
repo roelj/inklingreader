@@ -33,7 +33,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "parsers/wpi.h"
 #include "datatypes/element.h"
@@ -98,6 +102,7 @@ main (int argc, char** argv)
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
   unsigned char launch_gui = 0;
+  unsigned char config_set = 0;
   settings.pressure_factor = 1.0;
 
   if (argc > 1)
@@ -118,6 +123,7 @@ main (int argc, char** argv)
 	  { "colors",            required_argument, 0, 'c' },
 	  { "convert-directory", required_argument, 0, 'd' },
 	  { "file",              required_argument, 0, 'f' },
+	  { "config",            required_argument, 0, 'e' },
 	  { "merge",             required_argument, 0, 'm' },
 	  { "pressure-factor",   required_argument, 0, 'p' },
 	  { "to",                required_argument, 0, 't' },
@@ -169,6 +175,18 @@ main (int argc, char** argv)
 		if (optarg)
 		  high_convert_directory (optarg, coordinates);
 		launch_gui = 0;
+	      }
+	      break;
+
+	      /*--------------------------------------------------------------.
+	       | OPTION: CONFIG                                               |
+	       | Read a configuration file.                                   |
+	       '--------------------------------------------------------------*/
+	    case 'e':
+	      {
+		if (optarg)
+		  high_parse_configuration (optarg, &settings);
+		config_set = 1;
 	      }
 	      break;
 
@@ -256,6 +274,18 @@ main (int argc, char** argv)
     }
   else
     launch_gui = 1;
+
+
+  /* Read the default configuration file. */
+  struct passwd *pw = getpwuid(getuid());
+  const char *homedir = pw->pw_dir;
+  char* conf_loc = malloc (strlen (pw->pw_dir) + 17);
+  if (conf_loc != NULL)
+    {
+      sprintf (conf_loc, "%s/%s", pw->pw_dir, ".inklingreaderrc");
+      if (access (conf_loc, F_OK) != -1)
+	high_parse_configuration (conf_loc, &settings);
+    }
 
   if (launch_gui == 1)
     {
