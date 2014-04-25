@@ -22,7 +22,9 @@
 #include "../datatypes/configuration.h"
 #include <gtk/gtk.h>
 
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
