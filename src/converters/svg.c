@@ -115,13 +115,19 @@ co_svg_create (GSList* data, const char* title)
   /* If no background color was set, use white. */
   if (settings.background == NULL) settings.background = "#ffffff";
 
-  /* Write a document title and a create a layer for Inkscape. */
-  written += sprintf (output + written,
-		      "<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
-		      "<rect style=\"fill:%s;stroke:none\" id=\"background\" "
-		      "width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n"
-		      "<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
-		      "id=\"layer1\">\n", settings.background);
+  /* Create a background layer for Inkscape when the background color hasn't 
+   * been set to "none". */
+  if (strcmp (settings.background, "none"))
+    written += sprintf (output + written,
+			"<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
+			"<rect style=\"fill:%s;stroke:none\" id=\"background\" "
+			"width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n", 
+			settings.background);
+  else
+    written += sprintf (output + written,
+			"<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
+			"id=\"layer1\">\n");
+
 
   /*--------------------------------------------------------------------------.
    | COUNTING VARIABLES                                                       |
