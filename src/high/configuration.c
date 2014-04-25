@@ -85,3 +85,60 @@ high_configuration_cleanup (dt_configuration* config)
       config->num_colors = 0;
     }
 }
+
+/*----------------------------------------------------------------------------.
+ | HIGH_PARSE_CONFIGURATION                                                   |
+ | This function reads the file and tries to set configuration options.       |
+ '----------------------------------------------------------------------------*/
+void
+high_parse_configuration (const char* filename, dt_configuration* config)
+{
+  FILE* file;
+  file = fopen (filename, "r");
+  char* line = NULL;
+  size_t line_len = 0;
+  ssize_t read = 0;
+
+  if (file == NULL)
+    perror ("fopen");
+  else
+    {
+      while (read = getline (&line, &line_len, file) != -1)
+	{
+	  char* location = 0;
+	  if ((location = strstr (line, "colors = ")) != NULL)
+	    {
+	      char* newline = strchr (line, '\r');
+	      if (newline == NULL) newline = strchr (line, '\n');
+	      if (newline != NULL) line[newline - line] = '\0';
+
+	      location += 9;
+	      config->colors = high_parse_colors (location, &config->num_colors);
+	    }
+
+	  else if ((location = strstr (line, "background = ")) != NULL)
+	    {
+	      char* newline = strchr (line, '\r');
+	      if (newline == NULL) newline = strchr (line, '\n');
+	      if (newline != NULL) line[newline - line] = '\0';
+
+	      location += 13;
+	      config->background = malloc (strlen (location));
+	      if (config->background != NULL)
+		sprintf (config->background, "%s", location);
+	    }
+
+	  else if ((location = strstr (line, "pressure-factor = ")) != NULL)
+	    {
+	      char* newline = strchr (line, '\r');
+	      if (newline == NULL) newline = strchr (line, '\n');
+	      if (newline != NULL) line[newline - line] = '\0';
+
+	      location += 17;
+	      config->pressure_factor = atof (location);
+	    }
+	}
+
+      fclose (file);
+    }
+}

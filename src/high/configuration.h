@@ -24,5 +24,6 @@
 
 char** high_parse_colors (const char* data, int* num_colors);
 void high_configuration_cleanup (dt_configuration* config);
+void high_parse_configuration (const char* filename, dt_configuration* config);
 
 #endif//DATATYPES_CONFIGURATION_H

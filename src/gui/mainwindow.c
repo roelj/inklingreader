@@ -85,7 +85,11 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   pressure_input = gtk_spin_button_new_with_range (0, 5, 0.05);
 
   GdkRGBA bg_doc_color;
-  gdk_rgba_parse (&bg_doc_color, "#fff");
+  if (settings.background != NULL)
+    gdk_rgba_parse (&bg_doc_color, settings.background);
+  else
+    gdk_rgba_parse (&bg_doc_color, "#fff");
+
   bg_color_button = gtk_color_button_new_with_rgba (&bg_doc_color);
   bg_color_label = gtk_label_new ("");
   fg_color_label = gtk_label_new ("");
