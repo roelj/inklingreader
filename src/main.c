@@ -278,7 +278,6 @@ main (int argc, char** argv)
 
   /* Read the default configuration file. */
   struct passwd *pw = getpwuid(getuid());
-  const char *homedir = pw->pw_dir;
   char* conf_loc = malloc (strlen (pw->pw_dir) + 17);
   if (conf_loc != NULL)
     {
