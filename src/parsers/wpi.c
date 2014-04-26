@@ -248,17 +248,17 @@ p_wpi_parse (const char* filename)
 	  count++;
 
 	  /* Make sure it's valid stroke information. */
-	  if (data[count] == 3)
-	    {
-	      dt_stroke* stroke = malloc (sizeof (dt_stroke));
-	      if (stroke != NULL) 
-		{
-		  stroke->type = TYPE_STROKE;
-		  stroke->value = data[count + 1];
+	  if (data[count] != 3) break;
 
-		  list = g_slist_prepend (list, stroke);
-		}
-	    }
+	  dt_stroke* stroke = malloc (sizeof (dt_stroke));
+
+	  /* Make sure we can store the stroke data. */
+	  if (stroke == NULL) break;
+
+	  stroke->type = TYPE_STROKE;
+	  stroke->value = data[count + 1];
+
+	  list = g_slist_prepend (list, stroke);
 	}
       }
 
