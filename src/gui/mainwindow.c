@@ -24,6 +24,8 @@
 
 #ifndef __APPLE__
 #include <malloc.h>
+#else
+#include <stdlib.h>
 #endif
 
 #define WINDOW_WIDTH 800

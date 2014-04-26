@@ -104,7 +104,7 @@ high_parse_configuration (const char* filename, dt_configuration* config)
     perror ("fopen");
   else
     {
-      while (read = getline (&line, &line_len, file) != -1)
+      while ((read = getline (&line, &line_len, file)) != -1)
 	{
 	  char* location = 0;
 	  if ((location = strstr (line, "colors = ")) != NULL)
