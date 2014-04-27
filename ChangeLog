@@ -1,3 +1,18 @@
+2014-04-28  Roel Janssen  <roel@roelserve.com>
+
+	* Fix:      GUI crashed on startup because not enough memory was being allocated.
+
+2014-04-27  Roel Janssen  <roel@roelserve.com>
+
+	* Fix:      Properly clean up when a document is loaded in the GUI.
+
+2014-04-26  Roel Janssen  <roel@roelserve.com>
+
+	* Feature:  Added the ability to load settings from a config file.
+	* Clean-up: Made the WPI parser a little more "flat" so it's more readable.
+	* Clean-up: Removed an unused variable.
+	* Clean-up: Warnings when compiling with CLANG have been resolved.
+
 2014-04-23  Roel Janssen <roel@roelserve.com>
 
-	* Wrote Autoconf scripts to handle the build process.
+	* Autoconf: Wrote Autoconf scripts to handle the build process.
