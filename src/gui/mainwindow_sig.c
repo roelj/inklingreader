@@ -149,6 +149,10 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
       /* When the filename is not NULL anymore, we can process it. */
       if (filename)
 	{
+	  /* Clean-up the old parsed data. */
+	  if (parsed_data)
+	    p_wpi_cleanup (parsed_data);
+
 	  parsed_data = p_wpi_parse (filename);
 
 	  /* Clean up the filename if it was gathered using the dialog. */
