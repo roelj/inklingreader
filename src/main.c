@@ -276,16 +276,19 @@ main (int argc, char** argv)
     launch_gui = 1;
 
 
-  /* Read the default configuration file. */
-  struct passwd *pw = getpwuid(getuid());
-  char* conf_loc = malloc (strlen (pw->pw_dir) + 17);
-  if (conf_loc != NULL)
+  /* Read the default configuration file when no alternative 
+   * config file was provided. */
+  if (config_set == 0)
     {
-      sprintf (conf_loc, "%s/%s", pw->pw_dir, ".inklingreaderrc");
-      if (access (conf_loc, F_OK) != -1)
-	high_parse_configuration (conf_loc, &settings);
+      struct passwd *pw = getpwuid(getuid());
+      char* conf_loc = malloc (strlen (pw->pw_dir) + 17);
+      if (conf_loc != NULL)
+	{
+	  sprintf (conf_loc, "%s/%s", pw->pw_dir, ".inklingreaderrc");
+	  if (access (conf_loc, F_OK) != -1)
+	    high_parse_configuration (conf_loc, &settings);
+	}
     }
-
   if (launch_gui == 1)
     {
       /* Set a default color before launching the GUI. */
