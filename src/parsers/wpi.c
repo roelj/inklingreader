@@ -231,11 +231,17 @@ p_wpi_parse (const char* filename)
 	 | UNKNOWN BLOCK DESCRIPTORS.                             |
 	 | DES LENGTH  U  (U=Unknown)                             |
 	 | 1   1       ?  bytes                                   |
+	 | Skipping this data is quicker than ignoring it.        |
 	 '--------------------------------------------------------*/
-	//case 194:
-	//case 197:
-	//case 199:
-	//break;
+      case 194:
+      case 197:
+      case 199:
+	{
+	  int bytes = data[count + 1] - 2;
+	  if (bytes > 0)
+	    count += bytes;
+	}
+	break;
 
 	/*--------------------------------------------------------.
 	 | PROCESS STROKE INFORMATION.                            |
