@@ -199,8 +199,7 @@ co_svg_create (GSList* data, const char* title)
 			  float distance = sqrt ((x - previous_x) * (x - previous_x) +
 						 (y - previous_y) * (y - previous_y));
 			  if ( distance <= SPIKE_THRESHOLD &&
-			       x != previous_x && y != previous_y &&
-			       x > 0 && y > 100 && y < 1050)
+			       x != previous_x && y != previous_y)
 			    {
 			      /* Avoid division by zero. If distance is zero, delta_x and
 			       * delta_y are also zero. */
@@ -295,27 +294,21 @@ co_svg_create (GSList* data, const char* title)
 		  }
 
 
-		// When the data is within the borders of an A4 page, add
-		// it. This prevents weird stripes and clutter from 
-		// disturbing the document.
-		if (x > 0 && y > 100 && y < 1050)
-		  {
-		    float distance = sqrt ((x - previous_x) * (x - previous_x) +
-					   (y - previous_y) * (y - previous_y));
-		    // Avoid division by zero. If distance is zero, delta_x and
-		    // delta_y are also zero.
-		    if (distance == 0)
-		      distance = 1;
-		    if (distance > SPIKE_THRESHOLD)
-		      break;
+		float distance = sqrt ((x - previous_x) * (x - previous_x) +
+				       (y - previous_y) * (y - previous_y));
+		// Avoid division by zero. If distance is zero, delta_x and
+		// delta_y are also zero.
+		if (distance == 0)
+		  distance = 1;
+		if (distance > SPIKE_THRESHOLD)
+		  break;
 
-		    written += sprintf (output + written, "%s %f,%f", 
-					type,
-					x + (previous_y - y) / distance * c->pressure * settings.pressure_factor,
-					y + (x - previous_x) / distance * c->pressure * settings.pressure_factor);
-		    previous_x = x;
-		    previous_y = y;
-		  }
+		written += sprintf (output + written, "%s %f,%f", 
+				    type,
+				    x + (previous_y - y) / distance * c->pressure * settings.pressure_factor,
+				    y + (x - previous_x) / distance * c->pressure * settings.pressure_factor);
+		previous_x = x;
+		previous_y = y;
 	      }
 	  }
 	  break;
