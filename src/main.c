@@ -281,7 +281,7 @@ main (int argc, char** argv)
   if (config_set == 0)
     {
       struct passwd *pw = getpwuid(getuid());
-      char* conf_loc = malloc (strlen (pw->pw_dir) + 17);
+      char* conf_loc = malloc (strlen (pw->pw_dir) + 18);
       if (conf_loc != NULL)
 	{
 	  sprintf (conf_loc, "%s/%s", pw->pw_dir, ".inklingreaderrc");
