@@ -238,8 +238,15 @@ p_wpi_parse (const char* filename)
       case 199:
 	{
 	  int bytes = data[count + 1] - 2;
-	  if (bytes > 0)
-	    count += bytes;
+
+	  /* Sometimes a block of data is reported to be 101 in length,
+	   * but that is wrong and causes data to be missed. So a simple
+	   * fix is to skip whenever the block size is bigger than 90. */
+	  if (bytes > 90) break;
+
+	  /* When the block size is bigger than 0, skip the specified
+	   * amount of blocks. */
+	  if (bytes > 0) count += bytes;
 	}
 	break;
 
