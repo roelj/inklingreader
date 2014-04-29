@@ -1,0 +1,8 @@
+Contributions to the project have been made by:
+
+* MeraX:
+  - Adding stroke pressure functionality and creating an effective 
+    way of removing clutter from the output.
+
+* su-v:
+  - Adding support for Mac OS X and CLANG.

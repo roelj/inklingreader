@@ -1,5 +1,14 @@
+2014-04-29  Roel Janssen  <roel@roelserve.com>
+
+	* Update:   Updated the AUTHORS file crediting contributors accordingly.
+
+2014-04-29  Roel Janssen  <roel@roelserve.com>
+
+	* Update:      Support the XDG basedir spec for configuration files.
+
 2014-04-28  Roel Janssen  <roel@roelserve.com>
 
+	* Fix:      The WPI parser missed data because the reported blocksize was too big.
 	* Fix:      GUI crashed on startup because not enough memory was being allocated.
 
 2014-04-27  Roel Janssen  <roel@roelserve.com>
@@ -16,3 +25,8 @@
 2014-04-23  Roel Janssen <roel@roelserve.com>
 
 	* Autoconf: Wrote Autoconf scripts to handle the build process.
+
+
+Copyright 2013, 2014 Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification, are
+permitted provided the copyright notice and this notice are preserved.
