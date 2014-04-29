@@ -213,7 +213,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
   double w = gtk_widget_get_allocated_width (widget);
   double ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
   double padding = (w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2;
-  double h = w * (settings.page.height * PT_TO_MM) / (settings.page.width * PT_TO_MM) - padding;
+  double h = settings.page.height * PT_TO_MM * 1.25 * ratio + padding * 2;
 
   cairo_translate (cr, padding, padding);
   cairo_scale (cr, ratio, ratio);
