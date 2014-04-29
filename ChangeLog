@@ -1,5 +1,10 @@
 2014-04-29  Roel Janssen  <roel@roelserve.com>
 
+	* Update:   The location of the default configuration is looked for according to 
+	            the XDG basedir specification. 
+	* Clean-up: The way a configuration was loaded was clumsy, it's cleaned up now.
+	* Feature:  Added the ability to zoom a document in the GUI.
+	* Feature:  Added the ability to show documents in different dimensions.
 	* Update:   Updated the AUTHORS file crediting contributors accordingly.
 
 2014-04-29  Roel Janssen  <roel@roelserve.com>
