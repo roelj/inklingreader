@@ -303,12 +303,6 @@ main (int argc, char** argv)
   else
     launch_gui = 1;
 
-
-  /* Read the default configuration file when no alternative 
-   * config file was provided. */
-  if (config_set == 0)
-    read_default_configuration ();
-
   if (launch_gui == 1)
     {
       /* Set a default color before launching the GUI. */
