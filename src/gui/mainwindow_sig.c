@@ -34,7 +34,6 @@
 
 #include <string.h>
 #include <librsvg/rsvg.h>
-#include <cairo-pdf.h>
 
 #define PT_TO_MM 2.8333
 #define MINIMAL_PADDING 10
