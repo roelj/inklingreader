@@ -151,10 +151,10 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   gtk_container_add (GTK_CONTAINER (document_viewport), document_view);
   gtk_container_add (GTK_CONTAINER (document_container), document_viewport);
 
-  gtk_label_set_markup (GTK_LABEL (bg_color_label), "<b>Background:</b>");
-  gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>Foreground:</b>");
-  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>Pressure:</b>");
-  gtk_label_set_markup (GTK_LABEL (zoom_label), "<b>Zoom:</b>");
+  gtk_label_set_markup (GTK_LABEL (bg_color_label), "<b>B:</b>");
+  gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>F:</b>");
+  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>P:</b>");
+  gtk_label_set_markup (GTK_LABEL (zoom_label), "<b>Z:</b>");
 
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (pressure_input), settings.pressure_factor);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), 100.0);
