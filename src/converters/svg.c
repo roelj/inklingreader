@@ -35,7 +35,7 @@ extern dt_configuration settings;
 #define OFFSET_X 375.0
 #define OFFSET_Y 37.5
 #define PRESSURE_FACTOR 2000.0
-#define SPIKE_THRESHOLD 20.0
+#define SPIKE_THRESHOLD 25.0
 
 #define DEFAULT_COLOR "#00007c"
 
@@ -206,8 +206,7 @@ co_svg_create (GSList* data, const char* title)
 
 			  /* When points are too far away, skip them.
 			   * When points are exactly the same, skip them.
-			   * When the data is within the borders of an A4 page, add
-			   * it. This prevents weird stripes and clutter from 
+			   * This prevents weird stripes and clutter from 
 			   * disturbing the document. */
 			  float distance = sqrt ((x - previous_x) * (x - previous_x) +
 						 (y - previous_y) * (y - previous_y));
