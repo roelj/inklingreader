@@ -79,8 +79,9 @@ static void
 show_help ()
 {
   printf ("\r\nAvailable options:\r\n"
-	  "  --background,        -b  Specify the background color for the document\r\n"
-	  "  --colors,            -c  Specify a list of colors (comma separated)\r\n"
+	  "  --dimensions,        -a  Specify the page dimensions for the document.\r\n"
+	  "  --background,        -b  Specify the background color for the document.\r\n"
+	  "  --colors,            -c  Specify a list of colors (comma separated).\r\n"
 	  "  --pressure-factor,   -p  Specify a factor for handling pressure data.\r\n"
 	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
 	  "  --file,              -f  Specify the WPI file to convert.\r\n"
@@ -161,7 +162,10 @@ main (int argc, char** argv)
 	       '--------------------------------------------------------------*/
 	    case 'a':
 	      if (optarg)
-		high_parse_dimensions (optarg, &settings);
+		{
+		  high_parse_dimensions (optarg, &settings);
+		  launch_gui = 1;
+		}
 	      break;
 
 	      /*--------------------------------------------------------------.
