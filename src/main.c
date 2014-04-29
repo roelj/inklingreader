@@ -35,9 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
+#include <glib.h>
 
 #include "parsers/wpi.h"
 #include "datatypes/element.h"
@@ -51,10 +49,22 @@
 dt_configuration settings;
 
 /*----------------------------------------------------------------------------.
+ | READ_DEFAULT_CONFIGURATION                                                 |
+ | This function reads the default configuration file when it's available.    |
+ '----------------------------------------------------------------------------*/
+static void 
+read_default_configuration ()
+{
+  settings.config_location = g_strconcat(g_get_user_config_dir(), "/inklingreaderrc", NULL);
+  if (settings.config_location != NULL)
+    high_parse_configuration (settings.config_location, &settings);
+}
+
+/*----------------------------------------------------------------------------.
  | SHOW_VERSION                                                               |
  | This function displays the program's current version.                      |
  '----------------------------------------------------------------------------*/
-void
+static void
 show_version ()
 {
   printf ("Version: 0.6\r\n");
@@ -65,7 +75,7 @@ show_version ()
  | SHOW_HELP                                                                  |
  | This function displays the possible command-line arguments.                |
  '----------------------------------------------------------------------------*/
-void 
+static void
 show_help ()
 {
   printf ("\r\nAvailable options:\r\n"
@@ -86,7 +96,7 @@ show_help ()
  | This function should be run to free memory that was malloc'd in the        |
  | configuration object.                                                      |
  '----------------------------------------------------------------------------*/
-void cleanup_configuration ()
+static void cleanup_configuration ()
 {
   high_configuration_cleanup (&settings);
 }
@@ -99,6 +109,10 @@ void cleanup_configuration ()
 int
 main (int argc, char** argv)
 {
+  /* Read the default configuration. It can be overridden later when --config
+   * has been used. */
+  read_default_configuration ();
+  
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
   unsigned char launch_gui = 0;
@@ -119,16 +133,17 @@ main (int argc, char** argv)
        '----------------------------------------------------------------------*/
       static struct option options[] =
 	{
+	  { "dimensions",        required_argument, 0, 'a' },
 	  { "background",        required_argument, 0, 'b' },
 	  { "colors",            required_argument, 0, 'c' },
 	  { "convert-directory", required_argument, 0, 'd' },
-	  { "file",              required_argument, 0, 'f' },
 	  { "config",            required_argument, 0, 'e' },
+	  { "file",              required_argument, 0, 'f' },
+	  { "gui",               optional_argument, 0, 'g' },
+	  { "help",              no_argument,       0, 'h' },
 	  { "merge",             required_argument, 0, 'm' },
 	  { "pressure-factor",   required_argument, 0, 'p' },
 	  { "to",                required_argument, 0, 't' },
-	  { "gui",               optional_argument, 0, 'g' },
-	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
 	  { 0,                   0,                 0, 0   }
 	};
@@ -136,10 +151,19 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "b:c:d:s:f:m:p:t:g:vh", options, &index);
+	  arg = getopt_long (argc, argv, "a:b:c:d:s:f:m:p:t:g:vh", options, &index);
 
 	  switch (arg)
 	    {
+	      /*--------------------------------------------------------------.
+	       | OPTION: DIMENSIONS                                           |
+	       | Let's the user specify the page dimensions.                  |
+	       '--------------------------------------------------------------*/
+	    case 'a':
+	      if (optarg)
+		high_parse_dimensions (optarg, &settings);
+	      break;
+
 	      /*--------------------------------------------------------------.
 	       | OPTION: BACKGROUND                                           |
 	       | Let's the user specify the background color.                 |
@@ -279,16 +303,8 @@ main (int argc, char** argv)
   /* Read the default configuration file when no alternative 
    * config file was provided. */
   if (config_set == 0)
-    {
-      struct passwd *pw = getpwuid(getuid());
-      char* conf_loc = malloc (strlen (pw->pw_dir) + 18);
-      if (conf_loc != NULL)
-	{
-	  sprintf (conf_loc, "%s/%s", pw->pw_dir, ".inklingreaderrc");
-	  if (access (conf_loc, F_OK) != -1)
-	    high_parse_configuration (conf_loc, &settings);
-	}
-    }
+    read_default_configuration ();
+
   if (launch_gui == 1)
     {
       /* Set a default color before launching the GUI. */

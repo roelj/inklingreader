@@ -22,11 +22,20 @@
 
 typedef struct
 {
+  double width;
+  double height;
+  char* measurement;
+} dt_page_dimensions;
+
+typedef struct
+{
   unsigned char type;
   int num_colors;
   double pressure_factor;
   char** colors;
   char* background;
+  dt_page_dimensions page;
+  char* config_location;
 } dt_configuration;
 
 #endif//DATATYPES_CONFIGURATION_H

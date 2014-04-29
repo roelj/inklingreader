@@ -96,13 +96,25 @@ co_svg_create (GSList* data, const char* title)
   /*--------------------------------------------------------------------------.
    | WRITE SVG HEADER                                                         |
    '--------------------------------------------------------------------------*/
+
+  /* Make sure we have valid dimensions. */
+  if (settings.page.width == 0) settings.page.width = 210;
+  if (settings.page.height == 0) settings.page.height = 297;
+  if (settings.page.measurement == NULL) 
+    {
+      settings.page.measurement = malloc (3);
+      settings.page.measurement = "mm";
+    }
+
   written += sprintf (output + written,
     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" 
     "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n"
     "  \"http://www.w3.org/Graphics/SVG/2.2/DTD/svg11.dtd\">\n"
-    "<svg width=\"210mm\" height=\"297mm\" version=\"1.1\""
+    "<svg width=\"%f%s\" height=\"%f%s\" version=\"1.1\""
     "  xmlns=\"http://www.w3.org/2000/svg\"\n"
-    "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n");
+    "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n",
+    settings.page.width, settings.page.measurement, settings.page.height, 
+    settings.page.measurement);
 
   if (title != NULL)
     written += sprintf (output + written, "<title>%s</title>\n", title);
@@ -116,10 +128,11 @@ co_svg_create (GSList* data, const char* title)
     written += sprintf (output + written,
 			"<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
 			"<rect style=\"fill:%s;stroke:none\" id=\"background\" "
-			"width=\"210mm\" height=\"297mm\" x=\"0\" y=\"0\" /></g>\n"
+			"width=\"%f%s\" height=\"%f%s\" x=\"0\" y=\"0\" /></g>\n"
 			"<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
 			"id=\"layer1\">\n",
-			settings.background);
+			settings.background, settings.page.width, settings.page.measurement, 
+			settings.page.height, settings.page.measurement);
   else
     written += sprintf (output + written,
 			"<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "

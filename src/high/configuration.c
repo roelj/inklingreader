@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #if !defined(__APPLE__)
 #include <malloc.h>
 #endif
@@ -94,52 +95,76 @@ high_configuration_cleanup (dt_configuration* config)
 void
 high_parse_configuration (const char* filename, dt_configuration* config)
 {
-  FILE* file;
-  file = fopen (filename, "r");
-  char* line = NULL;
-  size_t line_len = 0;
-  ssize_t read = 0;
-
-  if (file == NULL)
-    perror ("fopen");
-  else
+  if (access (filename, F_OK) != -1)
     {
-      while ((read = getline (&line, &line_len, file)) != -1)
+      FILE* file;
+      file = fopen (filename, "r");
+      char* line = NULL;
+      size_t line_len = 0;
+      ssize_t read = 0;
+
+      if (file == NULL)
+	perror ("fopen");
+      else
 	{
-	  char* location = 0;
-	  if ((location = strstr (line, "colors = ")) != NULL)
+	  while ((read = getline (&line, &line_len, file)) != -1)
 	    {
-	      char* newline = strchr (line, '\r');
-	      if (newline == NULL) newline = strchr (line, '\n');
-	      if (newline != NULL) line[newline - line] = '\0';
+	      char* location = 0;
+	      if ((location = strstr (line, "colors = ")) != NULL)
+		{
+		  char* newline = strchr (line, '\r');
+		  if (newline == NULL) newline = strchr (line, '\n');
+		  if (newline != NULL) line[newline - line] = '\0';
 
-	      location += 9;
-	      config->colors = high_parse_colors (location, &config->num_colors);
+		  location += 9;
+		  config->colors = high_parse_colors (location, &config->num_colors);
+		}
+
+	      else if ((location = strstr (line, "background = ")) != NULL)
+		{
+		  char* newline = strchr (line, '\r');
+		  if (newline == NULL) newline = strchr (line, '\n');
+		  if (newline != NULL) line[newline - line] = '\0';
+
+		  location += 13;
+		  config->background = malloc (strlen (location) + 1);
+		  if (config->background != NULL)
+		    sprintf (config->background, "%s", location);
+		}
+
+	      else if ((location = strstr (line, "pressure-factor = ")) != NULL)
+		{
+		  char* newline = strchr (line, '\r');
+		  if (newline == NULL) newline = strchr (line, '\n');
+		  if (newline != NULL) line[newline - line] = '\0';
+
+		  location += 17;
+		  config->pressure_factor = atof (location);
+		}
+	      else if ((location = strstr (line, "dimensions = ")) != NULL)
+		{
+		  char* newline = strchr (line, '\r');
+		  if (newline == NULL) newline = strchr (line, '\n');
+		  if (newline != NULL) line[newline - line] = '\0';
+
+		  location += 13;
+		  high_parse_dimensions (location, config);
+		}
 	    }
 
-	  else if ((location = strstr (line, "background = ")) != NULL)
-	    {
-	      char* newline = strchr (line, '\r');
-	      if (newline == NULL) newline = strchr (line, '\n');
-	      if (newline != NULL) line[newline - line] = '\0';
-
-	      location += 13;
-	      config->background = malloc (strlen (location));
-	      if (config->background != NULL)
-		sprintf (config->background, "%s", location);
-	    }
-
-	  else if ((location = strstr (line, "pressure-factor = ")) != NULL)
-	    {
-	      char* newline = strchr (line, '\r');
-	      if (newline == NULL) newline = strchr (line, '\n');
-	      if (newline != NULL) line[newline - line] = '\0';
-
-	      location += 17;
-	      config->pressure_factor = atof (location);
-	    }
+	  fclose (file);
 	}
-
-      fclose (file);
     }
+}
+
+/*----------------------------------------------------------------------------.
+ | HIGH_PARSE_DIMENSIONS                                                      |
+ | This function parses page dimensions and sets them in 'config'.            |
+ '----------------------------------------------------------------------------*/
+void
+high_parse_dimensions (const char* data, dt_configuration* config)
+{
+  config->page.measurement = calloc (1, 3);
+  sscanf (data, "%lfx%lf%s", &config->page.width, &config->page.height, 
+	  config->page.measurement);
 }
