@@ -2,9 +2,11 @@
 #include <librsvg/rsvg.h>
 #include <cairo.h>
 #include <string.h>
+#include "../datatypes/configuration.h"
 
-#define A4_WIDTH 595.0
-#define A4_HEIGHT 842.0
+#define PT_TO_MM 2.8333
+
+extern dt_configuration settings;
 
 /*----------------------------------------------------------------------------.
  | CO_PNG_EXPORT_TO_FILE                                                      |
@@ -32,8 +34,8 @@ co_png_export_to_file_from_handle (const char* filename, RsvgHandle* handle)
 
   cairo_surface_t* surface = NULL;
   surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, 
-					A4_WIDTH * 1.25, 
-					A4_HEIGHT * 1.25);
+					settings.page.width * PT_TO_MM * 1.25, 
+					settings.page.height * PT_TO_MM * 1.25);
 
   cairo_t* cr = cairo_create (surface);
   rsvg_handle_render_cairo (handle, cr);

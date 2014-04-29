@@ -3,9 +3,11 @@
 #include <cairo.h>
 #include <cairo-pdf.h>
 #include <string.h>
+#include "../datatypes/configuration.h"
 
-#define A4_WIDTH 595.0
-#define A4_HEIGHT 842.0
+#define PT_TO_MM 2.8333
+
+extern dt_configuration settings;
 
 /*----------------------------------------------------------------------------.
  | CO_PDF_EXPORT_TO_FILE                                                      |
@@ -32,7 +34,8 @@ co_pdf_export_to_file_from_handle (const char* filename, RsvgHandle* handle)
   int status = 0;
 
   cairo_surface_t* surface = NULL;
-  surface = cairo_pdf_surface_create (filename, A4_WIDTH * 1.25, A4_HEIGHT * 1.25);
+  surface = cairo_pdf_surface_create (filename, settings.page.width * PT_TO_MM * 1.25, 
+				      settings.page.height * PT_TO_MM * 1.25);
 
   cairo_t* cr = cairo_create (surface);
   rsvg_handle_render_cairo (handle, cr);
