@@ -37,7 +37,10 @@
 #include <cairo-pdf.h>
 
 #define PT_TO_MM 2.8333
+#define MINIMAL_PADDING 30
 
+extern GtkWidget* zoom_toggle;
+extern GtkWidget* zoom_input;
 extern GtkWidget* document_view;
 extern GtkWidget* hbox_colors;
 extern GtkWidget* window;
@@ -211,9 +214,22 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
   if (parsed_data == NULL && handle == NULL) return 0;
 
   double w = gtk_widget_get_allocated_width (widget);
-  double ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
+  double ratio = 1.00;
+  
+  if (!gtk_widget_is_sensitive (zoom_input))
+    {
+      ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
+      gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
+      if (gtk_switch_get_active (GTK_SWITCH (zoom_toggle)))
+	gtk_widget_set_sensitive (zoom_input, TRUE);
+    }
+  else
+    ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0;
+
   double padding = (w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2;
   double h = settings.page.height * PT_TO_MM * 1.25 * ratio + padding * 2;
+  w = settings.page.width * PT_TO_MM * 1.25 * ratio + padding + MINIMAL_PADDING;
+  gtk_widget_set_size_request (widget, w, h);
 
   cairo_translate (cr, padding, padding);
   cairo_scale (cr, ratio, ratio);
@@ -232,8 +248,6 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
       rsvg_handle_render_cairo (handle, cr);
       rsvg_handle_close (handle, NULL);
     }
-
-  gtk_widget_set_size_request (widget, 0, h);
 
   return 0;
 }
@@ -358,6 +372,29 @@ gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
 {
   settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
   gui_mainwindow_redisplay();
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_ZOOM_INPUT                                              |
+ | This function is the callback for setting the zoom factor.                 |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data)
+{
+  gui_mainwindow_redisplay();
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_ZOOM_TOGGLE                                             |
+ | This function is the callback for enabling or disabling the zoom factor.   |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data)
+{
+  if (gtk_switch_get_active (GTK_SWITCH (widget)))
+    gtk_widget_set_sensitive (zoom_input, TRUE);
+  else
+    gtk_widget_set_sensitive (zoom_input, FALSE);
 }
 
 

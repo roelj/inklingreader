@@ -31,6 +31,8 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+GtkWidget* zoom_toggle = NULL;
+GtkWidget* zoom_input = NULL;
 GtkWidget* document_view = NULL;
 GtkWidget* hbox_colors = NULL;
 GtkWidget* window = NULL;
@@ -63,6 +65,7 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   GtkWidget* fg_color_label = NULL;
   GtkWidget* pressure_label = NULL;
   GtkWidget* pressure_input = NULL;
+  GtkWidget* zoom_label = NULL;
 
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -87,6 +90,10 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
 
   pressure_label = gtk_label_new ("");
   pressure_input = gtk_spin_button_new_with_range (0, 5, 0.05);
+
+  zoom_label = gtk_label_new ("");
+  zoom_input = gtk_spin_button_new_with_range (10.0, 1000.0, 10.0);
+  zoom_toggle = gtk_switch_new ();
 
   GdkRGBA bg_doc_color;
   if (settings.background != NULL)
@@ -146,9 +153,13 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
 
   gtk_label_set_markup (GTK_LABEL (bg_color_label), "<b>Background:</b>");
   gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>Foreground:</b>");
-  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>Pressure factor:</b>");
+  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>Pressure:</b>");
+  gtk_label_set_markup (GTK_LABEL (zoom_label), "<b>Zoom:</b>");
 
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (pressure_input), settings.pressure_factor);
+  gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), 100.0);
+  gtk_widget_set_state_flags (zoom_input, GTK_STATE_FLAG_INSENSITIVE, TRUE);
+  gtk_switch_set_active (GTK_SWITCH (zoom_toggle), FALSE);
 
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
@@ -156,15 +167,19 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 0);
   gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
 
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_label, 0, 0, 10);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_button, 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_label, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_button, 0, 0, 5);
 
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), fg_color_label, 0, 0, 10);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), fg_color_label, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), hbox_colors, 0, 0, 0);
-  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 0);
+  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 5);
 
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_label, 0, 0, 10);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_input, 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_label, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_input, 0, 0, 5);
+
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_label, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_input, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_toggle, 0, 0, 5);
 
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
@@ -176,17 +191,23 @@ gui_init_mainwindow (int argc, char** argv, const char* filename)
   g_signal_connect (G_OBJECT (window), "destroy", 
 		    G_CALLBACK (gui_mainwindow_quit), NULL);
 
-  g_signal_connect (G_OBJECT (document_view), "draw",
-                    G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
-
   g_signal_connect (G_OBJECT (new_color_button), "clicked",
 		    G_CALLBACK (gui_mainwindow_add_color), NULL);
+
+  g_signal_connect (G_OBJECT (document_view), "draw",
+                    G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
 
   g_signal_connect (G_OBJECT (bg_color_button), "color-set",
 		    G_CALLBACK (gui_mainwindow_set_bg_color), NULL);
 
   g_signal_connect (G_OBJECT (pressure_input), "value-changed",
 		    G_CALLBACK (gui_mainwindow_set_pressure_input), NULL);
+
+  g_signal_connect (G_OBJECT (zoom_input), "value-changed",
+		    G_CALLBACK (gui_mainwindow_set_zoom_input), NULL);
+
+  g_signal_connect (G_OBJECT (zoom_toggle), "notify::active",
+		    G_CALLBACK (gui_mainwindow_set_zoom_toggle), NULL);
 
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |

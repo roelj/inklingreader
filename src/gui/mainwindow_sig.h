@@ -31,6 +31,8 @@ void gui_mainwindow_add_color (GtkWidget* widget, void* data);
 void gui_mainwindow_set_bg_color (GtkWidget* widget, void* data);
 void gui_mainwindow_set_fg_color (GtkWidget* widget, void* data);
 void gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data);
+void gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data);
+void gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data);
 void gui_mainwindow_quit ();
 
 #endif//GUI_MAINWINDOW_SIG_H
