@@ -49,6 +49,21 @@ extern dt_configuration settings;
 static GSList* parsed_data = NULL;
 static RsvgHandle* handle = NULL;
 
+static const int file_filters_num = 4;
+static const char* file_mimetypes[]  = { 
+  "application/pdf", 
+  "image/png", 
+  "image/svg+xml", 
+  "application/json"
+};
+
+static const char* file_extensions[] = { 
+  "PDF - Portable Document Format",
+  "PNG - Portable Network Graphics",
+  "SVG - Scalable Vector Graphics",
+  "JSON - JavaScript Object Notation"
+};
+
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_REDISPLAY                                                   |
  '----------------------------------------------------------------------------*/
@@ -95,13 +110,32 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
   GtkWidget *dialog = NULL;
 
   if (action == GTK_FILE_CHOOSER_ACTION_OPEN)
-    dialog = gtk_file_chooser_dialog_new ("Open file", 
-      GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
-     "Open", GTK_RESPONSE_ACCEPT, NULL);
+    {
+      dialog = gtk_file_chooser_dialog_new ("Open file", 
+	         GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
+		 "Open", GTK_RESPONSE_ACCEPT, NULL);
+
+      GtkFileFilter* filter = gtk_file_filter_new ();
+      gtk_file_filter_set_name (filter, "WPI - Wacom Proprietary Ink");
+      gtk_file_filter_add_mime_type (filter, "application/octet-stream");
+      gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+    }
   else if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
-    dialog = gtk_file_chooser_dialog_new ("Save file", 
-      GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
-     "Save", GTK_RESPONSE_ACCEPT, NULL);
+    {
+      dialog = gtk_file_chooser_dialog_new ("Save file", 
+	         GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
+	         "Save", GTK_RESPONSE_ACCEPT, NULL);
+
+      /* Add filters for supported formats. */
+      int a = 0;
+      for (; a < file_filters_num; a++)
+	{
+	  GtkFileFilter* filter = gtk_file_filter_new ();
+	  gtk_file_filter_set_name (filter, file_extensions[a]);
+	  gtk_file_filter_add_mime_type (filter, file_mimetypes[a]);
+	  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+	}
+    }
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
