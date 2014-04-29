@@ -212,7 +212,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 {
   if (parsed_data == NULL && handle == NULL) return 0;
 
-  double w = gtk_widget_get_allocated_width (widget);
+  double w = gtk_widget_get_allocated_width (window);
   double ratio = 1.00;
   
   if (!gtk_widget_is_sensitive (zoom_input))
@@ -393,7 +393,10 @@ gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data)
   if (gtk_switch_get_active (GTK_SWITCH (widget)))
     gtk_widget_set_sensitive (zoom_input, TRUE);
   else
-    gtk_widget_set_sensitive (zoom_input, FALSE);
+    {
+      gtk_widget_set_sensitive (zoom_input, FALSE);
+      gui_mainwindow_redisplay();
+    }
 }
 
 
