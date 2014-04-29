@@ -26,18 +26,17 @@
 #include "../datatypes/element.h"
 #include "../datatypes/configuration.h"
 
-#include <stdlib.h>
 #ifndef __APPLE__
 #include <malloc.h>
+#else
+#include <stdlib.h>
 #endif
 
 #include <string.h>
 #include <librsvg/rsvg.h>
 #include <cairo-pdf.h>
 
-#define A4_WIDTH 595.0
-#define A4_HEIGHT 842.0
-#define DOCUMENT_PADDING 25.0
+#define PT_TO_MM 2.8333
 
 extern GtkWidget* document_view;
 extern GtkWidget* hbox_colors;
@@ -47,7 +46,6 @@ extern dt_configuration settings;
 
 static GSList* parsed_data = NULL;
 static RsvgHandle* handle = NULL;
-static char* svg_data = NULL;
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_REDISPLAY                                                   |
@@ -55,19 +53,12 @@ static char* svg_data = NULL;
 static void
 gui_mainwindow_redisplay ()
 {
-  if (svg_data != NULL)
-    {
-      /* Clean up the (old) RsvgHandle data when it's set at this point. */
-      if (handle != NULL)
-	g_object_unref (handle), handle = NULL;
+  /* Clean up the (old) RsvgHandle data when it's set at this point. */
+  if (handle != NULL)
+    g_object_unref (handle), handle = NULL;
 
-      /* Clean up the (old) SVG data. */
-      if (svg_data)
-	free (svg_data), svg_data = NULL;
-
-      gtk_widget_hide (document_view);
-      gtk_widget_show_all (document_view);
-    }  
+  gtk_widget_hide (document_view);
+  gtk_widget_show_all (document_view);
 }
 
 /*----------------------------------------------------------------------------.
@@ -162,10 +153,6 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	  /* Clean up the (old) RsvgHandle data when it's set at this point. */
 	  if (handle)
 	    g_object_unref (handle), handle = NULL;
-
-	  /* Clean up the (old) SVG data. */
-	  if (svg_data)
-	    free (svg_data), svg_data = NULL;
 	}
 
       gtk_widget_hide (document_view);
@@ -202,8 +189,10 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 	      FILE* file;
 	      file = fopen (filename, "w");
 	      if (file != NULL)
-		fwrite (svg_data, strlen (svg_data), 1, file);
-
+		{
+		  char* svg_data = co_svg_create (parsed_data, NULL);
+		  fwrite (svg_data, strlen (svg_data), 1, file);
+		}
 	      fclose (file);
 	    }
 	}
@@ -219,33 +208,33 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 gboolean
 gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 {
-  if (parsed_data != NULL)
+  if (parsed_data == NULL && handle == NULL) return 0;
+
+  double w = gtk_widget_get_allocated_width (widget);
+  double ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
+  double padding = (w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2;
+  double h = w * (settings.page.height * PT_TO_MM) / (settings.page.width * PT_TO_MM) - padding;
+
+  cairo_translate (cr, padding, padding);
+  cairo_scale (cr, ratio, ratio);
+
+  if (handle)
     {
-      double w = gtk_widget_get_allocated_width (widget);
-      double ratio = w / (A4_WIDTH * 1.25) / 1.25;
-      double padding = (w - (A4_WIDTH * 1.25 * ratio)) / 2;
-      double h = w * A4_HEIGHT / A4_WIDTH - padding * 2;
-
-      cairo_translate (cr, padding, 30.0);
-      cairo_scale (cr, ratio, ratio);
-
-      if (parsed_data && !handle)
-	{
-	  svg_data = co_svg_create (parsed_data, NULL);
-	  size_t svg_data_len = strlen (svg_data);
-
-	  handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, svg_data_len, NULL);
-	  rsvg_handle_render_cairo (handle, cr);
-	  rsvg_handle_close (handle, NULL);
-	}
-      else if (handle)
-	{
-	  rsvg_handle_render_cairo (handle, cr);
-	  rsvg_handle_close (handle, NULL);
-	}
-
-      gtk_widget_set_size_request(widget, 0, h);
+      rsvg_handle_render_cairo (handle, cr);
+      rsvg_handle_close (handle, NULL);
     }
+  else if (parsed_data)
+    {
+      char* svg_data = co_svg_create (parsed_data, NULL);
+
+      handle = rsvg_handle_new_from_data ((unsigned char*)svg_data, strlen (svg_data), NULL);
+      free (svg_data), svg_data = NULL;
+      rsvg_handle_render_cairo (handle, cr);
+      rsvg_handle_close (handle, NULL);
+    }
+
+  gtk_widget_set_size_request (widget, 0, h);
+
   return 0;
 }
 
@@ -379,9 +368,6 @@ gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
 void
 gui_mainwindow_quit ()
 {
-  if (svg_data != NULL)
-    free (svg_data);
-
   if (handle != NULL)
     g_object_unref (handle);
 
