@@ -226,8 +226,12 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
     ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0;
 
   double padding = (w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2;
+  if (padding < 0) padding = 0;
   double h = settings.page.height * PT_TO_MM * 1.25 * ratio + padding * 2;
   w = settings.page.width * PT_TO_MM * 1.25 * ratio + padding + MINIMAL_PADDING;
+
+  if (w < 0) w = 0;
+  if (h < 0) h = 0;
   gtk_widget_set_size_request (widget, w, h);
 
   cairo_translate (cr, padding, padding);
