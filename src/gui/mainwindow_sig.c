@@ -37,7 +37,7 @@
 #include <cairo-pdf.h>
 
 #define PT_TO_MM 2.8333
-#define MINIMAL_PADDING 30
+#define MINIMAL_PADDING 10
 
 extern GtkWidget* zoom_toggle;
 extern GtkWidget* zoom_input;
