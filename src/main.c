@@ -110,15 +110,14 @@ static void cleanup_configuration ()
 int
 main (int argc, char** argv)
 {
-  /* Read the default configuration. It can be overridden later when --config
-   * has been used. */
-  read_default_configuration ();
-  
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
   unsigned char launch_gui = 0;
-  unsigned char config_set = 0;
   settings.pressure_factor = 1.0;
+
+  /* Read the default configuration. It can be overridden later when --config
+   * has been used. */
+  read_default_configuration ();
 
   if (argc > 1)
     {
@@ -214,7 +213,6 @@ main (int argc, char** argv)
 	      {
 		if (optarg)
 		  high_parse_configuration (optarg, &settings);
-		config_set = 1;
 	      }
 	      break;
 
