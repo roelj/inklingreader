@@ -9,7 +9,7 @@ The program can:
 
 * Display WPI files
 * Merge WPI files (command-line only)
-* Export to Inkscape SVG (preserving layers), PDF and PNG
+* Export to Inkscape SVG (preserving layers), PDF, PNG and JSON
 * Convert all WPI files in a directory to SVG
 * Automatically use different colors when the "new layer" is pressed multiple times.
 * Give control over stroke pressure.
@@ -26,6 +26,8 @@ Make sure you have the following libraries, development packages and build
 tools installed:
 
 * GCC or CLANG
+* Automake
+* Autoconf
 * Make
 * Gtk+-3.0, GLib-2.0 and Cairo
 * Librsvg-2.0
@@ -35,18 +37,21 @@ Build instructions
 When you have resolved the dependencies listed above you can build 
 the program by running:
 <pre>
+autoreconf -i
 ./configure
 make
 </pre>
 
 To compile with CLANG:
 <pre>
+autoreconf -i
 ./configure CC=clang
 make
 </pre>
 
 Additionally you can add compiler flags:
 <pre>
+autoreconf -i
 ./configure CFLAGS="-Wall -O2 -march=native"
 make
 </pre>
