@@ -49,6 +49,7 @@ extern dt_configuration settings;
 static GSList* parsed_data = NULL;
 static RsvgHandle* handle = NULL;
 
+static char* last_file_extension = NULL;
 static const int file_filters_num = 4;
 static const char* file_mimetypes[]  = { 
   "application/pdf", 
@@ -115,6 +116,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 	         GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
 		 "Open", GTK_RESPONSE_ACCEPT, NULL);
 
+      /* Set a filter for WPI files (it doesn't have a specific mimetype). */
       GtkFileFilter* filter = gtk_file_filter_new ();
       gtk_file_filter_set_name (filter, "WPI - Wacom Proprietary Ink");
       gtk_file_filter_add_mime_type (filter, "application/octet-stream");
@@ -138,8 +140,16 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
     }
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    {
+      filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      GtkFileFilter* chosen_filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (dialog));
+      const char* filter_name = gtk_file_filter_get_name (chosen_filter);
 
+      /* Clean up the memory of the old string. */
+      g_free (last_file_extension);
+
+      last_file_extension = g_ascii_strdown (filter_name, 3);
+    }
   gtk_widget_destroy (dialog);
 
   return filename;
@@ -205,6 +215,13 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
 {
   GtkWidget *parent = gtk_widget_get_toplevel (widget);
   char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_SAVE);
+
+  if (last_file_extension)
+    if (strcmp (last_file_extension, filename + strlen (filename) - strlen (last_file_extension)))
+      {
+        char* total_filename = g_strconcat (filename, ".", last_file_extension, NULL);
+        g_free (filename), filename = total_filename;
+      }
 
   if (filename != NULL)
     {
