@@ -148,7 +148,8 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
       /* Clean up the memory of the old string. */
       g_free (last_file_extension);
 
-      last_file_extension = g_ascii_strdown (filter_name, 3);
+      last_file_extension = g_ascii_strdown (filter_name, 4);
+      if (g_ascii_isspace (last_file_extension[3])) last_file_extension[3] = '\0';
     }
   gtk_widget_destroy (dialog);
 
