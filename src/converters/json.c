@@ -36,11 +36,6 @@ extern dt_configuration settings;
 #define OFFSET_Y 37.5
 #define SPIKE_THRESHOLD 20.0
 
-static void
-skip_warning ()
-{
-  printf ("WARNING: An element has been skipped because of malformed input.\r\n");
-}
 
 /*----------------------------------------------------------------------------.
  | CO_WRITE_JSON_FILE                                                          |
@@ -140,7 +135,7 @@ co_json_create (GSList* data, const char* title)
 	      break;
 	      case END_STROKE:
 		{
-		  if (is_in_stroke != 1) { skip_warning (); break; }
+		  if (is_in_stroke != 1) break;
 
 		  while (stroke_data != NULL)
 		    {
@@ -210,7 +205,7 @@ co_json_create (GSList* data, const char* title)
 	   '------------------------------------------------------------------*/
 	case TYPE_COORDINATE:
 	  {
-	    if (is_in_stroke != 1) { skip_warning (); break; }
+	    if (is_in_stroke != 1) break;
 
 	    dt_coordinate* c = (dt_coordinate *)e;
 	    if (next->type == TYPE_PRESSURE)
@@ -233,7 +228,7 @@ co_json_create (GSList* data, const char* title)
 	    // When the data is within the borders of an A4 page, add
 	    // it. This prevents weird stripes and clutter from 
 	    // disturbing the document.
-	    if (x < 1 || y < 101 || y > 1049) { skip_warning (); break; }
+	    if (x < 1 || y < 101 || y > 1049) break;
 
 	    if (settings.pressure_factor != 0)
 	      stroke_data = g_slist_prepend (stroke_data, c);
