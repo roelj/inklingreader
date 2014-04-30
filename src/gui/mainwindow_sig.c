@@ -26,12 +26,7 @@
 #include "../datatypes/element.h"
 #include "../datatypes/configuration.h"
 
-#ifndef __APPLE__
-#include <malloc.h>
-#else
 #include <stdlib.h>
-#endif
-
 #include <string.h>
 #include <librsvg/rsvg.h>
 
@@ -51,6 +46,7 @@ static RsvgHandle* handle = NULL;
 
 static char* last_file_extension = NULL;
 static const int file_filters_num = 4;
+
 static const char* file_mimetypes[]  = { 
   "application/pdf", 
   "image/png", 

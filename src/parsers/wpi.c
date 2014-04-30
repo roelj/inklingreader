@@ -21,9 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if !defined(__APPLE__)
-#include <malloc.h>
-#endif
 
 #include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
