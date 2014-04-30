@@ -147,8 +147,11 @@ high_parse_configuration (const char* filename, dt_configuration* config)
 		  location += 13;
 		  high_parse_dimensions (location, config);
 		}
+
+	      free (line), line = NULL;
 	    }
 
+	  free (line), line = NULL;
 	  fclose (file);
 	}
     }
