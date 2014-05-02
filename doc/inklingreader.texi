@@ -1,0 +1,60 @@
+\input texinfo
+@c -*-texinfo-*-
+@c %**start of header
+@setfilename inklingreader.texi
+@settitle InklingReader
+@c %**end of header
+
+@afourwide
+
+@titlepage
+@title InklingReader
+@subtitle User guide
+@c Add your name when you aren't listed and have modified this document.
+@author Roel Janssen
+@end titlepage
+
+@contents
+
+@c -----------------------------------------------------------------------------
+@c CHAPTER: Foreword
+@c -----------------------------------------------------------------------------
+@unnumbered Foreword
+
+The primary target for InklingReader is GNU/Linux because this is a platform
+that is not supported by the official software provided by Wacom. The most 
+important work, figuring out the format, has been done by Herbert Ellebruch.@*
+@*
+The code Herbert provided used Windows-specific functionality, so his software
+is effectively Windows-only as well. The WPI parser and converters for 
+InklingReader have been completely rewritten. Herbert's code has been used as a
+reference for the WPI format.@*
+@*
+InklingReader is free software licensed under the GPL version 3 or any later 
+version. You are very welcome to contribute to InklingReader. The project's 
+home is @url{https://github.com/roelj/inklingreader}.
+
+@c -----------------------------------------------------------------------------
+@c CHAPTER: Installation
+@c -----------------------------------------------------------------------------
+@chapter Installation
+
+@section GNU/Linux
+
+@section Mac OS X
+
+@section Microsoft Windows
+
+@c -----------------------------------------------------------------------------
+@c CHAPTER: Using the program
+@c -----------------------------------------------------------------------------
+@chapter Using the program
+
+@section Command-line options
+
+@section Graphical user interface
+
+@section Changing the default options
+
+@bye @c This is the end of the document.
+
