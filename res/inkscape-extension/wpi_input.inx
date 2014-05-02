@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+
+  <!-- name & id -->
+  <_name>WPI Input</_name>
+  <id>org.inkscape.input.wpi</id>
+
+  <!-- dependencies -->
+  <dependency type="executable" location="path">inklingreader</dependency>
+  <dependency type="executable" location="extensions">wpi2svg-ext.py</dependency>
+
+  <!-- notebook for the tabs -->
+  <param name="tab" type="notebook">
+
+    <!-- default import tab -->
+    <page name="default_tab" _gui-text="Default Import">
+
+      <!-- summary -->
+      <_param name="info_default" type="description" xml:space="preserve">Import selected Wacom Inkling file(s) with default settings
+(as built-in, or as defined in config file)</_param>
+
+    </page><!-- end of default import tab -->
+
+    <!-- custom import tab -->
+    <page name="custom_import_tab" _gui-text="Custom Import">
+
+      <!-- summary -->
+      <_param name="info_custom" type="description" xml:space="preserve">Import selected Wacom Inkling file(s) with custom settings:</_param>
+
+      <!-- ink options -->
+      <_param name="header_ink" type="description" xml:space="preserve" appearance="header" indent="1">
+Ink Options</_param>
+      <!-- pressure-factor -->
+      <param name="pressure_factor" type="float" min="0.0" max="10.0" precision="2" _gui-text="Pressure factor: ">1.0</param>
+
+      <!-- color options -->
+      <_param name="header_color" type="description" xml:space="preserve" appearance="header" indent="1">
+Color Options</_param>
+      <!-- background -->
+      <param name="background" type="enum" _gui-text="Background color: ">
+        <_item value="custom">Custom Color</_item>
+        <_item value="default">Default</_item>
+        <_item value="none">None</_item>
+      </param>
+      <param name="background_color" type="string" max_length="7" _gui-text="Custom background color (hex): ">#ffffff</param>
+      <!-- colors -->
+      <param name="foreground" type="enum" _gui-text="Foreground colors: ">
+        <_item value="custom">Custom list</_item>
+        <_item value="default">Default</_item>
+      </param>
+      <param name="foreground_colors" type="string" _gui-text="Color list: ">#000000,#ff0000,#0000ff,#00ff00</param>
+
+      <!-- other page options -->
+      <_param name="header_dimensions" type="description" xml:space="preserve" appearance="header" indent="1">
+Page Dimensions</_param>
+      <!-- dimensions -->
+      <param name="dimensions" type="enum" _gui-text="Page dimensions: ">
+        <_item value="custom">Custom</_item>
+        <_item value="default">Default</_item>
+        <_item value="A3">A3</_item>
+        <_item value="A4">A4</_item>
+        <_item value="A5">A5</_item>
+        <_item value="A6">A6</_item>
+        <_item value="US Letter">US Letter</_item>
+        <_item value="US Legal">US Legal</_item>
+        <_item value="B3">B3</_item>
+        <_item value="B4">B4</_item>
+        <_item value="B5">B5</_item>
+        <_item value="B6">B6</_item>
+      </param>
+      <param name="dimensions_orientation" type="enum" _gui-text="Page orientation: ">
+        <_item value="portrait" default="true">Portrait</_item>
+        <_item value="landscape">Landscape</_item>
+      </param>
+      <param name="dimensions_width" type="float" min="0.0" max="5000.0" precision="1" _gui-text="Custom page width: ">210.0</param>
+      <param name="dimensions_height" type="float" min="0.0" max="5000.0" precision="1" _gui-text="Custom page height: ">297.0</param>
+      <param name="dimensions_units" type="enum" _gui-text="Units for custom dimensions: ">
+        <_item value="mm">mm</_item>
+        <_item value="cm">cm</_item>
+        <_item value="pt">pt</_item>
+        <_item value="in">in</_item>
+        <_item value="px">px</_item>
+      </param>
+
+    </page><!-- end of custom import tab -->
+
+    <!-- help tab -->
+    <page name="help_tab" _gui-text="Help">
+
+      <!-- help -->
+      <_param name="header_help" type="description" xml:space="preserve" appearance="header" indent="1">
+Options</_param>
+      <_param name="instructions" type="description" xml:space="preserve">
+Pressure factor: 
+      Specify a factor for handling pressure data.
+Background color: 
+      Specify the background color for the document.
+Foreground colors: 
+      Specify a list of colors (comma separated) for the ink.
+Page dimensions: 
+      Specify the page dimensions for the document.
+
+
+
+      </_param>
+
+      <!-- about -->
+      <_param name="header_about" type="description" xml:space="preserve" appearance="header" indent="1">
+About</_param>
+      <_param name="about" type="description" xml:space="preserve">
+Helper Application: Inklingreader
+https://github.com/roelj/inklingreader
+      </_param>
+
+    </page><!-- end of help tab -->
+
+  </param><!-- end of notebook with tabs -->
+
+  <!-- global parameters -->
+  <param name="verbose" type="boolean" _gui-text="verbose">false</param>
+
+  <!-- input files -->
+  <input>
+    <extension>.wpi</extension>
+    <mimetype>image/vnd.wacom.inkling</mimetype>
+    <_filetypename>Wacom Proprietary Ink (*.WPI)</_filetypename>
+    <_filetypetooltip>Open files saved with the Wacom Inkling digital pen</_filetypetooltip>
+  </input>
+
+  <!-- script command -->
+  <script>
+    <command reldir="extensions" interpreter="python">wpi2svg-ext.py</command>
+  </script>
+
+</inkscape-extension>
