@@ -78,10 +78,11 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
   int written = 0;
 
   /* On average, 10 bytes are written per list item. The header and background 
-   * layer take 571 bytes, so these are added to the amount to allocate. 
+   * layer take 571 bytes, so these are added to the amount to allocate. With 
+   * small files the averages may not be work out well, so over-allocate a bit.
    * There's no mechanism in place to allocate more. So this is something 
    * to look into. */
-  size_t output_len = 20 * g_slist_length (data) + 571;
+  size_t output_len = 20 * g_slist_length (data) + 1000;
   char* output = calloc (1, output_len);
   if (output == NULL)
     {
