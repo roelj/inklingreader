@@ -100,7 +100,7 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
   if (settings->page.height == 0) settings->page.height = 297;
   if (settings->page.measurement == NULL) 
     {
-      settings->page.measurement = malloc (3);
+      settings->page.measurement = calloc (1, 3);
       settings->page.measurement = strncpy (settings->page.measurement, "mm", 2);
     }
 
