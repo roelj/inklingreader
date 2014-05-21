@@ -25,6 +25,31 @@
 #include "pressure.h"
 #include "tilt.h"
 
+/**
+ * @file   datatypes/element.h
+ * @brief  The base datatype for elements that can be parsed.
+ * @author Roel Janssen
+ */
+
+/**
+ * @namespace datatypes
+ * In the datatypes namespace data structures and functions to manipulate these
+ * data structures are defined.
+ *
+ * @note The prefix for this namespace has been shortened to "dt_".
+ *
+ * Members of this namespace are:
+ * @{
+ * - dt_element
+ *   - dt_coordinate
+ *   - dt_pressure
+ *   - dt_stroke
+ *   - dt_tilt
+ * - dt_configuration
+ *   - dt_page_dimensions
+ * @}
+ */
+
 /* Definitions of datatypes. */
 #define TYPE_STROKE     0
 #define TYPE_COORDINATE 1
@@ -40,14 +65,12 @@
 #define END_STROKE       0
 #define NEW_LAYER        128
 
-/*----------------------------------------------------------------------------.
- | ELEMENT                                                                    |
- | This struct contains the common element in all datatypes defined here:     |
- | a specifier for which type of element the struct is. In a list, these      |
- | structs are all pointers to void. To know which type a struct is, the      |
- | 'type' field is used.                                                      |
- '----------------------------------------------------------------------------*/
-
+/**
+ * This struct contains the common element in all datatypes defined here: a 
+ * specifier for which type of element the struct is. In a list, these structs 
+ * are all pointers to void. To know which type a struct is, the 'type' field 
+ * is used.
+ */
 typedef struct
 {
   unsigned char type;

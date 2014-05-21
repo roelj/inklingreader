@@ -31,6 +31,7 @@
 #include "../converters/pdf.h"
 #include "../converters/svg.h"
 #include "../converters/json.h"
+#include "../datatypes/configuration.h"
 
 /* nested inline function turned into global static inline function for clang
  * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
@@ -44,7 +45,7 @@ static inline void unsupported ()
  | This function is a helper to convert all WPI files in a directory to SVG.  |
  '----------------------------------------------------------------------------*/
 void
-high_convert_directory (const char* path, GSList* coordinates)
+high_convert_directory (const char* path, dt_configuration* settings)
 {
   DIR* directory;
   struct dirent* entry;
@@ -66,14 +67,14 @@ high_convert_directory (const char* path, GSList* coordinates)
 	  snprintf (name, name_len, "%s/%s", path, entry->d_name);
 
 	  /* Parse a file.*/
-	  coordinates = p_wpi_parse (name);
+	  GSList* coordinates = p_wpi_parse (name);
 
 	  /* Construct a string for the new filename. */
 	  snprintf (new_name, name_len - 3, "%s/%s", path, entry->d_name);
 	  strcat (new_name, "svg");
 
 	  /* Convert a file. */
-	  co_svg_create_file (new_name, coordinates);
+	  co_svg_create_file (new_name, coordinates, settings);
 
 	  /* Clean up. */
 	  p_wpi_cleanup (coordinates), coordinates = NULL;
@@ -90,7 +91,7 @@ high_convert_directory (const char* path, GSList* coordinates)
  | This function is a helper to enable exporting to all supported filetypes.  |
  '----------------------------------------------------------------------------*/
 void
-high_export_to_file (GSList* data, const char* to)
+high_export_to_file (GSList* data, const char* svg_data, const char* to, dt_configuration* settings)
 {
   /* Even though this function is now deprecated, it is a fix for the GLib
    * version that is shipped with Ubuntu 12.04. */
@@ -100,18 +101,24 @@ high_export_to_file (GSList* data, const char* to)
 
   if (strlen (to) > 4)
     {
-      const char* extension = to + strlen (to) - 4;
-      if (!strcmp (extension, "json"))
+      char* extension = strrchr (to, '.');
+      if (!strcmp (extension, ".json"))
 	co_json_create_file (to, data);
       else
 	{
-	  char* svg_data = co_svg_create (data, to);
+	  /* When no svg data is available yet, create it. */
+	  if (svg_data == NULL)
+	    svg_data = co_svg_create (data, to, settings);
 
-	  if (!strcmp (extension + 1, "png"))
+	  /* When there's still no SVG data, there's no point in 
+	   * doing anything else. */
+	  if (svg_data == NULL) return;
+
+	  if (!strcmp (extension, ".png"))
 	    co_png_export_to_file (to, svg_data);
-	  else if (!strcmp (extension + 1, "pdf"))
+	  else if (!strcmp (extension, ".pdf"))
 	    co_pdf_export_to_file (to, svg_data);
-	  else if (!strcmp (extension + 1, "svg"))
+	  else if (!strcmp (extension, ".svg"))
 	    {
 	      FILE* file;
 	      file = fopen (to, "w");
@@ -122,8 +129,6 @@ high_export_to_file (GSList* data, const char* to)
 	    }
 	  else
 	    unsupported ();
-	
-	  free (svg_data);
 	}
     }
   else

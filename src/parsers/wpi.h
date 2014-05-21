@@ -17,21 +17,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   parsers/wpi.h
+ * @brief  A parser to convert a WPI file to a better useable format.
+ * @author Roel Janssen
+ */
+
+/**
+ * @namespace parsers
+ * In this namespace you can find data parsers.
+ * 
+ * @note The prefix for this namespace has been shortened to "p_".
+ */
+
 #ifndef PARSERS_WPI_H
 #define PARSERS_WPI_H
 
 #include <glib.h>
 
 /**
- * p_wpi_parse:
  * This function decodes the WPI format and creates a list of the data using
  * the available datatypes.
+ *
+ * @param filename The filename to parse.
+ * @return A pointer to a GSList containing the parsed data.
  */
 GSList* p_wpi_parse (const char* filename);
 
 /**
- * p_wpi_cleanup:
- * This function cleans up the data that was created using 'p_wpi_parse'. 
+ * This function cleans up the data that was created using p_wpi_parse().
+ *
+ * @param data A pointer to a GSList created by p_wpi_parse().
  */
 void p_wpi_cleanup (GSList* data);
 

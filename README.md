@@ -56,6 +56,12 @@ autoreconf -i
 make
 </pre>
 
+Optionally you can generate developer documentation using Doxygen.
+<pre>
+cd doc/
+doxygen
+</pre>
+
 Tested distributions
 --------------------
 

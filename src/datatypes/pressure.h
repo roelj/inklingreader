@@ -17,13 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   datatypes/pressure.h
+ * @brief  A datatype to store pressure data.
+ * @author Roel Janssen
+ * @namespace datatypes
+ */
+
 #ifndef DATATYPES_PRESSURE_H
 #define DATATYPES_PRESSURE_H
 
-/*----------------------------------------------------------------------------.
- | PRESSURE DATATYPE DEFINITION                                               |
- '----------------------------------------------------------------------------*/
-
+/**
+ * This struct contains the variables that can be extracted for pressure data.
+ */
 typedef struct
 {
   unsigned char type;

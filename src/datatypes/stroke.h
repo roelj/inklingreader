@@ -17,12 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   datatypes/stroke.h
+ * @brief  A datatype to store stroke data.
+ * @author Roel Janssen
+ * @namespace datatypes
+ */
+
 #ifndef DATATYPES_STROKE_H
 #define DATATYPES_STROKE_H
 
-/*----------------------------------------------------------------------------.
- | STROKE DATATYPE DEFINITION                                                 |
- '----------------------------------------------------------------------------*/
+/**
+ * This struct contains the variables that can be extracted for stroke data.
+ */
 typedef struct
 {
   unsigned char type;

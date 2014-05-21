@@ -17,16 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   datatypes/configuration.h
+ * @brief  User-defined configuration options are packed into a single datatype
+ *         so it can be passed along using a single parameter.
+ * @author Roel Janssen
+ * @namespace datatypes
+ */
+
 #ifndef DATATYPES_CONFIGURATION_H
 #define DATATYPES_CONFIGURATION_H
 
+/**
+ * This struct is used to describe the page dimensions.
+ */
 typedef struct
 {
   double width;
   double height;
   char* measurement;
+  char* orientation;
 } dt_page_dimensions;
 
+/**
+ * This struct contains all configuration options that a user can configure on
+ * run-time.
+ */
 typedef struct
 {
   unsigned char type;
@@ -37,5 +53,32 @@ typedef struct
   dt_page_dimensions page;
   char* config_location;
 } dt_configuration;
+
+/**
+ * This function parses colors from a string.
+ * @param data   A string to parse.
+ * @param config A dt_configuration structure to store the parsed data to.
+ */
+void dt_configuration_parse_colors (const char* data, dt_configuration* config);
+
+/**
+ * This function properly cleans up allocated memory of a dt_configuration.
+ * @param config A dt_configuration to clean up.
+ */
+void dt_configuration_cleanup (dt_configuration* config);
+
+/**
+ * This function sets configuration options from a config file.
+ * @param filename The filename of the configuration file to parse.
+ * @param config   A dt_configuration structure to store the parsed data to.
+ */
+void dt_configuration_parse (const char* filename, dt_configuration* config);
+
+/**
+ * This function parses dimensions from a string.
+ * @param data   A string to parse.
+ * @param config A dt_configuration structure to store the parsed data to.
+ */
+void dt_configuration_parse_dimensions (const char* data, dt_configuration* config);
 
 #endif//DATATYPES_CONFIGURATION_H

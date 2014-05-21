@@ -1,0 +1,43 @@
+body
+{
+    background: #f2f5fc;
+    background-image: url('background.png');
+    background-repeat: repeat;
+}
+
+div.header
+{
+  background-image:url('nav_h.png');
+  background-repeat:repeat-x;
+  background-color: #FAFAFA;
+  border-bottom: 1px solid #D5D5D5;
+  margin: 20px auto auto auto;
+  max-width: 960px;
+  padding: auto 12px auto 12px;
+  padding-left: 12px;
+  padding-right: 12px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.15);
+  -moz-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.15);
+  -webkit-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.15);
+}
+
+div.contents {
+  margin: 0px 0px 20px 0px;
+  padding: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 960px;
+  background-color: white;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.15);
+  -moz-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.15);
+  -webkit-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.15);
+}
+
+#titlearea {
+    background: #0b1b3c;
+    /*background: #193e88;*/
+    width: 98%;
+    padding: 1%;
+    color: #eee;
+    border-bottom: solid 1px #0b1b3c;
+}

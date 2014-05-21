@@ -17,13 +17,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   converters/svg.h
+ * @brief  A set of functions to convert parsed data to an SVG.
+ * @author Roel Janssen
+ */
 
 #ifndef CONVERTERS_SVG_H
 #define CONVERTERS_SVG_H
 
 #include <glib.h>
+#include "../datatypes/configuration.h"
 
-int co_svg_create_file (const char* filename, GSList* data);
-char* co_svg_create (GSList* data, const char* title);
+/**
+ * This function converts parsed data to an SVG file.
+ * @param filename The path of the file to write to.
+ * @param data     The parsed data (see p_wpi_parse()).
+ * @param settings User-defined settings that affect the output.
+ * @return 0 when everything went fine, 1 when something went wrong.
+ */
+int co_svg_create_file (const char* filename, GSList* data, dt_configuration* settings);
+
+/**
+ * This function converts parsed data to a string.
+ * @param data     The parsed data (see p_wpi_parse()).
+ * @param title    The title of the document or NULL for no title.
+ * @param settings User-defined settings that affect the output.
+ * @return A string containing SVG data.
+ */
+char* co_svg_create (GSList* data, const char* title, dt_configuration* settings);
 
 #endif//CONVERTERS_SVG_H

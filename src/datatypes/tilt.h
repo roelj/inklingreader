@@ -17,13 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   datatypes/tilt.h
+ * @brief  A datatype to store tilt data.
+ * @author Roel Janssen
+ * @namespace datatypes
+ */
+
 #ifndef DATATYPES_TILT_H
 #define DATATYPES_TILT_H
 
-/*----------------------------------------------------------------------------.
- | TILT DATATYPE DEFINITION                                                   |
- '----------------------------------------------------------------------------*/
-
+/**
+ * This struct contains the variables that can be extracted for tilt data.
+ */
 typedef struct
 {
   unsigned char type;

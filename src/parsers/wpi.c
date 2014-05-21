@@ -20,18 +20,9 @@
 #include "wpi.h"
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 
 #include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
-#include "../datatypes/statistics.h"
-
-/* nested inline function turned into global static inline function for clang
- * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
-static inline void mem_error ()
-{
-  printf ("%s: Could not allocate enough memory.\r\n", __func__);
-}
 
 /*----------------------------------------------------------------------------.
  | BLOCK DESCRIPTORS                                                          |
@@ -84,7 +75,7 @@ p_wpi_parse (const char* filename)
    * while processing the data. */
   if (fread (data, 1, data_len, file) != data_len)
     {
-      printf ("An error occurred when reading the file.\r\n");
+      puts ("An error occurred when reading the file.");
       return NULL;
     }
 
@@ -101,11 +92,10 @@ p_wpi_parse (const char* filename)
     "AFAAAA1P7//wAAAAAUAAAAATAAAAUAAAAsAQAAAAAAABQAAAAAMwAAAwAAAA==";
 
   size_t header_len = 322;
-  char* file_header = malloc (header_len);
+  char* file_header = g_malloc (header_len);
 
   if (file_header == NULL)
     {
-      mem_error();
       fclose (file);
       return NULL;
     }
@@ -115,14 +105,15 @@ p_wpi_parse (const char* filename)
 
   if (strcmp (base64_header, header))
     {
-      printf ("This file is not a (supported) WPI file.\r\n");
-      free (file_header);
+      puts ("This file is not a (supported) WPI file.");
+      g_free (file_header);
+      g_free (base64_header);
       fclose (file);
       return NULL;
     }
 
   g_free (base64_header);
-  free (file_header);
+  g_free (file_header);
   file_header = NULL;
 
   /* Find out interesting places. The first 2040 bytes can be skipped (according
@@ -140,35 +131,32 @@ p_wpi_parse (const char* filename)
 	 '--------------------------------------------------------*/
       case BLOCK_COORDINATE:
 	{
-	  dt_coordinate* coordinate = malloc (sizeof (dt_coordinate));
-	  if (coordinate != NULL)
-	    {
-	      coordinate->type = TYPE_COORDINATE;
-	      /* 'count' should be moved up 2 bytes so the X position can be 
-	       * read. */
-	      count += 2;
+	  dt_coordinate* coordinate = g_malloc (sizeof (dt_coordinate));
+	  if (coordinate == NULL) break;
 
-	      /* The "<<" operator does bitshifting. A coordinate is stretched
-	       * over two blocks. The first block has to be "shifted" 8 places
-	       * to get the right value. */
-	      coordinate->x = ((int)(char)data[count]) << 8;
-	      coordinate->x = coordinate->x + (int)(data[count + 1]) + 5;
+	  coordinate->type = TYPE_COORDINATE;
+	  /* 'count' should be moved up 2 bytes so the X position can be 
+	   * read. */
+	  count += 2;
 
-	      /* Move over to the Y-coordinate. */
-	      count += 2;
+	  /* The "<<" operator does bitshifting. A coordinate is stretched
+	   * over two blocks. The first block has to be "shifted" 8 places
+	   * to get the right value. */
+	  coordinate->x = ((int)(char)data[count]) << 8;
+	  coordinate->x = coordinate->x + (int)(data[count + 1]) + 5;
 
-	      coordinate->y = ((int)(char)data[count]) << 8;
-	      coordinate->y = (((int)coordinate->y + (int)data[count + 1]) << 1) + 5;
+	  /* Move over to the Y-coordinate. */
+	  count += 2;
 
-	      /* Move past the coordinate data so we don't read 
-	       * duplicate data. (Move only 1 because the for-loop will 
-	       * move the other.) */
-	      count += 1;
+	  coordinate->y = ((int)(char)data[count]) << 8;
+	  coordinate->y = (((int)coordinate->y + (int)data[count + 1]) << 1) + 5;
 
-	      list = g_slist_prepend (list, coordinate);
-	    }
-	  else
-	    mem_error();
+	  /* Move past the coordinate data so we don't read 
+	   * duplicate data. (Move only 1 because the for-loop will 
+	   * move the other.) */
+	  count += 1;
+
+	  list = g_slist_prepend (list, coordinate);
 	}
 	break;
 
@@ -182,18 +170,15 @@ p_wpi_parse (const char* filename)
 	  /* Make sure the block data has the expected size. */
 	  if (data[count + 1] == 6)
 	    {
-	      dt_pressure* pressure = malloc (sizeof (dt_pressure));
-	      if (pressure != NULL)
-		{
-		  pressure->type = TYPE_PRESSURE;
-		  count += 4;
-		  pressure->pressure = (int)data[count] << 8;
-		  pressure->pressure = pressure->pressure + data[count + 1];
+	      dt_pressure* pressure = g_malloc (sizeof (dt_pressure));
+	      if (pressure == NULL) break;
 
-		  list = g_slist_prepend (list, pressure);
-		}
-	      else
-		mem_error();
+	      pressure->type = TYPE_PRESSURE;
+	      count += 4;
+	      pressure->pressure = (int)data[count] << 8;
+	      pressure->pressure = pressure->pressure + data[count + 1];
+
+	      list = g_slist_prepend (list, pressure);
 	    }
 	}
 	break;
@@ -210,17 +195,14 @@ p_wpi_parse (const char* filename)
 	    {
 	      count += 2;
 
-	      dt_tilt* tilt = malloc (sizeof (dt_tilt));
-	      if (tilt != NULL)
-		{
-		  tilt->type = TYPE_TILT;
-		  tilt->x = data[count];
-		  tilt->y = data[count + 1];
+	      dt_tilt* tilt = g_malloc (sizeof (dt_tilt));
+	      if (tilt == NULL) break;
 
-		  list = g_slist_prepend (list, tilt);
-		}
-	      else
-		mem_error();
+	      tilt->type = TYPE_TILT;
+	      tilt->x = data[count];
+	      tilt->y = data[count + 1];
+
+	      list = g_slist_prepend (list, tilt);
 	    }
 	}
 	break;
@@ -260,7 +242,7 @@ p_wpi_parse (const char* filename)
 	  /* Make sure it's valid stroke information. */
 	  if (data[count] != 3) break;
 
-	  dt_stroke* stroke = malloc (sizeof (dt_stroke));
+	  dt_stroke* stroke = g_malloc (sizeof (dt_stroke));
 
 	  /* Make sure we can store the stroke data. */
 	  if (stroke == NULL) break;
@@ -284,16 +266,13 @@ p_wpi_parse (const char* filename)
 void
 p_wpi_cleanup (GSList* data)
 {
+  if (data == NULL) return;
+
   GSList* data_head = data;
 
   /* Clean up the data elements of the list. */
   while (data != NULL)
-    {
-      if (data->data)
-	free (data->data), data->data = NULL;
-
-      data = data->next;
-    }
+    g_free (data->data), data->data = NULL, data = data->next;
 
   /* Clean up the list items. */
   g_slist_free (data_head);

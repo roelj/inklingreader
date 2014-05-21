@@ -42,7 +42,6 @@
 #include "datatypes/configuration.h"
 #include "gui/mainwindow.h"
 #include "high/conversion.h"
-#include "high/configuration.h"
 
 /* This struct stores various run-time configuration options to allow 
  * customization of the behavior of the program. */
@@ -57,7 +56,7 @@ read_default_configuration ()
 {
   settings.config_location = g_strconcat(g_get_user_config_dir(), "/inklingreaderrc", NULL);
   if (settings.config_location != NULL)
-    high_parse_configuration (settings.config_location, &settings);
+    dt_configuration_parse (settings.config_location, &settings);
 }
 
 /*----------------------------------------------------------------------------.
@@ -80,6 +79,7 @@ show_help ()
 {
   printf ("\r\nAvailable options:\r\n"
 	  "  --dimensions,        -a  Specify the page dimensions for the document.\r\n"
+	  "  --orientation,       -o  Specify the orientation of the page.\r\n"
 	  "  --background,        -b  Specify the background color for the document.\r\n"
 	  "  --colors,            -c  Specify a list of colors (comma separated).\r\n"
 	  "  --pressure-factor,   -p  Specify a factor for handling pressure data.\r\n"
@@ -99,7 +99,7 @@ show_help ()
  '----------------------------------------------------------------------------*/
 static void cleanup_configuration ()
 {
-  high_configuration_cleanup (&settings);
+  dt_configuration_cleanup (&settings);
 }
 
 
@@ -118,6 +118,9 @@ main (int argc, char** argv)
   /* Read the default configuration. It can be overridden later when --config
    * has been used. */
   read_default_configuration ();
+
+  /* Make sure the configuration is properly cleaned up on exit. */
+  atexit (cleanup_configuration);
 
   if (argc > 1)
     {
@@ -142,6 +145,7 @@ main (int argc, char** argv)
 	  { "gui",               optional_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "merge",             required_argument, 0, 'm' },
+	  { "orientation",       required_argument, 0, 'o' },
 	  { "pressure-factor",   required_argument, 0, 'p' },
 	  { "to",                required_argument, 0, 't' },
 	  { "version",           no_argument,       0, 'v' },
@@ -162,7 +166,7 @@ main (int argc, char** argv)
 	    case 'a':
 	      if (optarg)
 		{
-		  high_parse_dimensions (optarg, &settings);
+		  dt_configuration_parse_dimensions (optarg, &settings);
 		  launch_gui = 1;
 		}
 	      break;
@@ -187,8 +191,7 @@ main (int argc, char** argv)
 	    case 'c':
 	      if (optarg)
 		{
-		  settings.colors = high_parse_colors (optarg, &settings.num_colors);
-		  atexit (cleanup_configuration);
+		  dt_configuration_parse_colors (optarg, &settings);
 		  launch_gui = 1;
 		}
 	      break;
@@ -200,7 +203,7 @@ main (int argc, char** argv)
 	    case 'd':
 	      {
 		if (optarg)
-		  high_convert_directory (optarg, coordinates);
+		  high_convert_directory (optarg, &settings);
 		launch_gui = 0;
 	      }
 	      break;
@@ -212,7 +215,7 @@ main (int argc, char** argv)
 	    case 'e':
 	      {
 		if (optarg)
-		  high_parse_configuration (optarg, &settings);
+		  dt_configuration_parse (optarg, &settings);
 	      }
 	      break;
 
@@ -241,6 +244,20 @@ main (int argc, char** argv)
 	      break;
 
 	      /*--------------------------------------------------------------.
+	       | OPTION: ORIENTATION                                          |
+	       | Let's the user specify the page orientation.                 |
+	       '--------------------------------------------------------------*/
+	    case 'o':
+	      if (optarg)
+		{
+		  settings.page.orientation = calloc (1, strlen (optarg) + 1);
+		  settings.page.orientation = strncpy (settings.page.orientation, 
+						       optarg, strlen (optarg));
+		  launch_gui = 1;
+		}
+	      break;
+
+	      /*--------------------------------------------------------------.
 	       | OPTION: PRESSURE-FACTOR                                      |
 	       | Sets the factor for handling pressure data.                  |
 	       '--------------------------------------------------------------*/
@@ -263,7 +280,7 @@ main (int argc, char** argv)
 		    if (merge_val)
 		      high_merge_wpi_files (merge_val, optarg);
 		    else
-		      high_export_to_file (coordinates, optarg);
+		      high_export_to_file (coordinates, NULL, optarg, &settings);
 		  }
 		launch_gui = 0;
 	      }
@@ -275,8 +292,7 @@ main (int argc, char** argv)
 	       '--------------------------------------------------------------*/
 	    case 'g':
 	      {
-		gui_init_mainwindow (argc, argv, optarg);
-		launch_gui = 0;
+		launch_gui = 1;
 	      }
 	      break;
 
@@ -297,6 +313,8 @@ main (int argc, char** argv)
 	      break;
 	    };
 	}
+
+      p_wpi_cleanup (coordinates);
     }
   else
     launch_gui = 1;
@@ -312,7 +330,13 @@ main (int argc, char** argv)
 	  settings.num_colors = 1;
 	}
 
-      gui_init_mainwindow (argc, argv, NULL);
+      /* When no page dimensions have been given. Set it to a sensible default. */
+      if (settings.page.width == 0 && settings.page.height == 0
+	  && settings.page.measurement == NULL)
+	dt_configuration_parse_dimensions ("210x297mm", &settings);
+
+      gui_mainwindow_init (argc, argv, NULL);
     }
+
   return 0;
 }

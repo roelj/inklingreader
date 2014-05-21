@@ -17,13 +17,88 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file   gui/mainwindow.h
+ * @brief  The main window of the graphical user interface.
+ * @author Roel Janssen
+ */
+
+/**
+ * @namespace gui::mainwindow
+ * The graphical user interface's main window.
+ * 
+ * @note The prefix for this namespace is "gui_mainwindow_".
+ */
+
 #ifndef GUI_MAINWINDOW_H
 #define GUI_MAINWINDOW_H
 
-/*----------------------------------------------------------------------.
- | MAINWINDOW                                                           |
- | The GUI functionality starts here.                                   |
- '----------------------------------------------------------------------*/
-void gui_init_mainwindow (int argc, char** argv, const char* filename);
+#include <gtk/gtk.h>
+
+/**
+ * The GUI functionality starts here.
+ */
+void gui_mainwindow_init (int argc, char** argv, const char* filename);
+
+/**
+ * This helper function opens a file dialog and returns the filename after
+ * closing it. When no file is chosen, NULL is returned.
+ */
+char* gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action);
+
+/**
+ * This callback function handles activating the "Open" menu button.
+ */
+void gui_mainwindow_file_activated (GtkWidget* widget, void* data);
+
+/**
+ * This callback function handles activating the "Export" menu button.
+ */
+void gui_mainwindow_export_activated (GtkWidget* widget, void* data);
+
+/**
+ * This event handler handles the activation of a menu item within the "File" menu.
+ */
+void gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data);
+
+/**
+ * This callback function handles the drawing on the 'document_view' widget.
+ */
+gboolean gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data);
+
+/**
+ * This callback function handles adding a color to the color list.
+ */
+void gui_mainwindow_add_color (GtkWidget* widget, void* data);
+
+/**
+ * This function is the callback for setting the background color.
+ */
+void gui_mainwindow_set_bg_color (GtkWidget* widget, void* data);
+
+/**
+ * This function is the callback for resetting a foreground color.
+ */
+void gui_mainwindow_set_fg_color (GtkWidget* widget, void* data);
+
+/**
+ * This function is the callback for setting the pressure factor.
+ */
+void gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data);
+
+/**
+ * This function is the callback for setting the zoom factor.
+ */
+void gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data);
+
+/**
+ * This function is the callback for enabling or disabling the zoom factor.
+ */
+void gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data);
+
+/**
+ * Clean up when quitting.
+ */
+void gui_mainwindow_quit ();
 
 #endif//GUI_MAINWINDOW_H
