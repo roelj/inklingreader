@@ -34,6 +34,7 @@
 #define OFFSET_Y 37.5
 #define PRESSURE_FACTOR 2000.0
 #define SPIKE_THRESHOLD 25.0
+#define MM_TO_PT 3.5433
 
 #define DEFAULT_COLOR "#00007c"
 
@@ -107,11 +108,12 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" 
     "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n"
     "  \"http://www.w3.org/Graphics/SVG/2.2/DTD/svg11.dtd\">\n"
-    "<svg width=\"%f%s\" height=\"%f%s\" version=\"1.1\""
+    "<svg width=\"%f%s\" height=\"%f%s\" version=\"1.1\" viewBox=\"0 0 %f %f\""
     "  xmlns=\"http://www.w3.org/2000/svg\"\n"
     "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">\n",
     settings->page.width, settings->page.measurement, settings->page.height, 
-    settings->page.measurement);
+    settings->page.measurement, settings->page.width * MM_TO_PT, 
+    settings->page.height * MM_TO_PT);
 
   if (title != NULL)
     written += sprintf (output + written, "<title>%s</title>\n", title);
