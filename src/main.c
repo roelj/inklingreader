@@ -178,7 +178,12 @@ main (int argc, char** argv)
 	    case 'b':
 	      if (optarg)
 		{
-		  settings.background = optarg;
+		  if (settings.background != NULL) 
+		    free (settings.background), settings.background = NULL;
+
+		  size_t length = strlen (optarg);
+		  settings.background = calloc (1, length + 1);
+		  settings.background = strncpy (settings.background, optarg, length);
 		  launch_gui = 1;
 		}
 	      break;
