@@ -131,11 +131,11 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
     written += sprintf (output + written,
 			"<g inkscape:label=\"Background\" inkscape:groupmode=\"layer\" id=\"layer0\">"
 			"<rect style=\"fill:%s;stroke:none\" id=\"background\" "
-			"width=\"%f%s\" height=\"%f%s\" x=\"0\" y=\"0\" /></g>\n"
+			"width=\"%f\" height=\"%f\" x=\"0\" y=\"0\" /></g>\n"
 			"<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
 			"id=\"layer1\">\n",
-			settings->background, settings->page.width, settings->page.measurement, 
-			settings->page.height, settings->page.measurement);
+			settings->background, settings->page.width * MM_TO_PT, 
+			settings->page.height * MM_TO_PT);
   else
     written += sprintf (output + written,
 			"<g inkscape:label=\"Layer 1\" inkscape:groupmode=\"layer\" "
