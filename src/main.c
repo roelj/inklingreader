@@ -42,6 +42,7 @@
 #include "datatypes/configuration.h"
 #include "gui/mainwindow.h"
 #include "high/conversion.h"
+#include "converters/svg.h"
 
 /* This struct stores various run-time configuration options to allow 
  * customization of the behavior of the program. */
@@ -86,6 +87,7 @@ show_help ()
 	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
 	  "  --file,              -f  Specify the WPI file to convert.\r\n"
 	  "  --to,                -t  Specify the file to write to.\r\n"
+	  "  --direct-output,     -i  Tell the program to output SVG data to stdout.\r\n"
 	  "  --merge,             -m  Merge two WPI files into one.\r\n"
 	  "  --gui,               -g  Start the graphical user interface.\r\n"
 	  "  --version,           -v  Show versioning information.\r\n"
@@ -144,6 +146,7 @@ main (int argc, char** argv)
 	  { "file",              required_argument, 0, 'f' },
 	  { "gui",               optional_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
+	  { "direct-output",     no_argument,       0, 'i' },
 	  { "merge",             required_argument, 0, 'm' },
 	  { "orientation",       required_argument, 0, 'o' },
 	  { "pressure-factor",   required_argument, 0, 'p' },
@@ -288,6 +291,14 @@ main (int argc, char** argv)
 		      high_export_to_file (coordinates, NULL, optarg, &settings);
 		  }
 		launch_gui = 0;
+	      }
+	      break;
+
+	    case 'i':
+	      {
+		char* svg_data = co_svg_create (coordinates, NULL, &settings);
+		puts (svg_data);
+		free (svg_data);
 	      }
 	      break;
 
