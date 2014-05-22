@@ -155,7 +155,7 @@ high_merge_wpi_files (const char* first, const char* second)
   if (strcmp (ext1, "WPI") || strcmp (ext2, "WPI"))
     {
       printf ("I can only merge files with a .WPI extension.\r\n");
-      exit (1);
+      return;
     }
 
   FILE* file1 = fopen (first, "rb");
@@ -164,7 +164,7 @@ high_merge_wpi_files (const char* first, const char* second)
   if (!file1 && !file2)
     {
       printf ("Couldn't open all files.\r\n");
-      exit (1);
+      return;
     }
 
   /* Check out the length of the files. */
