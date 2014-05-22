@@ -106,29 +106,35 @@ high_export_to_file (GSList* data, const char* svg_data, const char* to, dt_conf
 	co_json_create_file (to, data);
       else
 	{
+	  char* svg = NULL;
 	  /* When no svg data is available yet, create it. */
 	  if (svg_data == NULL)
-	    svg_data = co_svg_create (data, to, settings);
+	    svg = co_svg_create (data, to, settings);
+	  else
+	    svg = (char*)svg_data;
 
 	  /* When there's still no SVG data, there's no point in 
 	   * doing anything else. */
-	  if (svg_data == NULL) return;
+	  if (svg == NULL) return;
 
 	  if (!strcmp (extension, ".png"))
-	    co_png_export_to_file (to, svg_data);
+	    co_png_export_to_file (to, svg);
 	  else if (!strcmp (extension, ".pdf"))
-	    co_pdf_export_to_file (to, svg_data);
+	    co_pdf_export_to_file (to, svg);
 	  else if (!strcmp (extension, ".svg"))
 	    {
 	      FILE* file;
 	      file = fopen (to, "w");
 	      if (file != NULL)
-		fwrite (svg_data, strlen (svg_data), 1, file);
+		fwrite (svg, strlen (svg), 1, file);
 
 	      fclose (file);
 	    }
 	  else
 	    unsupported ();
+
+	  if (svg != svg_data)
+	    free (svg);
 	}
     }
   else

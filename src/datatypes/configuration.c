@@ -38,38 +38,43 @@ typedef struct {
 void
 dt_configuration_parse_colors (const char* data, dt_configuration* config)
 {
-  int count = 1;
+  config->num_colors = 1;
   size_t data_len = strlen (data);
 
-  int i = 0;
-  for (; i != data_len; i++)
-    if (data[i] == ',') count++;
+  int index = 0;
+  for (; index != data_len; index++)
+    if (data[index] == ',') config->num_colors++;
 
-  size_t colors_len = count * sizeof (char*);
-  config->colors = malloc (colors_len);
+  size_t colors_len = config->num_colors * sizeof (char*);
+  config->colors = calloc (1, colors_len);
   if (config->colors == NULL) return;
 
-  config->colors = memset (config->colors, '\0', colors_len);
-
-  char* all = malloc (data_len + 1);
-  if (all == NULL) return;
-
-  all = strncpy (all, data, data_len);
-  all[data_len] = '\0';
-
-  config->colors[0] = all;
-  char* ptr = all;
-  int index = 1;
+  char* last;
+  char* ptr = last = (char*)data;
+  index = 0;
   while ((ptr = strchr (ptr, ',')) != NULL)
     {
-      *ptr = '\0';
-      ptr++;
+      size_t color_len = 1 + ptr - last;
+      if (color_len <= 1) break;
 
-      config->colors[index] = ptr;
+      config->colors[index] = calloc (1, color_len);
+      if (config->colors[index] == NULL) break;
+
+      config->colors[index] = strncpy (config->colors[index], last, color_len - 1);
+      ptr++;
       index++;
+      last = ptr;
     }
 
-  config->num_colors = count;
+  /* The last color doesn't have a comma after it. */
+  if (strlen (last) > 0)
+    {
+      size_t color_len = strlen (last);
+      config->colors[index] = calloc (1, color_len + 1);
+      if (config->colors[index] == NULL) return;
+
+      config->colors[index] = strncpy (config->colors[index], last, color_len);
+    }
 }
 
 /*----------------------------------------------------------------------------.
