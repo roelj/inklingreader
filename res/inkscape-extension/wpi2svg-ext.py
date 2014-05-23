@@ -117,7 +117,7 @@ inkscape_papersizes = {'A4'                      : (   210,   297, "mm"),
                        'Arch E1'                 : (    30,    42, "in")}
 
 
-def run(command_format, prog_name, verbose):
+def run_tmpfile(command_format, prog_name, verbose):
     """
     Run a command that generates an SVG (or PDF) file from an input file.
     On success, outputs the contents of the resulting file to stdout, and exits
@@ -189,6 +189,35 @@ def run(command_format, prog_name, verbose):
     else:
         sys.exit(0)
 
+def run_direct(command, prog_name, verbose):
+    """
+    Run a command that directly outputs SVG from an input file.
+    On success, exits with a return code of 0.
+    On failure, outputs an error message to stderr, and exits with a return
+    code of 1.
+    """
+    msg = None
+    try:
+        try:
+            from subprocess import Popen, PIPE
+            p = Popen(command, shell=True, stderr=PIPE)
+            rc = p.wait()
+            err = p.stderr.read()
+        except ImportError:
+            # shouldn't happen...
+            msg = "Subprocess.Popen is not available"
+        if rc and msg is None:
+            msg = "%s failed:\n%s\n" % (prog_name, err)
+    except Exception, inst:
+        msg = "Error attempting to run %s: %s" % (prog_name, str(inst))
+
+    # Ouput error message (if any) and exit.
+    if msg is not None:
+        sys.stderr.write(msg + "\n")
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
 
 class InputWPI(inkex.Effect):
     def __init__(self):
@@ -250,7 +279,7 @@ class InputWPI(inkex.Effect):
 
     def wpi_import(self, infile, custom_opts=''):
         """
-        Default import via inklingreader
+        Default import via inklingreader using temp file for SVG output
         """
         helper_app = 'inklingreader'
         inout_opts = ' --file "%s" --to "%%s"'
@@ -259,8 +288,22 @@ class InputWPI(inkex.Effect):
         if self.verbose:
             inkex.debug(((helper_app + custom_opts + inout_opts)
                          % infile.replace("%", "%%"), helper_app, self.verbose))
-        run((helper_app + custom_opts + inout_opts)
+        run_tmpfile((helper_app + custom_opts + inout_opts)
             % infile.replace("%", "%%"), helper_app, self.verbose)
+
+    def wpi_import_direct(self, infile, custom_opts=''):
+        """
+        Import via inklingreader's direct SVG output (no temp file needed)
+        """
+        helper_app = 'inklingreader'
+        inout_opts = ' --file "%s" --direct-output'
+
+        # run external command
+        if self.verbose:
+            inkex.debug(((helper_app + custom_opts + inout_opts)
+                         % infile, helper_app, self.verbose))
+        run_direct((helper_app + custom_opts + inout_opts)
+            % infile, helper_app, self.verbose)
 
     def effect(sef):
         pass
@@ -277,7 +320,7 @@ class InputWPI(inkex.Effect):
         if self.options.tab == '"default_tab"':
 
             # import with default settings
-            self.wpi_import(infile)
+            self.wpi_import_direct(infile)
 
         elif self.options.tab == '"custom_import_tab"':
 
@@ -331,12 +374,12 @@ class InputWPI(inkex.Effect):
 
             custom_options = dimensions_cmd + background_cmd + colors_cmd + pressure_factor_cmd
             # import with custom settings
-            self.wpi_import(infile, custom_options)
+            self.wpi_import_direct(infile, custom_options)
 
         else:  # unknown tab selected:
 
             # import with default settings
-            self.wpi_import(infile)
+            self.wpi_import_direct(infile)
 
     def affect(self, args=sys.argv[1:], output=False, input=True):
         """

@@ -16,7 +16,7 @@
     <page name="default_tab" _gui-text="Default Import">
 
       <!-- summary -->
-      <_param name="info_default" type="description" xml:space="preserve">Import selected Wacom Inkling file(s) with default settings
+      <_param name="info_default" type="description" xml:space="preserve">Import selected Wacom Inkling file with default settings
 (as built-in, or as defined in config file)</_param>
 
     </page><!-- end of default import tab -->
@@ -25,7 +25,7 @@
     <page name="custom_import_tab" _gui-text="Custom Import">
 
       <!-- summary -->
-      <_param name="info_custom" type="description" xml:space="preserve">Import selected Wacom Inkling file(s) with custom settings:</_param>
+      <_param name="info_custom" type="description" xml:space="preserve">Import selected Wacom Inkling file with custom settings:</_param>
 
       <!-- ink options -->
       <_param name="header_ink" type="description" xml:space="preserve" appearance="header" indent="1">
