@@ -310,7 +310,6 @@ main (int argc, char** argv)
 		    char* svg_data = co_svg_create (coordinates, NULL, &settings);
 		    puts (svg_data);
 		    free (svg_data);
-		    
 		  }
 		launch_gui = 0;
 	      }
@@ -331,7 +330,10 @@ main (int argc, char** argv)
 	       | Show a help message.                                         |
 	       '--------------------------------------------------------------*/
 	    case 'h':
-	      show_help ();
+	      {
+		show_help ();
+		launch_gui = 0;
+	      }
 	      break;
 
 	      /*--------------------------------------------------------------.
@@ -339,7 +341,10 @@ main (int argc, char** argv)
 	       | Show version information.                                    |
 	       '--------------------------------------------------------------*/
 	    case 'v':
-	      show_version ();
+	      {
+		show_version ();
+		launch_gui = 0;
+	      }
 	      break;
 	    };
 	}
