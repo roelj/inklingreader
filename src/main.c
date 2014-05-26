@@ -38,7 +38,6 @@
 #include <glib.h>
 
 #include "parsers/wpi.h"
-#include "datatypes/element.h"
 #include "datatypes/configuration.h"
 #include "gui/mainwindow.h"
 #include "high/conversion.h"
@@ -67,7 +66,7 @@ read_default_configuration ()
 static void
 show_version ()
 {
-  printf ("Version: 0.6\r\n");
+  puts ("Version: 0.6\r\n");
 }
 
 
@@ -78,20 +77,20 @@ show_version ()
 static void
 show_help ()
 {
-  printf ("\r\nAvailable options:\r\n"
-	  "  --dimensions,        -a  Specify the page dimensions for the document.\r\n"
-	  "  --orientation,       -o  Specify the orientation of the page.\r\n"
-	  "  --background,        -b  Specify the background color for the document.\r\n"
-	  "  --colors,            -c  Specify a list of colors (comma separated).\r\n"
-	  "  --pressure-factor,   -p  Specify a factor for handling pressure data.\r\n"
-	  "  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
-	  "  --file,              -f  Specify the WPI file to convert.\r\n"
-	  "  --to,                -t  Specify the file to write to.\r\n"
-	  "  --direct-output,     -i  Tell the program to output SVG data to stdout.\r\n"
-	  "  --merge,             -m  Merge two WPI files into one.\r\n"
-	  "  --gui,               -g  Start the graphical user interface.\r\n"
-	  "  --version,           -v  Show versioning information.\r\n"
-	  "  --help,              -h  Show this message.\r\n\r\n");
+  puts ("\r\nAvailable options:\r\n"
+	"  --dimensions,        -a  Specify the page dimensions for the document.\r\n"
+	"  --orientation,       -o  Specify the orientation of the page.\r\n"
+	"  --background,        -b  Specify the background color for the document.\r\n"
+	"  --colors,            -c  Specify a list of colors (comma separated).\r\n"
+	"  --pressure-factor,   -p  Specify a factor for handling pressure data.\r\n"
+	"  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
+	"  --file,              -f  Specify the WPI file to convert.\r\n"
+	"  --to,                -t  Specify the file to write to.\r\n"
+	"  --direct-output,     -i  Tell the program to output SVG data to stdout.\r\n"
+	"  --merge,             -m  Merge two WPI files into one.\r\n"
+	"  --gui,               -g  Start the graphical user interface.\r\n"
+	"  --version,           -v  Show versioning information.\r\n"
+	"  --help,              -h  Show this message.\r\n\r\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -114,7 +113,10 @@ main (int argc, char** argv)
 {
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
-  unsigned char launch_gui = 0;
+  unsigned char launch_gui = 1;
+  char* filename = NULL;
+
+  /* Set sensible default values for some settings. */
   settings.pressure_factor = 1.0;
 
   /* Read the default configuration. It can be overridden later when --config
@@ -170,7 +172,7 @@ main (int argc, char** argv)
 	      if (optarg)
 		{
 		  dt_configuration_parse_dimensions (optarg, &settings);
-		  launch_gui = 1;
+		  //launch_gui = 1;
 		}
 	      break;
 
@@ -187,7 +189,7 @@ main (int argc, char** argv)
 		  size_t length = strlen (optarg);
 		  settings.background = calloc (1, length + 1);
 		  settings.background = strncpy (settings.background, optarg, length);
-		  launch_gui = 1;
+		  //launch_gui = 1;
 		}
 	      break;
 
@@ -200,7 +202,7 @@ main (int argc, char** argv)
 	      if (optarg)
 		{
 		  dt_configuration_parse_colors (optarg, &settings);
-		  launch_gui = 1;
+		  //launch_gui = 1;
 		}
 	      break;
 
@@ -234,8 +236,7 @@ main (int argc, char** argv)
 	    case 'f':
 	      {
 		if (optarg)
-		  coordinates = p_wpi_parse (optarg);
-		launch_gui = 0;
+		  filename = optarg;
 	      }
 	      break;
 
@@ -261,7 +262,7 @@ main (int argc, char** argv)
 		  settings.page.orientation = calloc (1, strlen (optarg) + 1);
 		  settings.page.orientation = strncpy (settings.page.orientation, 
 						       optarg, strlen (optarg));
-		  launch_gui = 1;
+		  //launch_gui = 1;
 		}
 	      break;
 
@@ -273,7 +274,7 @@ main (int argc, char** argv)
 	      {
 		if (optarg)
 		  settings.pressure_factor = atof (optarg);
-		launch_gui = 1;
+		//launch_gui = 1;
 	      }
 	      break;
 
@@ -288,17 +289,30 @@ main (int argc, char** argv)
 		    if (merge_val)
 		      high_merge_wpi_files (merge_val, optarg);
 		    else
-		      high_export_to_file (coordinates, NULL, optarg, &settings);
+		      {
+			coordinates = p_wpi_parse (filename);
+			high_export_to_file (coordinates, NULL, optarg, &settings);
+		      }
 		  }
 		launch_gui = 0;
 	      }
 	      break;
 
+	      /*--------------------------------------------------------------.
+	       | OPTION: DIRECT OUTPUT                                        |
+	       | Output to stdout instead of a file.                          |
+	       '--------------------------------------------------------------*/
 	    case 'i':
 	      {
-		char* svg_data = co_svg_create (coordinates, NULL, &settings);
-		puts (svg_data);
-		free (svg_data);
+		if (filename)
+		  {
+		    coordinates = p_wpi_parse (filename);
+		    char* svg_data = co_svg_create (coordinates, NULL, &settings);
+		    puts (svg_data);
+		    free (svg_data);
+		    
+		  }
+		launch_gui = 0;
 	      }
 	      break;
 
@@ -351,7 +365,7 @@ main (int argc, char** argv)
 	  && settings.page.measurement == NULL)
 	dt_configuration_parse_dimensions ("210x297mm", &settings);
 
-      gui_mainwindow_init (argc, argv, NULL);
+      gui_mainwindow_init (argc, argv, filename);
     }
 
   return 0;
