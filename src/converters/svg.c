@@ -96,13 +96,8 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
    '--------------------------------------------------------------------------*/
 
   /* Make sure we have valid dimensions. */
-  if (settings->page.width == 0) settings->page.width = 210;
-  if (settings->page.height == 0) settings->page.height = 297;
-  if (settings->page.measurement == NULL) 
-    {
-      settings->page.measurement = calloc (1, 3);
-      settings->page.measurement = strncpy (settings->page.measurement, "mm", 2);
-    }
+  if (settings->page.measurement == NULL)
+    dt_configuration_parse_dimensions (NULL, settings);
 
   written += sprintf (output + written,
     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" 

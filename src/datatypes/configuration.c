@@ -24,13 +24,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-typedef struct {
-  char* name;
-  double width;
-  double height;
-  char* measurement;
-} dt_preset_dimensions;
-
 /*----------------------------------------------------------------------------.
  | DT_CONFIGURATION_PARSE_COLORS                                              |
  | This function puts the provided colors in an array.                        |
@@ -187,21 +180,32 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
 void
 dt_configuration_parse_dimensions (const char* data, dt_configuration* config)
 {
-  config->page.measurement = calloc (1, 3);
-  sscanf (data, "%lfx%lf%s", &config->page.width, &config->page.height, 
-	  config->page.measurement);
+  if (data == NULL)
+    {
+      if (config->page.width == 0) config->page.width = 210;
+      if (config->page.height == 0) config->page.height = 297;
+
+      if (config->page.measurement == NULL)
+	config->page.measurement = calloc (1, 3);
+
+      if (config->page.measurement != NULL) 
+	config->page.measurement = strncpy (config->page.measurement, "mm", 2);
+    }
+  else if (sscanf (data, "%lfx%lf%s", &config->page.width, &config->page.height, 
+		   config->page.measurement) != 3)
+    dt_configuration_parse_preset_dimensions (data, config);
+
 }
 
 void
 dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* config)
 {
-  /*
   static dt_preset_dimensions formats[] =
     {
       { "A4",           210,   297,   "mm" },
-//      { "US Letter",    8.5,   11,    "in" },
-//      { "US Legal",     8.5,   14,    "in" },
-//      { "US Executive", 7.25,  10.5,  "in" },
+      { "US Letter",    216,   297.4, "mm" },
+      { "US Legal",     216,   355.6, "mm" },
+      { "US Executive", 184.2, 266.7, "mm" },
       { "A0",           841,   1189,  "mm" },
       { "A1",           594,   841,   "mm" },
       { "A2",           420,   594,   "mm" },
@@ -234,7 +238,21 @@ dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* co
       { "C8",           57,    81,    "mm" },
       { "C9",           40,    57,    "mm" },
       { "C10",          28,    40,    "mm" },
-      { 0,              0,     0,     0    }
+      { NULL,           0,     0,     NULL }
     };
-  */
+
+  int a = 0;
+  while (formats[a].name != NULL)
+    {
+      if (!strcmp (data, formats[a].name))
+	{
+	  config->page.width = formats[a].width;
+	  config->page.height = formats[a].height;
+	  config->page.measurement = calloc (1, 3);
+	  config->page.measurement = strncpy (config->page.measurement, 
+					      formats[a].measurement, 2);
+	  break;
+	} 
+      a++;
+    }
 }

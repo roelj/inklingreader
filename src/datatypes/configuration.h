@@ -55,6 +55,16 @@ typedef struct
 } dt_configuration;
 
 /**
+ * This struct is used to describe preset page dimensions.
+ */
+typedef struct {
+  char* name;
+  double width;
+  double height;
+  char* measurement;
+} dt_preset_dimensions;
+
+/**
  * This function parses colors from a string.
  * @param data   A string to parse.
  * @param config A dt_configuration structure to store the parsed data to.
@@ -80,5 +90,12 @@ void dt_configuration_parse (const char* filename, dt_configuration* config);
  * @param config A dt_configuration structure to store the parsed data to.
  */
 void dt_configuration_parse_dimensions (const char* data, dt_configuration* config);
+
+/**
+ * This function parses a preset dimension and sets the right page dimensions.
+ * @param data   A string to parse.
+ * @param config A dt_configuration structure to store the parsed data to.
+ */
+void dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* config);
 
 #endif//DATATYPES_CONFIGURATION_H
