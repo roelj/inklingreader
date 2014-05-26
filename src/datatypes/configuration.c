@@ -180,26 +180,24 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
 void
 dt_configuration_parse_dimensions (const char* data, dt_configuration* config)
 {
+  config->page.measurement = calloc (1, 3);
   if (data == NULL)
     {
       if (config->page.width == 0) config->page.width = 210;
       if (config->page.height == 0) config->page.height = 297;
-
-      if (config->page.measurement == NULL)
-	config->page.measurement = calloc (1, 3);
-
       if (config->page.measurement != NULL) 
 	config->page.measurement = strncpy (config->page.measurement, "mm", 2);
     }
   else if (sscanf (data, "%lfx%lf%s", &config->page.width, &config->page.height, 
 		   config->page.measurement) != 3)
     dt_configuration_parse_preset_dimensions (data, config);
-
 }
 
 void
 dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* config)
 {
+  if (data == NULL) return;
+
   static dt_preset_dimensions formats[] =
     {
       { "A4",           210,   297,   "mm" },
