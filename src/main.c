@@ -259,10 +259,12 @@ main (int argc, char** argv)
 	    case 'o':
 	      if (optarg)
 		{
-		  settings.page.orientation = calloc (1, strlen (optarg) + 1);
-		  settings.page.orientation = strncpy (settings.page.orientation, 
-						       optarg, strlen (optarg));
-		  //launch_gui = 1;
+		  if (!strcmp (optarg, "landscape"))
+		    {
+		      double width = settings.page.width;
+		      settings.page.width = settings.page.height;
+		      settings.page.height = width;
+		    }
 		}
 	      break;
 
