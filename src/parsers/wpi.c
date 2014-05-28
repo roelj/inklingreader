@@ -202,7 +202,10 @@ p_wpi_parse (const char* filename)
 	      tilt->x = data[count];
 	      tilt->y = data[count + 1];
 
-	      list = g_slist_prepend (list, tilt);
+	      if (tilt->x + tilt->y != 0)
+		list = g_slist_prepend (list, tilt);
+	      else
+		g_free (tilt);
 	    }
 	}
 	break;
