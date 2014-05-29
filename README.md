@@ -14,10 +14,22 @@ The program can:
 * Automatically use different colors when the "new layer" is pressed multiple times.
 * Give control over stroke pressure.
 
+
+Integration with Inkscape
+-------------------------
+
+There's an Inkscape extension available that allows you to open WPI files with 
+Inkscape "directly". The extension uses InklingReader to convert the WPI format 
+to SVG in the background.
+
+Installing the extension is quite easy. Copy the files in res/inkscape-extension
+to your Inkscape extension directory. On GNU/Linux that is:
+<pre>~/.config/inkscape/extensions/</pre>
+
 Screenshot
 ----------
 
-![InklingReader screenshot](http://roelj.com/Inkling_2.png)
+![InklingReader screenshot](http://roelj.com/Inkling_3.png)
 
 Dependencies
 ------------
@@ -67,7 +79,7 @@ Tested distributions
 
 The software is built and tested on:
 
-* Debian 7.3, 7.4
+* Debian 7.3, 7.4, 7.5
 * CrunchBang Linux 11
 * Fedora 20
 * Ubuntu 12.04, 13.04
