@@ -439,7 +439,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
   double w = gtk_widget_get_allocated_width (window);
   double ratio = 1.00;
   
-  if (!gtk_widget_is_visible (zoom_input))
+  if (!gtk_widget_get_visible (zoom_input))
     ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
   else
     {
@@ -593,7 +593,7 @@ gui_mainwindow_set_fg_color (GtkWidget* widget, void* data)
 void
 gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
 {
-  if (gtk_widget_is_visible (pressure_input))
+  if (gtk_widget_get_visible (pressure_input))
       settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
   else
     settings.pressure_factor = 0.0;
