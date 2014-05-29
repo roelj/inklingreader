@@ -97,6 +97,11 @@ void gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data);
 void gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data);
 
 /**
+ * This function is the callback for enabling or disabling the pressure factor.
+ */
+void gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data);
+
+/**
  * Clean up when quitting.
  */
 void gui_mainwindow_quit ();

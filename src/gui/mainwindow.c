@@ -42,6 +42,8 @@ extern dt_configuration settings;
 
 static GtkWidget* zoom_toggle = NULL;
 static GtkWidget* zoom_input = NULL;
+static GtkWidget* pressure_toggle = NULL;
+static GtkWidget* pressure_input = NULL;
 static GtkWidget* document_view = NULL;
 static GtkWidget* hbox_colors = NULL;
 static GtkWidget* window = NULL;
@@ -88,7 +90,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* bg_color_label = NULL;
   GtkWidget* fg_color_label = NULL;
   GtkWidget* pressure_label = NULL;
-  GtkWidget* pressure_input = NULL;
   GtkWidget* zoom_label = NULL;
 
   /*--------------------------------------------------------------------------.
@@ -113,7 +114,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   new_color_button = gtk_button_new_with_label ("+");
 
   pressure_label = gtk_label_new ("");
-  pressure_input = gtk_spin_button_new_with_range (0, 5, 0.05);
+  pressure_input = gtk_spin_button_new_with_range (0, 1000.0, 0.05);
+  pressure_toggle = gtk_switch_new ();
 
   zoom_label = gtk_label_new ("");
   zoom_input = gtk_spin_button_new_with_range (10.0, 1000.0, 10.0);
@@ -182,8 +184,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (pressure_input), settings.pressure_factor);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), 100.0);
-  gtk_widget_set_state_flags (zoom_input, GTK_STATE_FLAG_INSENSITIVE, TRUE);
   gtk_switch_set_active (GTK_SWITCH (zoom_toggle), FALSE);
+  gtk_switch_set_active (GTK_SWITCH (pressure_toggle), TRUE);
 
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
@@ -200,6 +202,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_label, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_input, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_toggle, 0, 0, 5);
 
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_label, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_input, 0, 0, 5);
@@ -233,11 +236,15 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   g_signal_connect (G_OBJECT (zoom_toggle), "notify::active",
 		    G_CALLBACK (gui_mainwindow_set_zoom_toggle), NULL);
 
+  g_signal_connect (G_OBJECT (pressure_toggle), "notify::active",
+		    G_CALLBACK (gui_mainwindow_set_pressure_toggle), NULL);
+
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |
    '--------------------------------------------------------------------------*/
 
   gtk_widget_show_all (window);
+  gtk_widget_hide (zoom_input);
 
   if (filename)
     gui_mainwindow_file_activated (NULL, (char*)filename);
@@ -255,8 +262,7 @@ gui_mainwindow_redisplay ()
   if (handle != NULL)
     g_object_unref (handle), handle = NULL;
 
-  gtk_widget_hide (document_view);
-  gtk_widget_show_all (document_view);
+  gtk_widget_queue_draw (document_view);
 }
 
 /*----------------------------------------------------------------------------.
@@ -382,8 +388,7 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	    g_object_unref (handle), handle = NULL;
 	}
 
-      gtk_widget_hide (document_view);
-      gtk_widget_show_all (document_view);
+      gtk_widget_queue_draw (document_view);
     }
 }
 
@@ -434,12 +439,10 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
   double w = gtk_widget_get_allocated_width (window);
   double ratio = 1.00;
   
-  if (!gtk_widget_is_sensitive (zoom_input))
+  if (!gtk_widget_is_visible (zoom_input))
     {
       ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
       gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
-      if (gtk_switch_get_active (GTK_SWITCH (zoom_toggle)))
-	gtk_widget_set_sensitive (zoom_input, TRUE);
     }
   else
     ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0;
@@ -592,7 +595,11 @@ gui_mainwindow_set_fg_color (GtkWidget* widget, void* data)
 void
 gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
 {
-  settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
+  if (gtk_widget_is_visible (pressure_input))
+      settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
+  else
+    settings.pressure_factor = 0.0;
+
   gui_mainwindow_redisplay();
 }
 
@@ -614,13 +621,33 @@ void
 gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data)
 {
   if (gtk_switch_get_active (GTK_SWITCH (widget)))
-    gtk_widget_set_sensitive (zoom_input, TRUE);
+    gtk_widget_show (zoom_input);
   else
     {
-      gtk_widget_set_sensitive (zoom_input, FALSE);
+      gtk_widget_hide (zoom_input);
       gui_mainwindow_redisplay();
     }
-}
+}  
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_PRESSURE_TOGGLE                                         |
+ | This callback is for enabling or disabling the pressure factor.            |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data)
+{
+  if (gtk_switch_get_active (GTK_SWITCH (widget)))
+    {
+      settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (pressure_input));
+      gtk_widget_show (pressure_input);
+    }
+  else
+    {
+      settings.pressure_factor = 0.0;
+      gtk_widget_hide (pressure_input);
+    }
+  gui_mainwindow_redisplay();
+}  
 
 
 /*----------------------------------------------------------------------------.
