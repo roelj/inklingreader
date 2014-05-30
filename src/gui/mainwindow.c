@@ -33,8 +33,8 @@
 #include <string.h>
 #include <librsvg/rsvg.h>
 
-#define WINDOW_WIDTH 1000
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
 #define PT_TO_MM 2.8333
 #define MINIMAL_PADDING 10
 
@@ -95,7 +95,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* pressure_label = NULL;
   GtkWidget* zoom_label = NULL;
   GtkWidget* dimensions_label = NULL;
-
 
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -166,7 +165,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
       g_signal_connect (G_OBJECT (menu_item), "activate",
 			G_CALLBACK (gui_mainwindow_menu_file_activate), NULL);
-
     }
 
   a = 0;
@@ -176,7 +174,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
       a++;
     }
   gtk_combo_box_set_active (GTK_COMBO_BOX (dimensions_input), 0);
-
 
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Portrait", "Portrait");
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Landscape", "Landscape");
