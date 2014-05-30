@@ -102,6 +102,16 @@ void gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data);
 void gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data);
 
 /**
+ * This function is the callback for enabling or disabling the page dimensions.
+ */
+void gui_mainwindow_set_dimensions_input (GtkWidget* widget, void* data);
+
+/**
+ * This function is the callback for enabling or disabling the page dimensions.
+ */
+void gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data);
+
+/**
  * Clean up when quitting.
  */
 void gui_mainwindow_quit ();

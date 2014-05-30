@@ -33,15 +33,18 @@
 #include <string.h>
 #include <librsvg/rsvg.h>
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 1000
+#define WINDOW_HEIGHT 800
 #define PT_TO_MM 2.8333
 #define MINIMAL_PADDING 10
 
 extern dt_configuration settings;
+extern dt_preset_dimensions formats[];
 
 static GtkWidget* zoom_toggle = NULL;
 static GtkWidget* zoom_input = NULL;
+static GtkWidget* orientation_input = NULL;
+static GtkWidget* dimensions_input = NULL;
 static GtkWidget* pressure_toggle = NULL;
 static GtkWidget* pressure_input = NULL;
 static GtkWidget* document_view = NULL;
@@ -91,6 +94,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* fg_color_label = NULL;
   GtkWidget* pressure_label = NULL;
   GtkWidget* zoom_label = NULL;
+  GtkWidget* dimensions_label = NULL;
+
 
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -120,6 +125,10 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   zoom_label = gtk_label_new ("");
   zoom_input = gtk_spin_button_new_with_range (10.0, 1000.0, 10.0);
   zoom_toggle = gtk_switch_new ();
+
+  dimensions_label = gtk_label_new ("");
+  dimensions_input = gtk_combo_box_text_new ();
+  orientation_input = gtk_combo_box_text_new ();
 
   GdkRGBA bg_doc_color;
   if (settings.background != NULL)
@@ -160,6 +169,19 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
     }
 
+  a = 0;
+  while (formats[a].name != NULL)
+    {
+      gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (dimensions_input), formats[a].name, formats[a].name);
+      a++;
+    }
+  gtk_combo_box_set_active (GTK_COMBO_BOX (dimensions_input), 0);
+
+
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Portrait", "Portrait");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Landscape", "Landscape");
+  gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
+
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (menu_bar_file), menu_file);
   gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), menu_bar_file);
 
@@ -181,6 +203,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>F:</b>");
   gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>P:</b>");
   gtk_label_set_markup (GTK_LABEL (zoom_label), "<b>Z:</b>");
+  gtk_label_set_markup (GTK_LABEL (dimensions_label), "<b>D:</b>");
 
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (pressure_input), settings.pressure_factor);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), 100.0);
@@ -208,6 +231,10 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_input, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_toggle, 0, 0, 5);
 
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), dimensions_label, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), dimensions_input, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_menu_top), orientation_input, 0, 0, 5);
+
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
@@ -232,6 +259,12 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (zoom_input), "value-changed",
 		    G_CALLBACK (gui_mainwindow_set_zoom_input), NULL);
+
+  g_signal_connect (G_OBJECT (dimensions_input), "changed",
+		    G_CALLBACK (gui_mainwindow_set_dimensions_input), NULL);
+
+  g_signal_connect (G_OBJECT (orientation_input), "changed",
+		    G_CALLBACK (gui_mainwindow_set_orientation_input), NULL);
 
   g_signal_connect (G_OBJECT (zoom_toggle), "notify::active",
 		    G_CALLBACK (gui_mainwindow_set_zoom_toggle), NULL);
@@ -652,6 +685,37 @@ gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data)
     }
   gui_mainwindow_redisplay();
 }  
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_DIMENSIONS_INPUT                                        |
+ | This callback is for changing the page dimensions.                         |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_dimensions_input (GtkWidget* widget, void* data)
+{
+  char* dimensions = gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (widget));
+  if (dimensions == NULL) return;
+
+  gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
+  dt_configuration_parse_preset_dimensions (dimensions, &settings);
+  gui_mainwindow_redisplay();  
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_ORIENTATION_INPUT                                       |
+ | This callback is for changing the page orientation.                        |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data)
+{
+  /* Since this callback is only called when the orientation changes, 
+   * the width and height always swap. */
+  double width = settings.page.width;
+  settings.page.width = settings.page.height;
+  settings.page.height = width;
+
+  gui_mainwindow_redisplay();  
+}
 
 
 /*----------------------------------------------------------------------------.
