@@ -53,6 +53,7 @@ static GtkWidget* window = NULL;
 static GSList* parsed_data = NULL;
 static RsvgHandle* handle = NULL;
 static char* last_file_extension = NULL;
+static char* last_dir = NULL;
 static const int file_filters_num = 4;
 
 static const char* file_mimetypes[]  = { 
@@ -332,6 +333,9 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 	         GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
 		 "Open", GTK_RESPONSE_ACCEPT, NULL);
 
+      if (last_dir)
+	gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), last_dir);
+
       /* Set a filter for WPI files (it doesn't have a specific mimetype). */
       GtkFileFilter* filter = gtk_file_filter_new ();
       gtk_file_filter_set_name (filter, "WPI - Wacom Proprietary Ink");
@@ -364,6 +368,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
       /* Clean up the memory of the old string. */
       g_free (last_file_extension);
 
+      last_dir = gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (dialog));
       last_file_extension = g_ascii_strdown (filter_name, 4);
       if (g_ascii_isspace (last_file_extension[3])) last_file_extension[3] = '\0';
     }
