@@ -348,6 +348,9 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 	         GTK_WINDOW (parent), action, "Cancel", GTK_RESPONSE_CANCEL, 
 	         "Save", GTK_RESPONSE_ACCEPT, NULL);
 
+      if (last_dir)
+	gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), last_dir);
+
       /* Add filters for supported formats. */
       int a = 0;
       for (; a < file_filters_num; a++)
