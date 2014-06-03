@@ -1,0 +1,41 @@
+@c -----------------------------------------------------------------------------
+@c CHAPTER: Using the program
+@c -----------------------------------------------------------------------------
+@chapter Using the program
+  InklingReader can be used in three ways:
+  @itemize
+    @item Starting its graphical user interface (this is the default);
+    @item Invoking with command-line arguments;
+    @item Using the Inkscape extension.
+  @end itemize
+
+@section InklingReader-only features
+
+@subsection Automatic colors
+@anchor{automatic_colors}
+  InklingReader has a unique coloring feature that allows you to assign 
+  multiple colors in a single document while you're drawing. To make use of
+  this feature you should follow these steps:
+  @enumerate
+    @item Start drawing with your Inkling pen and device.
+    @item Press the ``new layer'' button @b{twice}.
+    @item Continue drawing.
+    @item Press the ``new layer'' button @b{three times}.
+    @item Continue drawing.
+  @end enumerate
+  @*
+  Your document will now have three colors. To view these colors the program
+  must be configured with multiple colors. This can be done in multiple ways 
+  and is described in each specific section.
+
+@subsection Inkscape extension
+@anchor{inkscape_extension}
+  In the directory @file{res/inkscape-extension/} directory you can find the 
+  Inkscape extension. It will allow you to open a WPI file ``directly'' with
+  Inkscape. It will use InklingReader to do the conversion, so make sure you
+  have installed InklingReader, otherwise the Inkscape extension won't work.
+  @*
+  Installing the Inkscape extension is as easy as copying the files from the
+  @file{res/inkscape-extension/} directory to the Inkscape extension 
+  directory. On most GNU/Linux systems, that is: 
+  @file{$HOME/.config/inkscape/extensions/}.

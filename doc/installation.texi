@@ -1,0 +1,37 @@
+@c -----------------------------------------------------------------------------
+@c CHAPTER: Installation
+@c -----------------------------------------------------------------------------
+@chapter Installation
+
+@section GNU/Linux
+  Installing InklingReader involves compiling the source code. Fortunately,
+  this has been made pretty easy. 
+
+@subsection Dependencies
+  First, you need to make sure you have the following tools and development 
+  libraries installed:
+  @itemize
+    @item GCC or CLANG (preferably GCC)
+    @item Automake
+    @item Autoconf
+    @item Make
+    @item Gtk+-3.0, GLib-2.0 and Cairo
+    @item Librsvg-2.0
+  @end itemize
+
+@subsection Compiling and installing
+  Once you've resolved the dependencies you will be able to compile the source
+  code by running the following commands from the project's root directory:
+@noindent @example
+autoreconf -i
+./configure
+make
+make install
+@end example
+@*
+  @noindent Please note: To run @code{make install} succesfully you may need super 
+  user privileges.
+
+@c @section Mac OS X
+
+@c @section Microsoft Windows

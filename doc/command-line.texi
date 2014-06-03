@@ -1,0 +1,69 @@
+@section Command-line options
+  In this section the command-line options will be explained in greater detail.
+  By running @code{inklingreader} with the @option{--help} option, you can see a list
+  of command-line options you can pass to the program.@*
+  @*
+  This section assumes you have basic knowledge of how to run a command and how
+  command-line arguments can be used in combination with each other.
+
+@subsection Setting style properties
+  There are several command-line options to change the way a document looks.
+  One of the unique features of InklingReader is the ability to assign multiple
+  colors automatically to your document.@*
+  @*
+  To make use of this feature you must create a document that makes use of 
+  coloring. @xref{automatic_colors,,Automatic colors} on how to create      
+  multi-color document.@*
+  @*
+  Passing multiple colors on the command-line can be done this way:
+  @example
+inklingreader --colors=#999,black,#00007c,#007c00,#7c0000
+  @end example
+  @noindent In this example the program will recognize five colors. The first (and 
+  default) color is @code{#999}. The second is @code{black}.@*
+  @*
+  Let's also add a background color:
+  @example
+inklingreader --background=#ccc --colors=#999,black,#00007c,#007c00,#7c0000
+  @end example
+
+  @noindent The document will now have a grey background color instead of the 
+  default white.@*
+  @*
+  At some point you may want to adjust how thick the lines are when you've drawn 
+  them. You can do this by changing the pressure factor. This is a variable that
+  controls how much influence the pressure data from the Inkling pen has. The 
+  default pressure factor is @math{1.0}. Here's an example of how you can change
+  the default pressure factor:
+  @example
+inklingreader --pressure-factor=1.5
+  @end example
+
+  @noindent This will increase the influence of the pressure data. Find your ideal
+  pressure factor by trying various values.@*
+  @*
+  One last note about style properties: Provide these options before any other 
+  option. The program handles the arguments sequentially. This means 
+  that when @option{--background} comes after @option{--to}, the 
+  @option{--background} option will be applied after exporting a document. So
+  effectively it won't have any effect on the exported file.
+
+@subsection Converting files and directories
+  InklingReader can convert a WPI file to SVG, PDF and PNG. This can be done by
+  passing the following arguments:
+  @example
+inklingreader --file=/path/to/my/sketch.WPI --to=/path/to/my/sketch.svg
+  @end example
+
+  @noindent To which format InklingReader will convert the WPI file is 
+  determined by the file extension given at the @option{--to} option.
+
+@subsection Merging WPI files
+  The program allows you to merge multiple WPI files into one. This can be
+  done with the following command:
+  @example
+inklingreader --merge=SKETCH_A.WPI --to=SKETCH_B.WPI
+  @end example
+
+  @noindent This will overwrite @file{SKETCH_B.WPI}. Making a back-up of the 
+  sketch could be useful.
