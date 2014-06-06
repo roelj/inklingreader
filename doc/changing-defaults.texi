@@ -1,1 +1,23 @@
+@page
 @section Changing the default options
+  You can adjust most of the settings you can change on the command-line using a
+  configuration file. InklingReader follows the XDG user directory 
+  specification, so the location InklingReader looks for this configuration
+  file may differ. On GNU/Linux this will most likely be 
+  @file{$HOME/.config/inklingreaderrc}.@*
+  @*
+  Most settings can be applied in much the same way as their command-line
+  examples. The contents of a complete configuration file is given below.
+  @*
+@example
+@emph{# When a line starts with a # it will be treated as a comment.}
+background = #eee
+colors = #00007c,black,#007c00,#7c0000
+pressure-factor = 1.35
+
+@emph{# You may also use a preset like A4 or US Letter.}
+dimensions = 210x297mm
+
+@emph{# The orientation can be either Portrait or Landscape.}
+orientation = Portrait
+@end example

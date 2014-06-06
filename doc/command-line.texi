@@ -27,10 +27,13 @@ inklingreader --colors=#999,black,#00007c,#007c00,#7c0000
 inklingreader --background=#ccc --colors=#999,black,#00007c,#007c00,#7c0000
   @end example
 
-  @noindent The document will now have a grey background color instead of the 
+  @noindent  The document will now have a grey background color instead of the 
   default white.@*
   @*
-  At some point you may want to adjust how thick the lines are when you've drawn 
+  @b{Tip:} Setting a transparent color is possible and can be done this way: 
+  @code{--background=none} or @code{--colors=black,none,red}.@*
+  @*
+  At some point you may want to adjust the thickness of the lines when you've drawn 
   them. You can do this by changing the pressure factor. This is a variable that
   controls how much influence the pressure data from the Inkling pen has. The 
   default pressure factor is @math{1.0}. Here's an example of how you can change
@@ -59,6 +62,7 @@ inklingreader --file=/path/to/my/sketch.WPI --to=/path/to/my/sketch.svg
   determined by the file extension given at the @option{--to} option.
 
 @subsection Merging WPI files
+@anchor{merging}
   The program allows you to merge multiple WPI files into one. This can be
   done with the following command:
   @example

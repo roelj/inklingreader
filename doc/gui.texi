@@ -1,1 +1,22 @@
+@page
 @section Graphical user interface
+  The graphical user interface, or GUI can display and export an Inkling sketch
+  with custom settings applied to it. In the image below the top bar of the GUI
+  is further explained.
+
+  @center @image{images/gui,440pt,,pdf}
+  
+  @noindent Using the @emph{File} menu you can open a WPI file and later export
+  it to another format. Clicking on a colored button will open a dialog to change
+  that color. You can disable the pen pressure completely by switching the 
+  @emph{Pen pressure} switch to @code{OFF}. Turning on the @emph{Zoom level} 
+  allows you to zoom in and out the document.
+  
+@subsection Limitations
+  The GUI is not capable of doing all tasks that can possibly be done with 
+  InklingReader. One of those limitations is merging WPI files 
+  (@xref{merging,,Merging WPI files}).@*
+  @*
+  Another limitation is setting a transparent color. You can set this using a 
+  command-line option or using a configuration file, but unfortunately, you 
+  cannnot set transparent colors using the GUI itself.
