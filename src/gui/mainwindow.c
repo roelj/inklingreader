@@ -178,7 +178,11 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Portrait", "Portrait");
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Landscape", "Landscape");
-  gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
+
+  if (!strcmp (settings.page.orientation, "Landscape"))
+   gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 1);
+  else
+   gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
 
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (menu_bar_file), menu_file);
   gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), menu_bar_file);

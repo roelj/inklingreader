@@ -208,6 +208,25 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
 		  location += 13;
 		  dt_configuration_parse_dimensions (location, config);
 		}
+	      else if ((location = strstr (line, "orientation = ")) != NULL)
+		{
+		  char* newline = strchr (line, '\r');
+		  if (newline == NULL) newline = strchr (line, '\n');
+		  if (newline != NULL) line[newline - line] = '\0';
+
+		  location += 14;
+
+		  config->page.orientation = calloc (1, strlen (location) + 1);
+		  strncpy (config->page.orientation, location, strlen (location));
+
+		  if (!strcmp (config->page.orientation, "Landscape"))
+		    {
+		      double width = config->page.width;
+		      config->page.width = config->page.height;
+		      config->page.height = width;
+		    }
+
+		}
 
 	      free (line), line = NULL;
 	    }
