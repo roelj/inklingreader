@@ -30,11 +30,14 @@
  * of a path on a page. Whether these are the same for each document is not
  * certain yet, but it seems to work for several of my documents. */
 #define SHRINK 27.0
-#define OFFSET_X 375.0
-#define OFFSET_Y 37.5
 #define PRESSURE_FACTOR 2000.0
 #define SPIKE_THRESHOLD 25.0
 #define MM_TO_PT 3.5433
+
+/* These values should be investigated further. I came up with these
+ * numbers using trial and error. */
+#define OFFSET_X (settings->page.width * MM_TO_PT) / 1.985
+#define OFFSET_Y (settings->page.height * MM_TO_PT) / 19.85
 
 #define DEFAULT_COLOR "#00007c"
 
