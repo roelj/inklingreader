@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define LINE_LENGTH 255
+
 /**
  * This is a list of known page dimensions that can be used throughout the 
  * program.
@@ -156,15 +158,13 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
     {
       FILE* file;
       file = fopen (filename, "r");
-      char* line = NULL;
-      size_t line_len = 0;
-      ssize_t read = 0;
+      char* line = calloc (1, LINE_LENGTH);
 
       if (file == NULL)
 	perror ("fopen");
       else
 	{
-	  while ((read = getline (&line, &line_len, file)) != -1)
+	  while ((line = fgets (line, LINE_LENGTH, file)) != NULL)
 	    {
 	      char* location = 0;
 	      if ((location = strstr (line, "colors = ")) != NULL)
@@ -228,7 +228,8 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
 
 		}
 
-	      free (line), line = NULL;
+	      /* Reset the line. */
+	      memset (line, '\0', LINE_LENGTH);
 	    }
 
 	  free (line), line = NULL;
