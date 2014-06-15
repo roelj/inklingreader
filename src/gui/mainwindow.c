@@ -179,7 +179,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Portrait", "Portrait");
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Landscape", "Landscape");
 
-  if (!strcmp (settings.page.orientation, "Landscape"))
+  if (settings.page.orientation != NULL && !strcmp (settings.page.orientation, "Landscape"))
    gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 1);
   else
    gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
