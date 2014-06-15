@@ -66,7 +66,7 @@ read_default_configuration ()
 static void
 show_version ()
 {
-  puts ("Version: 0.6\r\n");
+  puts ("Version: 0.7\r\n");
 }
 
 
