@@ -23,6 +23,7 @@
 
 #include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
+#include "../datatypes/clock.h"
 
 /*----------------------------------------------------------------------------.
  | BLOCK DESCRIPTORS                                                          |
@@ -39,7 +40,7 @@
  '----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------.
- | PARSE_WPI:                                                                 |
+ | WPI_PARSE:                                                                 |
  | This function reads the data and tries to get useful data out of it.       |
  '----------------------------------------------------------------------------*/
 GSList*
@@ -215,7 +216,6 @@ p_wpi_parse (const char* filename)
 	 | 1   1       ?  bytes                                   |
 	 | Skipping this data is quicker than ignoring it.        |
 	 '--------------------------------------------------------*/
-      case 194:
       case 197:
       case 199:
 	{
@@ -255,16 +255,34 @@ p_wpi_parse (const char* filename)
 
 	  list = g_slist_prepend (list, stroke);
 	}
-      }
+	break;
 
+	/*--------------------------------------------------------.
+	 | PROCESS CLOCK INFORMATION.                             |
+	 '--------------------------------------------------------*/
+      case BLOCK_CLOCK:
+	{
+	  /* Only process the information when it is known clock info. */
+	  if (data[count + 2] == 0x11)
+	    {
+	      dt_clock* clock = g_malloc (sizeof (dt_clock));
+	      if (clock == NULL) break;
+
+	      clock->type = TYPE_CLOCK;
+	      clock->counter = (data[count + 4] << 8) | (data[count + 5]);
+	      list = g_slist_prepend (list, clock);
+	    }
+	}
+      }
+  
   list = g_slist_reverse (list);
   fclose (file);
   return list;
 }
 
 /*----------------------------------------------------------------------------.
- | PARSE_WPI:                                                                 |
- | This function reads the data and tries to get useful data out of it.       |
+ | WPI_CLEANUP:                                                               |
+ | This function frees the alocated memory that the parser left behind.       |
  '----------------------------------------------------------------------------*/
 void
 p_wpi_cleanup (GSList* data)

@@ -25,6 +25,7 @@
 #include <locale.h>
 #include "../datatypes/configuration.h"
 #include "../datatypes/element.h"
+#include "../datatypes/clock.h"
 
 extern dt_configuration settings;
 
@@ -82,7 +83,7 @@ co_json_create (GSList* data, const char* title)
    * layer take 571 bytes, so these are added to the amount to allocate. 
    * There's no mechanism in place to allocate more. So this is something 
    * to look into. */
-  size_t output_len = 100 * g_slist_length (data) + 50;
+  size_t output_len = 130 * g_slist_length (data) + 50;
   char* output = malloc (output_len);
   if (output == NULL)
     {
@@ -98,6 +99,7 @@ co_json_create (GSList* data, const char* title)
   /*--------------------------------------------------------------------------.
    | COUNTING VARIABLES                                                       |
    '--------------------------------------------------------------------------*/
+  unsigned short time = 0;
   unsigned int point = 0;
   unsigned int group = 0;
   unsigned int layer = 1;
@@ -158,14 +160,16 @@ co_json_create (GSList* data, const char* title)
 			  if (distance == 0) distance = 1;
 
 			  written += sprintf (output + written, 
-					      "      \"%d\" : {\r\n"
-					      "        \"x\" : %f,\r\n"
-					      "        \"y\" : %f,\r\n"
-					      "        \"pressure\" : %f",
+					      "       \"%d\" : {\r\n"
+					      "         \"x\" : %f,\r\n"
+					      "         \"y\" : %f,\r\n"
+					      "         \"pressure\" : %f",
 					      point,
 					      x + (prev.y - y) / distance * c->pressure,
 					      y + (x - prev.x) / distance * c->pressure,
 					      c->pressure);
+
+			  written += sprintf (output + written, ",\r\n         \"time\" : %d", time);
 
 			  if (stroke_data->next == NULL)
 			    written += sprintf (output + written, "\r\n       }\r\n");
@@ -175,7 +179,6 @@ co_json_create (GSList* data, const char* title)
 			  prev.x = x, prev.y = y, point++;
 			}
 
-		      free (c);
 		      stroke_data = stroke_data->next;
 		    }
 
@@ -196,8 +199,6 @@ co_json_create (GSList* data, const char* title)
 		}
 		break;
 	      }
-
-	    free (s), s = NULL;
 	  }
 	  break;
 	  /*------------------------------------------------------------------.
@@ -258,6 +259,8 @@ co_json_create (GSList* data, const char* title)
 				    tilt->x, tilt->y);
 	      }
 
+	    written += sprintf (output + written, ",\r\n         \"time\" : %d", time);
+	    
 	    if (data->next == NULL)
 	      written += sprintf (output + written, "\r\n       }\r\n");
 	    else
@@ -266,6 +269,17 @@ co_json_create (GSList* data, const char* title)
 	    point++, prev.x = x, prev.y = y;
 	  }
 	  break;
+
+	  /*------------------------------------------------------------------.
+	   | CLOCK DESCRIPTOR                                                 |
+	   '------------------------------------------------------------------*/
+	case TYPE_CLOCK:
+	  {
+	    dt_clock* c = (dt_clock *)e;
+	    time = c->counter;
+	  }
+	  break;
+
 	}
 
       data = data->next;
