@@ -170,7 +170,7 @@ co_json_create (GSList* data, const char* title)
 					      y + (x - prev.x) / distance * c->pressure,
 					      c->pressure);
 
-			  written += sprintf (output + written, ",\r\n         \"time\" : %d", time + subtime);
+			  written += sprintf (output + written, ",\r\n         \"time\" : %f", time + subtime);
 
 			  if (stroke_data->next == NULL)
 			    written += sprintf (output + written, "\r\n       }\r\n");
