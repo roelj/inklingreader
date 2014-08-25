@@ -13,6 +13,7 @@ The program can:
 * Convert all WPI files in a directory to SVG
 * Automatically use different colors when the "new layer" is pressed multiple times.
 * Give control over stroke pressure.
+* Export timing information in JSON.
 
 
 Integration with Inkscape
@@ -79,7 +80,7 @@ Tested distributions
 
 The software is built and tested on:
 
-* Debian 7.3, 7.4, 7.5
+* Debian 7.3, 7.4, 7.5, 7.6
 * CrunchBang Linux 11
 * Fedora 20
 * Ubuntu 12.04, 13.04
