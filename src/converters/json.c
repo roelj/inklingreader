@@ -100,6 +100,7 @@ co_json_create (GSList* data, const char* title)
    | COUNTING VARIABLES                                                       |
    '--------------------------------------------------------------------------*/
   unsigned short time = 0;
+  double subtime = 0;
   unsigned int point = 0;
   unsigned int group = 0;
   unsigned int layer = 1;
@@ -169,7 +170,7 @@ co_json_create (GSList* data, const char* title)
 					      y + (x - prev.x) / distance * c->pressure,
 					      c->pressure);
 
-			  written += sprintf (output + written, ",\r\n         \"time\" : %d", time);
+			  written += sprintf (output + written, ",\r\n         \"time\" : %d", time + subtime);
 
 			  if (stroke_data->next == NULL)
 			    written += sprintf (output + written, "\r\n       }\r\n");
@@ -259,7 +260,7 @@ co_json_create (GSList* data, const char* title)
 				    tilt->x, tilt->y);
 	      }
 
-	    written += sprintf (output + written, ",\r\n         \"time\" : %d", time);
+	    written += sprintf (output + written, ",\r\n         \"time\" : %f", time + subtime);
 	    
 	    if (data->next == NULL)
 	      written += sprintf (output + written, "\r\n       }\r\n");
@@ -267,6 +268,7 @@ co_json_create (GSList* data, const char* title)
 	      written += sprintf (output + written, "\r\n       },\r\n");
 
 	    point++, prev.x = x, prev.y = y;
+	    subtime += CLOCK_FREQUENCY;
 	  }
 	  break;
 
@@ -277,6 +279,7 @@ co_json_create (GSList* data, const char* title)
 	  {
 	    dt_clock* c = (dt_clock *)e;
 	    time = c->counter;
+	    subtime = 0;
 	  }
 	  break;
 

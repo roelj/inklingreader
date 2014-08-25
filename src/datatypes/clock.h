@@ -28,6 +28,13 @@
 #define DATATYPES_CLOCK_H
 
 /**
+ * This value represents the time elapsed for each coordinate that was sent to
+ * the receiver. The value has been obtained by drawing continously for a long
+ * time period and averaging the values (I took sample data of 153 seconds).
+ */
+#define CLOCK_FREQUENCY 0.0065535852
+
+/**
  * This struct contains the variables that can be extracted for clock data.
  */
 typedef struct
