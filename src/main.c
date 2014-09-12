@@ -42,6 +42,7 @@
 #include "gui/mainwindow.h"
 #include "high/conversion.h"
 #include "converters/svg.h"
+#include "optimizers/point-reduction.h"
 
 /* This struct stores various run-time configuration options to allow 
  * customization of the behavior of the program. */
@@ -293,6 +294,7 @@ main (int argc, char** argv)
 		    else
 		      {
 			coordinates = p_wpi_parse (filename);
+			opt_point_reduction_apply (coordinates);
 			high_export_to_file (coordinates, NULL, optarg, &settings);
 		      }
 		  }
