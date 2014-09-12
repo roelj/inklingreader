@@ -1,3 +1,8 @@
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
 AC_INIT([InklingReader], [0.6], [roel@roelserve.com])
 AM_SILENT_RULES([yes])
 AC_CONFIG_AUX_DIR([scripts])

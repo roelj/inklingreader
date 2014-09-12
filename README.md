@@ -105,4 +105,5 @@ of things you could do:
 License
 -------
 
-This project's code is licensed under the GPLv3 or any later version.
+This project's code and the graphics in the "res/" folder are licensed under
+the GPLv3 or any later version.
