@@ -12,3 +12,4 @@ missing
 install-sh
 inklingreader
 *.dirstamp
+doc/doxygen/html/*
