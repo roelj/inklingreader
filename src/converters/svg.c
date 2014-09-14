@@ -25,6 +25,7 @@
 #include <locale.h>
 #include "../datatypes/configuration.h"
 #include "../datatypes/element.h"
+#include "../datatypes/clock.h"
 
 /* These are correction values that are used to calculate the actual position
  * of a path on a page. Whether these are the same for each document is not
@@ -151,14 +152,16 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
   unsigned char is_in_stroke = 0;
   float previous_x = 0;
   float previous_y = 0;
-
+  unsigned short clock = 0;
+  unsigned short stop = 0;
+  
   GSList* stroke_data = NULL; 
 
   /*--------------------------------------------------------------------------.
    | WRITE DATA POINTS                                                        |
    '--------------------------------------------------------------------------*/
   GSList* data_head = data;
-  while (data != NULL)
+  while (data != NULL && !stop)
     {
       dt_element* e = (dt_element *)data->data;
       switch (e->type)
@@ -201,6 +204,7 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 		      /* end SVG path. */
 		      written += sprintf (output + written, "\" />\n  </g>\n");
 		      is_in_stroke = 0;
+		      if (clock >= settings->process_until) stop = 1;
 		      break;
 		    }
 
@@ -240,6 +244,8 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 		  /* 'Z' means 'closepath' */
 		  written += sprintf (output + written, " z\" />\n  </g>\n");
 		  is_in_stroke = 0;
+
+		  if (clock >= settings->process_until) stop = 1;
 		}
 		break;
 	      case NEW_LAYER:
@@ -330,6 +336,11 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 	  }
 	  break;
 	  */
+	case TYPE_CLOCK:
+	  {
+	    dt_clock* c = (dt_clock *)e;
+	    clock = c->counter;
+	  }
 	}
 
       data = data->next;

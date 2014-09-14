@@ -293,7 +293,7 @@ main (int argc, char** argv)
 		      high_merge_wpi_files (merge_val, optarg);
 		    else
 		      {
-			coordinates = p_wpi_parse (filename);
+			coordinates = p_wpi_parse (filename, &settings.process_until);
 			opt_point_reduction_apply (coordinates);
 			high_export_to_file (coordinates, NULL, optarg, &settings);
 		      }
@@ -310,7 +310,7 @@ main (int argc, char** argv)
 	      {
 		if (filename)
 		  {
-		    coordinates = p_wpi_parse (filename);
+		    coordinates = p_wpi_parse (filename, &settings.process_until);
 		    char* svg_data = co_svg_create (coordinates, NULL, &settings);
 		    puts (svg_data);
 		    free (svg_data);

@@ -44,7 +44,7 @@
  | This function reads the data and tries to get useful data out of it.       |
  '----------------------------------------------------------------------------*/
 GSList*
-p_wpi_parse (const char* filename)
+p_wpi_parse (const char* filename, unsigned short* seconds)
 {
   /* Create a GSList (singly-linked list) that will be the return value of 
    * this function. */
@@ -270,6 +270,7 @@ p_wpi_parse (const char* filename)
 
 	      clock->type = TYPE_CLOCK;
 	      clock->counter = (data[count + 4] << 8) | (data[count + 5]);
+	      *seconds = clock->counter;
 	      list = g_slist_prepend (list, clock);
 	    }
 	}

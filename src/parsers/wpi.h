@@ -42,7 +42,7 @@
  * @param filename The filename to parse.
  * @return A pointer to a GSList containing the parsed data.
  */
-GSList* p_wpi_parse (const char* filename);
+GSList* p_wpi_parse (const char* filename, unsigned short* seconds);
 
 /**
  * This function cleans up the data that was created using p_wpi_parse().

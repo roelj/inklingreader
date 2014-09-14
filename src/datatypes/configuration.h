@@ -52,6 +52,7 @@ typedef struct
   char* background;
   dt_page_dimensions page;
   char* config_location;
+  unsigned short process_until;
 } dt_configuration;
 
 /**

@@ -112,6 +112,12 @@ void gui_mainwindow_set_dimensions_input (GtkWidget* widget, void* data);
 void gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data);
 
 /**
+ * This function is the callback for changing the "process_until" value based
+ * on the clock.
+ */
+void gui_mainwindow_set_clock_value (GtkWidget* widget, void* data);
+
+/**
  * Clean up when quitting.
  */
 void gui_mainwindow_quit ();

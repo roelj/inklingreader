@@ -50,6 +50,7 @@ static GtkWidget* pressure_input = NULL;
 static GtkWidget* document_view = NULL;
 static GtkWidget* hbox_colors = NULL;
 static GtkWidget* window = NULL;
+static GtkWidget* clock_scale = NULL;
 static GSList* parsed_data = NULL;
 static RsvgHandle* handle = NULL;
 static char* last_file_extension = NULL;
@@ -130,6 +131,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   dimensions_input = gtk_combo_box_text_new ();
   orientation_input = gtk_combo_box_text_new ();
 
+  clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
+  gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
+  
   GdkRGBA bg_doc_color;
   if (settings.background != NULL)
     gdk_rgba_parse (&bg_doc_color, settings.background);
@@ -239,6 +243,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
+  gtk_box_pack_end (GTK_BOX (vbox_window), clock_scale, 0, 0, 0);
+  
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
 
   /*--------------------------------------------------------------------------.
@@ -267,6 +273,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (orientation_input), "changed",
 		    G_CALLBACK (gui_mainwindow_set_orientation_input), NULL);
+
+  g_signal_connect (G_OBJECT (clock_scale), "value-changed",
+		    G_CALLBACK (gui_mainwindow_set_clock_value), NULL);
 
   g_signal_connect (G_OBJECT (zoom_toggle), "notify::active",
 		    G_CALLBACK (gui_mainwindow_set_zoom_toggle), NULL);
@@ -419,7 +428,9 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	  if (parsed_data)
 	    p_wpi_cleanup (parsed_data);
 
-	  parsed_data = p_wpi_parse (filename);
+	  parsed_data = p_wpi_parse (filename, &settings.process_until);
+	  gtk_range_set_range (GTK_RANGE (clock_scale), 0, settings.process_until);
+	  gtk_range_set_value (GTK_RANGE (clock_scale), settings.process_until);
 
 	  /* Clean up the filename if it was gathered using the dialog. */
 	  if (!data)
@@ -726,6 +737,20 @@ gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data)
   gui_mainwindow_redisplay();  
 }
 
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SET_ORIENTATION_INPUT                                       |
+ | This callback is for changing the page orientation.                        |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_set_clock_value (GtkWidget* widget, void* data)
+{
+  settings.process_until = (unsigned short)gtk_range_get_value (GTK_RANGE (widget));
+
+  if (handle != NULL)
+    g_object_unref (handle), handle = NULL;
+
+  gui_mainwindow_redisplay();  
+}
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_QUIT                                                        |

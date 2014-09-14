@@ -67,7 +67,7 @@ high_convert_directory (const char* path, dt_configuration* settings)
 	  snprintf (name, name_len, "%s/%s", path, entry->d_name);
 
 	  /* Parse a file.*/
-	  GSList* coordinates = p_wpi_parse (name);
+	  GSList* coordinates = p_wpi_parse (name, &settings->process_until);
 
 	  /* Construct a string for the new filename. */
 	  snprintf (new_name, name_len - 3, "%s/%s", path, entry->d_name);
