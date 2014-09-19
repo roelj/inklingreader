@@ -20,6 +20,7 @@
 #include "wpi.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "../datatypes/element.h"
 #include "../datatypes/stroke.h"
@@ -280,6 +281,46 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
   fclose (file);
   return list;
 }
+
+/*----------------------------------------------------------------------------.
+ | WPI_GET_METADATA:                                                          |
+ | This function gathers metadata from a parsed file.                         |
+ '----------------------------------------------------------------------------*/
+dt_metadata*
+p_wpi_get_metadata (GSList* data)
+{
+  GSList* item = data;
+  short int time = 0;
+  dt_metadata* metadata = calloc (1, sizeof (dt_metadata));
+  if (metadata == NULL) return NULL;
+
+  metadata->num_layers = 0;
+  
+  while (item != NULL)
+    {
+      dt_element* e = (dt_element *)item->data;
+      switch (e->type)
+	{
+	case TYPE_STROKE:
+	  if (((dt_stroke *)e)->value == NEW_LAYER)
+	    {
+	      int* point_in_time = calloc (1, sizeof (int));
+	      if (point_in_time == NULL) break;
+	      *point_in_time = time;
+	      metadata->layer_timings = g_slist_prepend (metadata->layer_timings, point_in_time);
+	      metadata->num_layers++;
+	    }
+	  break;
+	case TYPE_CLOCK:
+	  time = ((dt_clock *)e)->counter;
+	  break;
+	}
+      item = item->next;
+    }
+
+  return metadata;
+}
+
 
 /*----------------------------------------------------------------------------.
  | WPI_CLEANUP:                                                               |

@@ -34,6 +34,7 @@
 #define PARSERS_WPI_H
 
 #include <glib.h>
+#include "../datatypes/metadata.h"
 
 /**
  * This function decodes the WPI format and creates a list of the data using
@@ -43,6 +44,13 @@
  * @return A pointer to a GSList containing the parsed data.
  */
 GSList* p_wpi_parse (const char* filename, unsigned short* seconds);
+
+/**
+ * This function gathers various statistics on the parsed file.
+ * @param data The parsed data.
+ * @return A pointer to a dt_metadata struct containing the metadata.
+ */
+dt_metadata* p_wpi_get_metadata (GSList* data);
 
 /**
  * This function cleans up the data that was created using p_wpi_parse().
