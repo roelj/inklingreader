@@ -163,6 +163,7 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
   GSList* data_head = data;
   while (data != NULL && !stop)
     {
+      if (settings->process_until == 0) stop = 1;
       dt_element* e = (dt_element *)data->data;
       switch (e->type)
 	{
@@ -261,6 +262,7 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 			"groupmode=\"layer\" id=\"layer%d\">\n", 
 			layer, layer);
 		      layer++;
+		      if (clock >= settings->process_until) stop = 1;
 		    }
 		}
 		break;
