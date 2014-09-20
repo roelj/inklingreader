@@ -3,7 +3,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-AC_INIT([InklingReader], [0.7], [roel@roelserve.com])
+AC_INIT([InklingReader], [0.8], [roel@roelserve.com])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([-Wall -Werror])

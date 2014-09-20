@@ -14,7 +14,7 @@ The program can:
 * Automatically use different colors when the "new layer" is pressed multiple times.
 * Give control over stroke pressure.
 * Export timing information in JSON.
-
+* Interact with the timeline of your drawing
 
 Integration with Inkscape
 -------------------------
@@ -30,7 +30,7 @@ to your Inkscape extension directory. On GNU/Linux that is:
 Screenshot
 ----------
 
-![InklingReader screenshot](http://roelj.com/Inkling_3.png)
+![InklingReader screenshot](http://roelj.com/Inkling_4.png)
 
 Dependencies
 ------------
@@ -100,7 +100,7 @@ of things you could do:
 * Package InklingReader for any distribution
 * Request features
 * Implement features
-
+* Research "online-mode"
 
 License
 -------
