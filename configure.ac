@@ -29,6 +29,10 @@ AM_CONDITIONAL([OS_LINUX], [false])
 AC_SUBST(OS_LINUX)
 AM_CONDITIONAL([OS_LINUX], [true])
 ;;
+*-darwin*)
+AC_SUBST(OS_LINUX)
+AM_CONDITIONAL([OS_LINUX], [true])
+;;
 *)
 AC_MSG_ERROR([InklingReader is not (yet) supported on $host.])
 esac
