@@ -49,9 +49,11 @@ static GtkWidget* pressure_toggle = NULL;
 static GtkWidget* pressure_input = NULL;
 static GtkWidget* document_view = NULL;
 static GtkWidget* hbox_colors = NULL;
+static GtkWidget* hbox_timing = NULL;
 static GtkWidget* window = NULL;
 static GtkWidget* clock_scale = NULL;
 static GSList* parsed_data = NULL;
+static dt_metadata* metadata = NULL;
 static RsvgHandle* handle = NULL;
 static char* last_file_extension = NULL;
 static char* last_dir = NULL;
@@ -86,7 +88,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   GtkWidget* vbox_window = NULL;
   GtkWidget* hbox_menu_top = NULL;
-  GtkWidget* hbox_timing = NULL;
 
   GtkWidget* menu_bar = NULL;
   GtkWidget* menu_bar_file = NULL;
@@ -100,7 +101,10 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* zoom_label = NULL;
   GtkWidget* dimensions_label = NULL;
   GtkWidget* play_button = NULL;
-
+  GtkWidget* pause_button = NULL;
+  GtkWidget* forward_button = NULL;
+  GtkWidget* backward_button = NULL;
+  
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
    '--------------------------------------------------------------------------*/
@@ -136,6 +140,10 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   orientation_input = gtk_combo_box_text_new ();
 
   play_button = gtk_button_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  pause_button = gtk_button_new_from_icon_name ("media-playback-pause", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  forward_button = gtk_button_new_from_icon_name ("media-seek-forward", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  backward_button = gtk_button_new_from_icon_name ("media-seek-backward", GTK_ICON_SIZE_LARGE_TOOLBAR);
+
   clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
   gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
   
@@ -250,7 +258,11 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
   gtk_box_pack_start (GTK_BOX (hbox_timing), play_button, 0, 0, 5);
-  gtk_box_pack_end (GTK_BOX (hbox_timing), clock_scale, 1, 1, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_timing), pause_button, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_timing), backward_button, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_timing), forward_button, 0, 0, 5);
+  gtk_box_pack_start (GTK_BOX (hbox_timing), clock_scale, 1, 1, 5);
+
   gtk_box_pack_end (GTK_BOX (vbox_window), hbox_timing, 0, 0, 5);
   
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
@@ -266,6 +278,15 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (play_button), "clicked",
   		    G_CALLBACK (gui_mainwindow_play), NULL);
+
+  g_signal_connect (G_OBJECT (pause_button), "clicked",
+  		    G_CALLBACK (gui_mainwindow_pause), NULL);
+
+  g_signal_connect (G_OBJECT (forward_button), "clicked",
+  		    G_CALLBACK (gui_mainwindow_forward), NULL);
+
+  g_signal_connect (G_OBJECT (backward_button), "clicked",
+  		    G_CALLBACK (gui_mainwindow_backward), NULL);
 
   g_signal_connect (G_OBJECT (document_view), "draw",
                     G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
@@ -300,7 +321,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_widget_show_all (window);
   gtk_widget_hide (zoom_input);
-
+  gtk_widget_hide (hbox_timing);
+  
   if (filename)
     gui_mainwindow_file_activated (NULL, (char*)filename);
 
@@ -427,10 +449,71 @@ gui_mainwindow_update_clock (void* data)
 void
 gui_mainwindow_play (GtkWidget* widget, void* data)
 {
-  gtk_range_set_value (GTK_RANGE (clock_scale), 0);
+  //gtk_range_set_value (GTK_RANGE (clock_scale), 0);
   if (timeout_id != 0) g_source_remove (timeout_id);
   timeout_id = g_timeout_add (100, gui_mainwindow_update_clock, NULL);
 }
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_PAUSE                                                       |
+ | This callback function handles activating the "Pause" button.              |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_pause (GtkWidget* widget, void* data)
+{
+  if (timeout_id != 0)
+    g_source_remove (timeout_id),
+    timeout_id = 0;
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_FORWARD                                                     |
+ | This callback function handles activating the "Forward" button.            |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_forward (GtkWidget* widget, void* data)
+{
+  if (metadata == NULL) return;
+
+  metadata->layer_timings = g_slist_reverse (metadata->layer_timings);
+  GSList* timings = metadata->layer_timings;
+  while (timings != NULL)
+    {
+      double timings_value = (double)*(int *)timings->data;
+      if (timings_value > gtk_range_get_value (GTK_RANGE (clock_scale))) break;
+      timings = timings->next;
+    }
+
+  if (timings != NULL)
+    gtk_range_set_value (GTK_RANGE (clock_scale), *(int *)timings->data);
+  else
+    gtk_range_set_value (GTK_RANGE (clock_scale), metadata->num_seconds);
+
+  metadata->layer_timings = g_slist_reverse (metadata->layer_timings);
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_BACKWARD                                                    |
+ | This callback function handles activating the "Backward" button.           |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_backward (GtkWidget* widget, void* data)
+{
+  if (metadata == NULL) return;
+  GSList* timings = metadata->layer_timings;
+  while (timings != NULL)
+    {
+      double timings_value = (double)*(int *)timings->data;
+      if (timings_value < gtk_range_get_value (GTK_RANGE (clock_scale))) break;
+      timings = timings->next;
+    }
+
+  if (timings != NULL)
+    gtk_range_set_value (GTK_RANGE (clock_scale), *(int *)timings->data);
+  else
+    gtk_range_set_value (GTK_RANGE (clock_scale), 0);
+}
+
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_FILE_ACTIVATED                                              |
@@ -464,14 +547,17 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	{
 	  /* Clean-up the old parsed data. */
 	  if (parsed_data)
-	    p_wpi_cleanup (parsed_data);
-
+	    {
+	      p_wpi_cleanup (parsed_data), parsed_data = NULL;
+	      p_wpi_metadata_cleanup (metadata), metadata = NULL;
+	    }
+	  
 	  parsed_data = p_wpi_parse (filename, &settings.process_until);
 	  gtk_scale_clear_marks (GTK_SCALE (clock_scale));
 	  gtk_range_set_range (GTK_RANGE (clock_scale), 0, settings.process_until);
 	  gtk_range_set_value (GTK_RANGE (clock_scale), settings.process_until);
 
-	  dt_metadata* metadata = p_wpi_get_metadata (parsed_data);
+	  metadata = p_wpi_get_metadata (parsed_data);
 	  if (metadata != NULL)
 	    {
 	      if (metadata->num_layers > 1)
@@ -488,9 +574,9 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 		  timings = timings->next;
 		  layer_number--;
 		}
-	      g_slist_free_full (timings, free);
-	      free (metadata), metadata = NULL;
 	    }
+
+	  gtk_widget_show_all (hbox_timing);
 	  
 	  /* Clean up the filename if it was gathered using the dialog. */
 	  if (!data)
@@ -796,8 +882,8 @@ gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data)
 }
 
 /*----------------------------------------------------------------------------.
- | GUI_MAINWINDOW_SET_ORIENTATION_INPUT                                       |
- | This callback is for changing the page orientation.                        |
+ | GUI_MAINWINDOW_SET_CLOCK_VALUE                                             |
+ | This callback is for setting the clock range to process.                   |
  '----------------------------------------------------------------------------*/
 void
 gui_mainwindow_set_clock_value (GtkWidget* widget, void* data)

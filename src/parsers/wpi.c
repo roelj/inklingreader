@@ -290,12 +290,12 @@ dt_metadata*
 p_wpi_get_metadata (GSList* data)
 {
   GSList* item = data;
-  short int time = 0;
   unsigned char has_stroke_data = 0;
   dt_metadata* metadata = calloc (1, sizeof (dt_metadata));
   if (metadata == NULL) return NULL;
 
   metadata->num_layers = 1;
+  metadata->num_seconds = 0;
   
   while (item != NULL)
     {
@@ -308,14 +308,14 @@ p_wpi_get_metadata (GSList* data)
 	    {
 	      int* point_in_time = calloc (1, sizeof (int));
 	      if (point_in_time == NULL) break;
-	      *point_in_time = time;
+	      *point_in_time = metadata->num_seconds;
 	      metadata->layer_timings = g_slist_prepend (metadata->layer_timings, point_in_time);
 	      metadata->num_layers++;
 	      has_stroke_data = 0;
 	    }
 	  break;
 	case TYPE_CLOCK:
-	  time = ((dt_clock *)e)->counter;
+	  metadata->num_seconds = ((dt_clock *)e)->counter;
 	  break;
 	}
       item = item->next;
@@ -327,7 +327,7 @@ p_wpi_get_metadata (GSList* data)
 
 /*----------------------------------------------------------------------------.
  | WPI_CLEANUP:                                                               |
- | This function frees the alocated memory that the parser left behind.       |
+ | This function frees the allocated memory that the parser left behind.      |
  '----------------------------------------------------------------------------*/
 void
 p_wpi_cleanup (GSList* data)
@@ -342,4 +342,15 @@ p_wpi_cleanup (GSList* data)
 
   /* Clean up the list items. */
   g_slist_free (data_head);
+}
+
+/*----------------------------------------------------------------------------.
+ | WPI_METADATA_CLEANUP:                                                      |
+ | This function frees the allocated memory for the metadata.                 |
+ '----------------------------------------------------------------------------*/
+void
+p_wpi_metadata_cleanup (dt_metadata* data)
+{
+  g_slist_free_full (data->layer_timings, free);
+  free (data);
 }

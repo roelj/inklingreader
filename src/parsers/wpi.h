@@ -59,4 +59,11 @@ dt_metadata* p_wpi_get_metadata (GSList* data);
  */
 void p_wpi_cleanup (GSList* data);
 
+/**
+ * This function cleans up the data that was created by p_wpi_get_metadata().
+ *
+ * @param data A pointer to a dt_metadata created by p_wpi_get_metadata().
+ */
+void p_wpi_metadata_cleanup (dt_metadata* data);
+
 #endif//PARSERS_WPI_H

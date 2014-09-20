@@ -123,6 +123,21 @@ void gui_mainwindow_set_clock_value (GtkWidget* widget, void* data);
 void gui_mainwindow_play (GtkWidget* widget, void* data);
 
 /**
+ * This callback function handles activating the "Pause" button.
+ */
+void gui_mainwindow_pause (GtkWidget* widget, void* data);
+
+/**
+ * This callback function handles activating the "Forward" button.
+ */
+void gui_mainwindow_forward (GtkWidget* widget, void* data);
+
+/**
+ * This callback function handles activating the "Backward" button.
+ */
+void gui_mainwindow_backward (GtkWidget* widget, void* data);
+
+/**
  * This function applies the next step in time for the "play" feature.
  */
 gboolean gui_mainwindow_update_clock (void* data);
