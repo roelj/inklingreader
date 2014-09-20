@@ -291,10 +291,11 @@ p_wpi_get_metadata (GSList* data)
 {
   GSList* item = data;
   short int time = 0;
+  unsigned char has_stroke_data = 0;
   dt_metadata* metadata = calloc (1, sizeof (dt_metadata));
   if (metadata == NULL) return NULL;
 
-  metadata->num_layers = 0;
+  metadata->num_layers = 1;
   
   while (item != NULL)
     {
@@ -302,13 +303,15 @@ p_wpi_get_metadata (GSList* data)
       switch (e->type)
 	{
 	case TYPE_STROKE:
-	  if (((dt_stroke *)e)->value == NEW_LAYER)
+	  if (((dt_stroke *)e)->value == BEGIN_STROKE) has_stroke_data = 1;
+	  if (((dt_stroke *)e)->value == NEW_LAYER && has_stroke_data)
 	    {
 	      int* point_in_time = calloc (1, sizeof (int));
 	      if (point_in_time == NULL) break;
 	      *point_in_time = time;
 	      metadata->layer_timings = g_slist_prepend (metadata->layer_timings, point_in_time);
 	      metadata->num_layers++;
+	      has_stroke_data = 0;
 	    }
 	  break;
 	case TYPE_CLOCK:
