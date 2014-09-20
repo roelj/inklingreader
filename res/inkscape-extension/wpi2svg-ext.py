@@ -194,7 +194,7 @@ class InputWPI(inkex.Effect):
         run_direct((helper_app + custom_opts + inout_opts)
             % infile, helper_app, self.verbose)
 
-    def effect(sef):
+    def effect(self):
         pass
 
     def output(self):
