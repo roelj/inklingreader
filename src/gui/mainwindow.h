@@ -118,6 +118,16 @@ void gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data);
 void gui_mainwindow_set_clock_value (GtkWidget* widget, void* data);
 
 /**
+ * This callback function handles activating the "Play" button.
+ */
+void gui_mainwindow_play (GtkWidget* widget, void* data);
+
+/**
+ * This function applies the next step in time for the "play" feature.
+ */
+gboolean gui_mainwindow_update_clock (void* data);
+
+/**
  * Clean up when quitting.
  */
 void gui_mainwindow_quit ();

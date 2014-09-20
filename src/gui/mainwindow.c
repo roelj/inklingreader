@@ -56,6 +56,7 @@ static RsvgHandle* handle = NULL;
 static char* last_file_extension = NULL;
 static char* last_dir = NULL;
 static const int file_filters_num = 4;
+static guint timeout_id = 0;
 
 static const char* file_mimetypes[]  = { 
   "application/pdf", 
@@ -85,6 +86,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   GtkWidget* vbox_window = NULL;
   GtkWidget* hbox_menu_top = NULL;
+  GtkWidget* hbox_timing = NULL;
 
   GtkWidget* menu_bar = NULL;
   GtkWidget* menu_bar_file = NULL;
@@ -97,6 +99,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* pressure_label = NULL;
   GtkWidget* zoom_label = NULL;
   GtkWidget* dimensions_label = NULL;
+  GtkWidget* play_button = NULL;
 
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -107,6 +110,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   vbox_window = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
   hbox_menu_top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
+  hbox_timing = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
   hbox_colors = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   document_container = gtk_scrolled_window_new (NULL, NULL);
@@ -131,6 +135,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   dimensions_input = gtk_combo_box_text_new ();
   orientation_input = gtk_combo_box_text_new ();
 
+  play_button = gtk_button_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_LARGE_TOOLBAR);
   clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
   gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
   
@@ -178,6 +183,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
       gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (dimensions_input), formats[a].name, formats[a].name);
       a++;
     }
+
   gtk_combo_box_set_active (GTK_COMBO_BOX (dimensions_input), 0);
 
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Portrait", "Portrait");
@@ -243,7 +249,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
-  gtk_box_pack_end (GTK_BOX (vbox_window), clock_scale, 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_timing), play_button, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_timing), clock_scale, 1, 1, 0);
+  gtk_box_pack_end (GTK_BOX (vbox_window), hbox_timing, 0, 0, 5);
   
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
 
@@ -255,6 +263,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (new_color_button), "clicked",
 		    G_CALLBACK (gui_mainwindow_add_color), NULL);
+
+  g_signal_connect (G_OBJECT (play_button), "clicked",
+  		    G_CALLBACK (gui_mainwindow_play), NULL);
 
   g_signal_connect (G_OBJECT (document_view), "draw",
                     G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
@@ -393,6 +404,33 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
   return filename;
 }
 
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_UPDATE_CLOCK                                                |
+ | This function applies the next step in time for the "play" feature.        |
+ '----------------------------------------------------------------------------*/
+gboolean
+gui_mainwindow_update_clock (void* data)
+{
+  double value = gtk_range_get_value (GTK_RANGE (clock_scale));
+  gtk_range_set_value (GTK_RANGE (clock_scale), value + 1);
+  if (value >= settings.process_until)
+    g_source_remove (timeout_id),
+    timeout_id = 0;
+
+  return TRUE;
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_PLAY                                                        |
+ | This callback function handles activating the "Play" button.               |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_play (GtkWidget* widget, void* data)
+{
+  gtk_range_set_value (GTK_RANGE (clock_scale), 0);
+  if (timeout_id != 0) g_source_remove (timeout_id);
+  timeout_id = g_timeout_add (100, gui_mainwindow_update_clock, NULL);
+}
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_FILE_ACTIVATED                                              |
@@ -429,9 +467,31 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	    p_wpi_cleanup (parsed_data);
 
 	  parsed_data = p_wpi_parse (filename, &settings.process_until);
+	  gtk_scale_clear_marks (GTK_SCALE (clock_scale));
 	  gtk_range_set_range (GTK_RANGE (clock_scale), 0, settings.process_until);
 	  gtk_range_set_value (GTK_RANGE (clock_scale), settings.process_until);
 
+	  dt_metadata* metadata = p_wpi_get_metadata (parsed_data);
+	  if (metadata != NULL)
+	    {
+	      if (metadata->num_layers > 1)
+		gtk_scale_add_mark (GTK_SCALE (clock_scale), 0, GTK_POS_BOTTOM, "Layer 1");
+	      
+	      short layer_number = metadata->num_layers;
+	      GSList* timings = metadata->layer_timings;
+	      while (timings != NULL)
+		{
+		  char layername[9];
+		  memset (&layername, '\0', 9);
+		  snprintf ((char *)layername, 9, "Layer %d", layer_number);
+		  gtk_scale_add_mark (GTK_SCALE (clock_scale), *(int *)timings->data, GTK_POS_BOTTOM, layername);
+		  timings = timings->next;
+		  layer_number--;
+		}
+	      g_slist_free_full (timings, free);
+	      free (metadata), metadata = NULL;
+	    }
+	  
 	  /* Clean up the filename if it was gathered using the dialog. */
 	  if (!data)
 	    g_free (filename);
@@ -495,10 +555,8 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
   if (!gtk_widget_get_visible (zoom_input))
     ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
   else
-    {
-      ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0;
-      gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
-    }
+    ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0,
+    gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
 
   double padding = (w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2;
   if (padding < 0) padding = 0;
@@ -647,7 +705,7 @@ void
 gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
 {
   if (gtk_widget_get_visible (pressure_input))
-      settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
+    settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
   else
     settings.pressure_factor = 0.0;
 
