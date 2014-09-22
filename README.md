@@ -83,6 +83,7 @@ The software is built and tested on:
 * Debian 7.3, 7.4, 7.5, 7.6
 * CrunchBang Linux 11
 * Fedora 20
+* Mageia 4
 * Ubuntu 12.04, 13.04
 * Mac OS X 10.7.5, clang (based on LLVM 3.1svn)
 * Windows 8.1 (with MinGW and GTK 32-bit all-in-one bundle)
