@@ -28,7 +28,6 @@
 #include "../high/conversion.h"
 
 #include <gtk/gtk.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <librsvg/rsvg.h>
@@ -41,23 +40,19 @@
 extern dt_configuration settings;
 extern dt_preset_dimensions formats[];
 
-static GtkWidget* zoom_toggle = NULL;
 static GtkWidget* zoom_input = NULL;
 static GtkWidget* orientation_input = NULL;
 static GtkWidget* dimensions_input = NULL;
-static GtkWidget* pressure_toggle = NULL;
 static GtkWidget* pressure_input = NULL;
 static GtkWidget* document_view = NULL;
 static GtkWidget* hbox_colors = NULL;
 static GtkWidget* hbox_timing = NULL;
-static GtkWidget* window = NULL;
 static GtkWidget* clock_scale = NULL;
 static GSList* parsed_data = NULL;
 static dt_metadata* metadata = NULL;
 static RsvgHandle* handle = NULL;
 static char* last_file_extension = NULL;
 static char* last_dir = NULL;
-static const int file_filters_num = 4;
 static guint timeout_id = 0;
 
 static const char* file_mimetypes[]  = { 
@@ -74,7 +69,6 @@ static const char* file_extensions[] = {
   "JSON - JavaScript Object Notation"
 };
 
-#define MENU_ITEMS_NUM 3
 const char* menu_items[] = { "Open", "Export", "Quit" };
 
 void
@@ -83,6 +77,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | WIDGETS                                                                  |
    '--------------------------------------------------------------------------*/
+  GtkWidget* window = NULL;
   GtkWidget* document_viewport = NULL;
   GtkWidget* document_container = NULL;
 
@@ -104,6 +99,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* pause_button = NULL;
   GtkWidget* forward_button = NULL;
   GtkWidget* backward_button = NULL;
+  GtkWidget* zoom_toggle = NULL;
+  GtkWidget* pressure_toggle = NULL;
   
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -176,7 +173,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
     }
 
   /* Add the menu items to the menu. */
-  for (a = 0; a < MENU_ITEMS_NUM; a++)
+  for (a = 0; a < (sizeof (menu_items) / sizeof (char*)); a++)
     {
       GtkWidget* menu_item = gtk_menu_item_new_with_label (menu_items[a]);
       gtk_menu_shell_append (GTK_MENU_SHELL (menu_file), menu_item);
@@ -283,10 +280,10 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   		    G_CALLBACK (gui_mainwindow_pause), NULL);
 
   g_signal_connect (G_OBJECT (forward_button), "clicked",
-  		    G_CALLBACK (gui_mainwindow_forward), NULL);
+  		    G_CALLBACK (gui_mainwindow_forward), metadata);
 
   g_signal_connect (G_OBJECT (backward_button), "clicked",
-  		    G_CALLBACK (gui_mainwindow_backward), NULL);
+  		    G_CALLBACK (gui_mainwindow_backward), metadata);
 
   g_signal_connect (G_OBJECT (document_view), "draw",
                     G_CALLBACK (gui_mainwindow_document_view_draw), NULL);
@@ -399,7 +396,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 
       /* Add filters for supported formats. */
       int a = 0;
-      for (; a < file_filters_num; a++)
+      for (; a < (sizeof (file_mimetypes) / sizeof (char*)); a++)
 	{
 	  GtkFileFilter* filter = gtk_file_filter_new ();
 	  gtk_file_filter_set_name (filter, file_extensions[a]);
@@ -523,71 +520,61 @@ void
 gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 {
   char* filename = NULL;
+  GtkWidget *parent = gtk_widget_get_toplevel (widget);
 
   /* The filename can be passed by 'data'. Otherwise we need to show a
    * dialog to the user to choose a file. */
   if (data)
     filename = (char*)data;
   else
-    {
-      GtkWidget *parent = gtk_widget_get_toplevel (widget);
-      filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
-    }
+    filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_OPEN);
 
   if (filename != NULL)
     {
       char* window_title = malloc (16 + strlen (filename) + 1);
       sprintf (window_title, "InklingReader: %s", filename);
-      gtk_window_set_title (GTK_WINDOW (window), window_title);
+      gtk_window_set_title (GTK_WINDOW (parent), window_title);
 
       free (window_title);
 
-      /* When the filename is not NULL anymore, we can process it. */
-      if (filename)
+      /* Clean-up the old parsed data. */
+      if (parsed_data)
 	{
-	  /* Clean-up the old parsed data. */
-	  if (parsed_data)
-	    {
-	      p_wpi_cleanup (parsed_data), parsed_data = NULL;
-	      p_wpi_metadata_cleanup (metadata), metadata = NULL;
-	    }
+	  p_wpi_cleanup (parsed_data), parsed_data = NULL;
+	  p_wpi_metadata_cleanup (metadata), metadata = NULL;
+	}
 	  
-	  parsed_data = p_wpi_parse (filename, &settings.process_until);
-	  gtk_scale_clear_marks (GTK_SCALE (clock_scale));
-	  gtk_range_set_range (GTK_RANGE (clock_scale), 0, settings.process_until);
-	  gtk_range_set_value (GTK_RANGE (clock_scale), settings.process_until);
+      parsed_data = p_wpi_parse (filename, &settings.process_until);
+      gtk_scale_clear_marks (GTK_SCALE (clock_scale));
+      gtk_range_set_range (GTK_RANGE (clock_scale), 0, settings.process_until);
+      gtk_range_set_value (GTK_RANGE (clock_scale), settings.process_until);
 
-	  metadata = p_wpi_get_metadata (parsed_data);
-	  if (metadata != NULL)
-	    {
-	      if (metadata->num_layers > 1)
-		gtk_scale_add_mark (GTK_SCALE (clock_scale), 0, GTK_POS_BOTTOM, "Layer 1");
+      metadata = p_wpi_get_metadata (parsed_data);
+      if (metadata != NULL)
+	{
+	  if (metadata->num_layers > 1)
+	    gtk_scale_add_mark (GTK_SCALE (clock_scale), 0, GTK_POS_BOTTOM, "Layer 1");
 	      
-	      short layer_number = metadata->num_layers;
-	      GSList* timings = metadata->layer_timings;
-	      while (timings != NULL)
-		{
-		  char layername[9];
-		  memset (&layername, '\0', 9);
-		  snprintf ((char *)layername, 9, "Layer %d", layer_number);
-		  gtk_scale_add_mark (GTK_SCALE (clock_scale), *(int *)timings->data, GTK_POS_BOTTOM, layername);
-		  timings = timings->next;
-		  layer_number--;
-		}
+	  short layer_number = metadata->num_layers;
+	  GSList* timings = metadata->layer_timings;
+	  while (timings != NULL)
+	    {
+	      char layername[9];
+	      memset (&layername, '\0', 9);
+	      snprintf ((char *)layername, 9, "Layer %d", layer_number);
+	      gtk_scale_add_mark (GTK_SCALE (clock_scale), *(int *)timings->data, GTK_POS_BOTTOM, layername);
+	      timings = timings->next;
+	      layer_number--;
 	    }
-
-	  gtk_widget_show_all (hbox_timing);
-	  
-	  /* Clean up the filename if it was gathered using the dialog. */
-	  if (!data)
-	    g_free (filename);
-
-	  /* Clean up the (old) RsvgHandle data when it's set at this point. */
-	  if (handle)
-	    g_object_unref (handle), handle = NULL;
 	}
 
-      gtk_widget_queue_draw (document_view);
+      gtk_widget_show_all (hbox_timing);
+	  
+      /* Clean up the filename if it was gathered using the dialog. */
+      if (!data)
+	g_free (filename);
+
+      gui_mainwindow_redisplay ();
     }
 }
 
@@ -635,7 +622,9 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
 {
   if (parsed_data == NULL && handle == NULL) return 0;
 
-  double w = gtk_widget_get_allocated_width (window);
+  GtkWidget *parent = gtk_widget_get_toplevel (widget);
+
+  double w = gtk_widget_get_allocated_width (parent);
   double ratio = 1.00;
   
   if (!gtk_widget_get_visible (zoom_input))
@@ -817,7 +806,8 @@ gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data)
 {
   if (gtk_switch_get_active (GTK_SWITCH (widget)))
     {
-      double w = gtk_widget_get_allocated_width (window);
+      GtkWidget *parent = gtk_widget_get_toplevel (widget);
+      double w = gtk_widget_get_allocated_width (parent);
       double ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
       gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
 
