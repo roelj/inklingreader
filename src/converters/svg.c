@@ -177,6 +177,8 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 	      {
 	      case BEGIN_STROKE:
 		{
+		  if (is_in_stroke != 0) break;
+
 		  char* color = DEFAULT_COLOR;
 		  if (layer_color <= settings->num_colors)
 		    color = settings->colors[layer_color - 1];
@@ -251,6 +253,11 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 		break;
 	      case NEW_LAYER:
 		{
+		  if (is_in_stroke)
+		    {
+		      written += sprintf (output + written, " z\" />\n  </g>\n");
+		      is_in_stroke = 0;
+		    }
 		  if (has_stroke_data == 0)
 		    layer_color++;
 		  else
@@ -274,8 +281,25 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 	   '------------------------------------------------------------------*/
 	case TYPE_COORDINATE:
 	  {
-	    if (is_in_stroke != 1) break;
+	    if (is_in_stroke != 1)
+	      {
+		char* color = DEFAULT_COLOR;
+		if (layer_color <= settings->num_colors)
+		  color = settings->colors[layer_color - 1];
+		else if (settings->num_colors > 0)
+		  color = settings->colors[0];
 
+		if (settings->pressure_factor != 0)
+		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
+				      "style=\"fill:%s; stroke:none\" d=\"", group, color);
+		else
+		  written += sprintf (output + written, "  <g id=\"group%d\">\n    <path "
+				      "style=\"fill:none; stroke:%s\" d=\"", group, color);
+
+		is_in_stroke = 1;
+		group++;
+	      }
+	    
 	    dt_coordinate* c = (dt_coordinate *)e;
 
 	    /* There's no point in going on when the coordinate is empty. */
@@ -350,6 +374,9 @@ co_svg_create (GSList* data, const char* title, dt_configuration* settings)
 
   data = data_head;
 
+  if (is_in_stroke != 0)
+    written += sprintf (output + written, " z\" />\n  </g>\n");
+  
   written += sprintf (output + written, "</g>\n</svg>");
 
   output_len = written + 1;
