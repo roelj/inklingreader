@@ -588,7 +588,7 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
   GtkWidget *parent = gtk_widget_get_toplevel (widget);
   char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_SAVE);
 
-  if (last_file_extension)
+  if (last_file_extension && filename)
     if (strcmp (last_file_extension, filename + strlen (filename) - strlen (last_file_extension)))
       {
         char* total_filename = g_strconcat (filename, ".", last_file_extension, NULL);
