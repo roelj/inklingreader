@@ -38,7 +38,7 @@ PROJECT_NAME           = "InklingReader"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "v0.6"
+PROJECT_NUMBER         = "v0.8"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -1487,7 +1487,7 @@ SERVER_BASED_SEARCH    = NO
 # search results.
 #
 # Doxygen ships with an example indexer ( doxyindexer) and search engine
-# (doxysearch.cgi) which are based on the open source search engine library
+# (doxysearch.cgi) which are based on the free software search engine library
 # Xapian (see: http://xapian.org/).
 #
 # See the section "External Indexing and Searching" for details.
@@ -1500,7 +1500,7 @@ EXTERNAL_SEARCH        = NO
 # which will return the search results when EXTERNAL_SEARCH is enabled.
 #
 # Doxygen ships with an example indexer ( doxyindexer) and search engine
-# (doxysearch.cgi) which are based on the open source search engine library
+# (doxysearch.cgi) which are based on the free software search engine library
 # Xapian (see: http://xapian.org/). See the section "External Indexing and
 # Searching" for details.
 # This tag requires that the tag SEARCHENGINE is set to YES.
