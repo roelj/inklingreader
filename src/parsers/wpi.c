@@ -94,7 +94,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
     "AFAAAA1P7//wAAAAAUAAAAATAAAAUAAAAsAQAAAAAAABQAAAAAMwAAAwAAAA==";
 
   size_t header_len = 322;
-  char* file_header = g_malloc (header_len);
+  char* file_header = calloc (1, header_len);
 
   if (file_header == NULL)
     {
@@ -115,7 +115,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
     }
 
   g_free (base64_header);
-  g_free (file_header);
+  free (file_header);
   file_header = NULL;
 
   /* Find out interesting places. The first 2040 bytes can be skipped (according
@@ -133,7 +133,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	 '--------------------------------------------------------*/
       case BLOCK_COORDINATE:
 	{
-	  dt_coordinate* coordinate = g_malloc (sizeof (dt_coordinate));
+	  dt_coordinate* coordinate = calloc (1, sizeof (dt_coordinate));
 	  if (coordinate == NULL) break;
 
 	  coordinate->type = TYPE_COORDINATE;
@@ -172,7 +172,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	  /* Make sure the block data has the expected size. */
 	  if (data[count + 1] == 6)
 	    {
-	      dt_pressure* pressure = g_malloc (sizeof (dt_pressure));
+	      dt_pressure* pressure = calloc (1, sizeof (dt_pressure));
 	      if (pressure == NULL) break;
 
 	      pressure->type = TYPE_PRESSURE;
@@ -197,7 +197,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	    {
 	      count += 2;
 
-	      dt_tilt* tilt = g_malloc (sizeof (dt_tilt));
+	      dt_tilt* tilt = calloc (1, sizeof (dt_tilt));
 	      if (tilt == NULL) break;
 
 	      tilt->type = TYPE_TILT;
@@ -207,7 +207,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	      if (tilt->x + tilt->y != 0)
 		list = g_slist_prepend (list, tilt);
 	      else
-		g_free (tilt);
+		free (tilt), tilt = NULL;
 	    }
 	}
 	break;
@@ -246,7 +246,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	  /* Make sure it's valid stroke information. */
 	  if (data[count] != 3) break;
 
-	  dt_stroke* stroke = g_malloc (sizeof (dt_stroke));
+	  dt_stroke* stroke = calloc (1, sizeof (dt_stroke));
 
 	  /* Make sure we can store the stroke data. */
 	  if (stroke == NULL) break;
@@ -266,7 +266,7 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	  /* Only process the information when it is known clock info. */
 	  if (data[count + 2] == 0x11)
 	    {
-	      dt_clock* clock = g_malloc (sizeof (dt_clock));
+	      dt_clock* clock = calloc (1, sizeof (dt_clock));
 	      if (clock == NULL) break;
 
 	      clock->type = TYPE_CLOCK;
@@ -334,14 +334,8 @@ p_wpi_cleanup (GSList* data)
 {
   if (data == NULL) return;
 
-  GSList* data_head = data;
-
-  /* Clean up the data elements of the list. */
-  while (data != NULL)
-    g_free (data->data), data->data = NULL, data = data->next;
-
   /* Clean up the list items. */
-  g_slist_free (data_head);
+  g_slist_free_full (data, free);
 }
 
 /*----------------------------------------------------------------------------.
