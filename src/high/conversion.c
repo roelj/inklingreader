@@ -37,7 +37,7 @@
  * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
 static inline void unsupported ()
 {
-  printf ("Only PNG (.png), SVG (.svg), PDF (.pdf) and JSON (.json) are supported.\r\n");
+  puts ("Only PNG (.png), SVG (.svg), PDF (.pdf) and JSON (.json) are supported.");
 }
 
 /*----------------------------------------------------------------------------.
@@ -154,7 +154,7 @@ high_merge_wpi_files (const char* first, const char* second)
 
   if (strcmp (ext1, "WPI") || strcmp (ext2, "WPI"))
     {
-      printf ("I can only merge files with a .WPI extension.\r\n");
+      puts ("I can only merge files with a .WPI extension.");
       return;
     }
 
@@ -163,7 +163,7 @@ high_merge_wpi_files (const char* first, const char* second)
 
   if (!file1 && !file2)
     {
-      printf ("Couldn't open all files.\r\n");
+      puts ("Couldn't open all files.");
       return;
     }
 
