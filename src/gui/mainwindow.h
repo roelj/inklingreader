@@ -54,7 +54,7 @@ void gui_mainwindow_file_activated (GtkWidget* widget, void* data);
 /**
  * This callback function handles activating the "Export" menu button.
  */
-void gui_mainwindow_export_activated (GtkWidget* widget, void* data);
+void gui_mainwindow_export_activated (GtkWidget* widget);
 
 /**
  * This event handler handles the activation of a menu item within the "File" menu.
@@ -64,17 +64,17 @@ void gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data);
 /**
  * This callback function handles the drawing on the 'document_view' widget.
  */
-gboolean gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data);
+gboolean gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr);
 
 /**
  * This callback function handles adding a color to the color list.
  */
-void gui_mainwindow_add_color (GtkWidget* widget, void* data);
+void gui_mainwindow_add_color ();
 
 /**
  * This function is the callback for setting the background color.
  */
-void gui_mainwindow_set_bg_color (GtkWidget* widget, void* data);
+void gui_mainwindow_set_bg_color (GtkWidget* widget);
 
 /**
  * This function is the callback for resetting a foreground color.
@@ -84,63 +84,63 @@ void gui_mainwindow_set_fg_color (GtkWidget* widget, void* data);
 /**
  * This function is the callback for setting the pressure factor.
  */
-void gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data);
+void gui_mainwindow_set_pressure_input (GtkWidget* widget);
 
 /**
  * This function is the callback for setting the zoom factor.
  */
-void gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data);
+void gui_mainwindow_set_zoom_input ();
 
 /**
  * This function is the callback for enabling or disabling the zoom factor.
  */
-void gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data);
+void gui_mainwindow_set_zoom_toggle (GtkWidget* widget);
 
 /**
  * This function is the callback for enabling or disabling the pressure factor.
  */
-void gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data);
+void gui_mainwindow_set_pressure_toggle (GtkWidget* widget);
 
 /**
  * This function is the callback for enabling or disabling the page dimensions.
  */
-void gui_mainwindow_set_dimensions_input (GtkWidget* widget, void* data);
+void gui_mainwindow_set_dimensions_input (GtkWidget* widget);
 
 /**
  * This function is the callback for enabling or disabling the page dimensions.
  */
-void gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data);
+void gui_mainwindow_set_orientation_input ();
 
 /**
  * This function is the callback for changing the "process_until" value based
  * on the clock.
  */
-void gui_mainwindow_set_clock_value (GtkWidget* widget, void* data);
+void gui_mainwindow_set_clock_value (GtkWidget* widget);
 
 /**
  * This callback function handles activating the "Play" button.
  */
-void gui_mainwindow_play (GtkWidget* widget, void* data);
+void gui_mainwindow_play ();
 
 /**
  * This callback function handles activating the "Pause" button.
  */
-void gui_mainwindow_pause (GtkWidget* widget, void* data);
+void gui_mainwindow_pause ();
 
 /**
  * This callback function handles activating the "Forward" button.
  */
-void gui_mainwindow_forward (GtkWidget* widget, void* data);
+void gui_mainwindow_forward ();
 
 /**
  * This callback function handles activating the "Backward" button.
  */
-void gui_mainwindow_backward (GtkWidget* widget, void* data);
+void gui_mainwindow_backward ();
 
 /**
  * This function applies the next step in time for the "play" feature.
  */
-gboolean gui_mainwindow_update_clock (void* data);
+gboolean gui_mainwindow_update_clock ();
 
 /**
  * Clean up when quitting.

@@ -173,7 +173,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
     }
 
   /* Add the menu items to the menu. */
-  for (a = 0; a < (sizeof (menu_items) / sizeof (char*)); a++)
+  for (a = 0; a < (int)(sizeof (menu_items) / sizeof (char*)); a++)
     {
       GtkWidget* menu_item = gtk_menu_item_new_with_label (menu_items[a]);
       gtk_menu_shell_append (GTK_MENU_SHELL (menu_file), menu_item);
@@ -353,7 +353,7 @@ gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data)
     gui_mainwindow_file_activated (widget, data);
 
   else if (!strcmp (label, "Export"))
-    gui_mainwindow_export_activated (widget, data);
+    gui_mainwindow_export_activated (widget);
 
   else if (!strcmp (label, "Quit"))
     gui_mainwindow_quit ();
@@ -396,7 +396,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
 
       /* Add filters for supported formats. */
       int a = 0;
-      for (; a < (sizeof (file_mimetypes) / sizeof (char*)); a++)
+      for (; a < (int)(sizeof (file_mimetypes) / sizeof (char*)); a++)
 	{
 	  GtkFileFilter* filter = gtk_file_filter_new ();
 	  gtk_file_filter_set_name (filter, file_extensions[a]);
@@ -428,7 +428,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
  | This function applies the next step in time for the "play" feature.        |
  '----------------------------------------------------------------------------*/
 gboolean
-gui_mainwindow_update_clock (void* data)
+gui_mainwindow_update_clock ()
 {
   double value = gtk_range_get_value (GTK_RANGE (clock_scale));
   gtk_range_set_value (GTK_RANGE (clock_scale), value + 1);
@@ -444,7 +444,7 @@ gui_mainwindow_update_clock (void* data)
  | This callback function handles activating the "Play" button.               |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_play (GtkWidget* widget, void* data)
+gui_mainwindow_play ()
 {
   //gtk_range_set_value (GTK_RANGE (clock_scale), 0);
   if (timeout_id != 0) g_source_remove (timeout_id);
@@ -456,7 +456,7 @@ gui_mainwindow_play (GtkWidget* widget, void* data)
  | This callback function handles activating the "Pause" button.              |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_pause (GtkWidget* widget, void* data)
+gui_mainwindow_pause ()
 {
   if (timeout_id != 0)
     g_source_remove (timeout_id),
@@ -468,7 +468,7 @@ gui_mainwindow_pause (GtkWidget* widget, void* data)
  | This callback function handles activating the "Forward" button.            |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_forward (GtkWidget* widget, void* data)
+gui_mainwindow_forward ()
 {
   if (metadata == NULL) return;
 
@@ -494,7 +494,7 @@ gui_mainwindow_forward (GtkWidget* widget, void* data)
  | This callback function handles activating the "Backward" button.           |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_backward (GtkWidget* widget, void* data)
+gui_mainwindow_backward ()
 {
   if (metadata == NULL) return;
   GSList* timings = metadata->layer_timings;
@@ -583,7 +583,7 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
  | This callback function handles activating the "Export" menu button.        |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_export_activated (GtkWidget* widget, void* data)
+gui_mainwindow_export_activated (GtkWidget* widget)
 {
   GtkWidget *parent = gtk_widget_get_toplevel (widget);
   char* filename = gui_mainwindow_file_dialog (parent, GTK_FILE_CHOOSER_ACTION_SAVE);
@@ -618,7 +618,7 @@ gui_mainwindow_export_activated (GtkWidget* widget, void* data)
  | This callback function handles the drawing on the 'document_view' widget.  |
  '----------------------------------------------------------------------------*/
 gboolean
-gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
+gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
 {
   if (parsed_data == NULL && handle == NULL) return 0;
 
@@ -666,7 +666,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr, void* data)
  | GUI_MAINWINDOW_ADD_COLOR                                                   |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_add_color (GtkWidget* widget, void* data)
+gui_mainwindow_add_color ()
 {
   /* Show the color selection dialog. */
   GtkWidget* color_chooser = gtk_color_chooser_dialog_new ("Choose a color", NULL);
@@ -718,7 +718,7 @@ gui_mainwindow_add_color (GtkWidget* widget, void* data)
  | This function is the callback for setting the background color.            |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_bg_color (GtkWidget* widget, void* data)
+gui_mainwindow_set_bg_color (GtkWidget* widget)
 {
   GdkRGBA color;
   gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (widget), &color);
@@ -777,7 +777,7 @@ gui_mainwindow_set_fg_color (GtkWidget* widget, void* data)
  | This function is the callback for setting the pressure factor.             |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
+gui_mainwindow_set_pressure_input (GtkWidget* widget)
 {
   if (gtk_widget_get_visible (pressure_input))
     settings.pressure_factor = gtk_spin_button_get_value (GTK_SPIN_BUTTON (widget));
@@ -792,7 +792,7 @@ gui_mainwindow_set_pressure_input (GtkWidget* widget, void* data)
  | This function is the callback for setting the zoom factor.                 |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data)
+gui_mainwindow_set_zoom_input ()
 {
   gui_mainwindow_redisplay();
 }
@@ -802,7 +802,7 @@ gui_mainwindow_set_zoom_input (GtkWidget* widget, void* data)
  | This function is the callback for enabling or disabling the zoom factor.   |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data)
+gui_mainwindow_set_zoom_toggle (GtkWidget* widget)
 {
   if (gtk_switch_get_active (GTK_SWITCH (widget)))
     {
@@ -825,7 +825,7 @@ gui_mainwindow_set_zoom_toggle (GtkWidget* widget, void* data)
  | This callback is for enabling or disabling the pressure factor.            |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data)
+gui_mainwindow_set_pressure_toggle (GtkWidget* widget)
 {
   if (gtk_switch_get_active (GTK_SWITCH (widget)))
     {
@@ -845,7 +845,7 @@ gui_mainwindow_set_pressure_toggle (GtkWidget* widget, void* data)
  | This callback is for changing the page dimensions.                         |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_dimensions_input (GtkWidget* widget, void* data)
+gui_mainwindow_set_dimensions_input (GtkWidget* widget)
 {
   char* dimensions = gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (widget));
   if (dimensions == NULL) return;
@@ -860,7 +860,7 @@ gui_mainwindow_set_dimensions_input (GtkWidget* widget, void* data)
  | This callback is for changing the page orientation.                        |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data)
+gui_mainwindow_set_orientation_input ()
 {
   /* Since this callback is only called when the orientation changes, 
    * the width and height always swap. */
@@ -876,7 +876,7 @@ gui_mainwindow_set_orientation_input (GtkWidget* widget, void* data)
  | This callback is for setting the clock range to process.                   |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_set_clock_value (GtkWidget* widget, void* data)
+gui_mainwindow_set_clock_value (GtkWidget* widget)
 {
   settings.process_until = (unsigned short)gtk_range_get_value (GTK_RANGE (widget));
 
