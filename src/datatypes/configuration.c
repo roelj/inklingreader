@@ -158,12 +158,17 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
     {
       FILE* file;
       file = fopen (filename, "r");
-      char* line = calloc (1, LINE_LENGTH);
 
       if (file == NULL)
 	perror ("fopen");
       else
 	{
+	  char* line = calloc (1, LINE_LENGTH);
+
+	  /* The loop below will end with (line == NULL). But line was 
+	   * allocated so we must be able to free it afterwards. */
+	  char* line_allocated = line;
+
 	  while ((line = fgets (line, LINE_LENGTH, file)) != NULL)
 	    {
 	      char* location = 0;
@@ -229,10 +234,10 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
 		}
 
 	      /* Reset the line. */
-	      memset (line, '\0', LINE_LENGTH);
+	      line = memset (line, '\0', LINE_LENGTH);
 	    }
 
-	  free (line), line = NULL;
+	  free (line_allocated), line_allocated = NULL;
 	  fclose (file);
 	}
     }
