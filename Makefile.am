@@ -8,9 +8,10 @@ AM_CFLAGS 		= $(gtk_CFLAGS) $(glib_CFLAGS) $(cairo_CFLAGS) $(rsvg_CFLAGS)
 bin_PROGRAMS 		= inklingreader
 inklingreader_SOURCES 	= src/main.c src/gui/mainwindow.c src/gui/mainwindow.h \
 			  src/converters/svg.c src/converters/png.c src/converters/json.c \
-			  src/converters/pdf.c src/parsers/wpi.c src/high/conversion.c \
-			  src/datatypes/configuration.c src/datatypes/configuration.h \
-			  src/optimizers/point-reduction.h src/optimizers/point-reduction.c
+			  src/converters/pdf.c src/converters/csv.c src/parsers/wpi.c \
+			  src/high/conversion.c src/datatypes/configuration.c \
+			  src/datatypes/configuration.h src/optimizers/point-reduction.h \
+			  src/optimizers/point-reduction.c
 inklingreader_LDADD 	= $(gtk_LIBS) $(glib_LIBS) $(cairo_LIBS) $(rsvg_LIBS)
 
 if OS_LINUX

@@ -23,6 +23,7 @@
 #include "../converters/png.h"
 #include "../converters/pdf.h"
 #include "../converters/json.h"
+#include "../converters/csv.h"
 #include "../parsers/wpi.h"
 #include "../datatypes/element.h"
 #include "../high/conversion.h"
@@ -59,14 +60,16 @@ static const char* file_mimetypes[]  = {
   "application/pdf", 
   "image/png", 
   "image/svg+xml", 
-  "application/json"
+  "application/json",
+  "text/csv"
 };
 
 static const char* file_extensions[] = { 
   "PDF - Portable Document Format",
   "PNG - Portable Network Graphics",
   "SVG - Scalable Vector Graphics",
-  "JSON - JavaScript Object Notation"
+  "JSON - JavaScript Object Notation",
+  "CSV - Comma separated values"
 };
 
 const char* menu_items[] = { "Open", "Export", "Quit" };
@@ -155,7 +158,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   fg_color_label = gtk_label_new ("");
 
   /* Add the (already existing) colors as buttons to the color bar. */
-  int a = 0;
+  unsigned int a = 0;
   for (; a < settings.num_colors; a++)
     {
       GdkRGBA color;
@@ -606,6 +609,9 @@ gui_mainwindow_export_activated (GtkWidget* widget)
 
   else if (!strcmp (ext, ".json"))
     co_json_create_file (filename, parsed_data);
+
+  else if (!strcmp (ext, ".csv"))
+    co_csv_create_file (filename, parsed_data);
 
   else if (!strcmp (ext, ".svg"))
     high_export_to_file (parsed_data, NULL, filename, &settings);

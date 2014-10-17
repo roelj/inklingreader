@@ -31,13 +31,15 @@
 #include "../converters/pdf.h"
 #include "../converters/svg.h"
 #include "../converters/json.h"
+#include "../converters/csv.h"
 #include "../datatypes/configuration.h"
 
 /* nested inline function turned into global static inline function for clang
  * see also: <https://wiki.freebsd.org/PortsAndClang#Build_failures_with_fixes> */
 static inline void unsupported ()
 {
-  puts ("Only PNG (.png), SVG (.svg), PDF (.pdf) and JSON (.json) are supported.");
+  puts ("Only PNG (.png), SVG (.svg), PDF (.pdf), JSON (.json) and CSV (.csv) "
+	"are supported.");
 }
 
 /*----------------------------------------------------------------------------.
@@ -104,6 +106,8 @@ high_export_to_file (GSList* data, const char* svg_data, const char* to, dt_conf
       char* extension = strrchr (to, '.');
       if (!strcmp (extension, ".json"))
 	co_json_create_file (to, data);
+      else if (!strcmp (extension, ".csv"))
+	co_csv_create_file (to, data);
       else
 	{
 	  char* svg = NULL;
