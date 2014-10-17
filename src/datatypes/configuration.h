@@ -46,7 +46,7 @@ typedef struct
 typedef struct
 {
   unsigned char type;
-  int num_colors;
+  unsigned int num_colors;
   double pressure_factor;
   char** colors;
   char* background;

@@ -42,6 +42,6 @@ int co_json_create_file (const char* filename, GSList* data);
  * @param title The document's title or NULL for no title.
  * @return A dynamically allocated JSON-formatted string.
  */
-char* co_json_create (GSList* data, const char* title);
+char* co_json_create (GSList* data);
 
 #endif//CONVERTERS_JSON_H

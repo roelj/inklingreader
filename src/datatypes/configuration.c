@@ -81,7 +81,7 @@ dt_configuration_parse_colors (const char* data, dt_configuration* config)
   config->num_colors = 1;
   size_t data_len = strlen (data);
 
-  int index = 0;
+  unsigned int index = 0;
   for (; index != data_len; index++)
     if (data[index] == ',') config->num_colors++;
 
@@ -126,7 +126,7 @@ dt_configuration_cleanup (dt_configuration* config)
 {
   if (config->num_colors > 0)
     {
-      int a = 0;
+      unsigned int a = 0;
       for (; a < config->num_colors; a++)
 	free (config->colors[a]), config->colors[a] = NULL;
 

@@ -45,7 +45,7 @@ extern dt_configuration settings;
 int
 co_json_create_file (const char* filename, GSList* data)
 {
-  char* output = co_json_create (data, filename);
+  char* output = co_json_create (data);
   if (data == NULL) return 1;
 
   FILE* file;
@@ -64,7 +64,7 @@ co_json_create_file (const char* filename, GSList* data)
 }
 
 char*
-co_json_create (GSList* data, const char* title)
+co_json_create (GSList* data)
 {
   /* Floating-point numbers should be written with a dot instead of a comma.
    * To ensure that this happens, (temporarily) set the locale to the "C"
@@ -107,7 +107,7 @@ co_json_create (GSList* data, const char* title)
   unsigned int layer_color = 1;
   unsigned char has_stroke_data = 0;
   unsigned char is_in_stroke = 0;
-  dt_coordinate prev = { TYPE_COORDINATE, 0, 0 };
+  dt_coordinate prev = { TYPE_COORDINATE, 0, 0, 0 };
 
   GSList* stroke_data = NULL; 
 
