@@ -30,7 +30,7 @@ to your Inkscape extension directory. On GNU/Linux that is:
 Screenshot
 ----------
 
-![InklingReader screenshot](http://roelj.com/Inkling_4.png)
+![InklingReader screenshot](http://roelj.com/Inkling_5.png)
 
 Dependencies
 ------------
@@ -78,13 +78,13 @@ doxygen
 Tested distributions
 --------------------
 
-The software is built and tested on:
+The software is known to run on:
 
-* Debian 7.3, 7.4, 7.5, 7.6
+* Debian 7.6
 * CrunchBang Linux 11
 * Fedora 20
 * Mageia 4
-* Ubuntu 12.04, 13.04
+* Ubuntu 14.04
 * Mac OS X 10.7.5, clang (based on LLVM 3.1svn)
 * Windows 8.1 (with MinGW and GTK 32-bit all-in-one bundle)
 
