@@ -36,24 +36,26 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define PT_TO_MM 2.8333
-#define MINIMAL_PADDING 10
 
 extern dt_configuration settings;
 extern dt_preset_dimensions formats[];
 
-static GtkWidget* zoom_input = NULL;
-static GtkWidget* orientation_input = NULL;
-static GtkWidget* dimensions_input = NULL;
-static GtkWidget* pressure_input = NULL;
-static GtkWidget* document_view = NULL;
-static GtkWidget* hbox_colors = NULL;
-static GtkWidget* hbox_timing = NULL;
-static GtkWidget* clock_scale = NULL;
-static GSList* parsed_data = NULL;
-static dt_metadata* metadata = NULL;
-static RsvgHandle* handle = NULL;
-static char* last_file_extension = NULL;
-static char* last_dir = NULL;
+static GtkWidget* header;
+static GtkWidget* timing_button;
+static GtkWidget* export_button;
+static GtkWidget* zoom_input;
+static GtkWidget* orientation_input;
+static GtkWidget* dimensions_input;
+static GtkWidget* pressure_input;
+static GtkWidget* document_view;
+static GtkWidget* hbox_color_buttons;
+static GtkWidget* hbox_timing;
+static GtkWidget* clock_scale;
+static GSList* parsed_data;
+static dt_metadata* metadata;
+static RsvgHandle* handle;
+static char* last_file_extension;
+static char* last_dir;
 static guint timeout_id = 0;
 
 static const char* file_mimetypes[]  = { 
@@ -72,7 +74,11 @@ static const char* file_extensions[] = {
   "CSV - Comma separated values"
 };
 
-const char* menu_items[] = { "Open", "Export", "Quit" };
+typedef enum
+{
+  FILE_OPEN,
+  FILE_EXPORT
+} FileActions;
 
 void
 gui_mainwindow_init (int argc, char** argv, const char* filename)
@@ -80,31 +86,44 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | WIDGETS                                                                  |
    '--------------------------------------------------------------------------*/
-  GtkWidget* window = NULL;
-  GtkWidget* document_viewport = NULL;
-  GtkWidget* document_container = NULL;
+  GtkWidget* window;
+  GtkWidget* open_button;
+  GtkWidget* open_icon;
+  GtkWidget* export_icon;
 
-  GtkWidget* vbox_window = NULL;
-  GtkWidget* hbox_menu_top = NULL;
+  GtkWidget* vbox_settings;
+  GtkWidget* settings_button;
+  GtkWidget* settings_icon;
+  GtkWidget* settings_popover;
 
-  GtkWidget* menu_bar = NULL;
-  GtkWidget* menu_bar_file = NULL;
-  GtkWidget* menu_file = NULL;
-
-  GtkWidget* new_color_button = NULL;
-  GtkWidget* bg_color_button = NULL;
-  GtkWidget* bg_color_label = NULL;
-  GtkWidget* fg_color_label = NULL;
-  GtkWidget* pressure_label = NULL;
-  GtkWidget* zoom_label = NULL;
-  GtkWidget* dimensions_label = NULL;
-  GtkWidget* play_button = NULL;
-  GtkWidget* pause_button = NULL;
-  GtkWidget* forward_button = NULL;
-  GtkWidget* backward_button = NULL;
-  GtkWidget* zoom_toggle = NULL;
-  GtkWidget* pressure_toggle = NULL;
+  GtkWidget* timing_icon;
+  GtkWidget* timing_popover;
   
+  GtkWidget* hbox_colors;
+  GtkWidget* hbox_bg_color;
+  GtkWidget* hbox_zoom;
+  GtkWidget* hbox_pressure;
+  GtkWidget* hbox_dimensions;
+
+  GtkWidget* document_viewport;
+  GtkWidget* document_container;
+
+  GtkWidget* vbox_window;
+
+  GtkWidget* new_color_button;
+  GtkWidget* bg_color_button;
+  GtkWidget* bg_color_label;
+  GtkWidget* fg_color_label;
+  GtkWidget* pressure_label;
+  GtkWidget* zoom_label;
+  GtkWidget* dimensions_label;
+  GtkWidget* play_button;
+  GtkWidget* pause_button;
+  GtkWidget* forward_button;
+  GtkWidget* backward_button;
+  GtkWidget* zoom_toggle;
+  GtkWidget* pressure_toggle;
+
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
    '--------------------------------------------------------------------------*/
@@ -112,18 +131,62 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
+  /*--------------------------------------------------------------------------.
+   | HEADER BAR AND BUTTONS                                                   |
+   '--------------------------------------------------------------------------*/
+  header = gtk_header_bar_new ();
+  gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (header), TRUE);
+  gtk_header_bar_set_title (GTK_HEADER_BAR (header), "InklingReader");
+  gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (header), FALSE);
+  gtk_window_set_titlebar (GTK_WINDOW (window), header);
+
+  open_button = gtk_button_new ();
+  export_button = gtk_button_new ();
+  settings_button = gtk_menu_button_new ();
+  timing_button = gtk_menu_button_new ();
+
+  open_icon = gtk_image_new_from_icon_name ("document-open", GTK_ICON_SIZE_BUTTON);
+  export_icon = gtk_image_new_from_icon_name ("document-save-as", GTK_ICON_SIZE_BUTTON);
+  settings_icon = gtk_image_new_from_icon_name ("emblem-system-symbolic", GTK_ICON_SIZE_BUTTON);
+  timing_icon = gtk_image_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_BUTTON);
+  
+  gtk_button_set_image (GTK_BUTTON (open_button), open_icon);
+  gtk_button_set_image (GTK_BUTTON (export_button), export_icon);
+  gtk_button_set_image (GTK_BUTTON (settings_button), settings_icon);
+  gtk_button_set_image (GTK_BUTTON (timing_button), timing_icon);
+
+  settings_popover = gtk_popover_new (settings_button);
+  timing_popover = gtk_popover_new (timing_button);
+
+  gtk_menu_button_set_popover (GTK_MENU_BUTTON (settings_button), settings_popover);
+  gtk_menu_button_set_popover (GTK_MENU_BUTTON (timing_button), timing_popover);
+  
+  gtk_header_bar_pack_start (GTK_HEADER_BAR (header), open_button);
+  gtk_header_bar_pack_start (GTK_HEADER_BAR (header), export_button);
+  gtk_header_bar_pack_end (GTK_HEADER_BAR (header), settings_button);
+  gtk_header_bar_pack_end (GTK_HEADER_BAR (header), timing_button);
+
+  /*--------------------------------------------------------------------------.
+   | INITIALIZATION OF CONTAINERS                                             |
+   '--------------------------------------------------------------------------*/
   vbox_window = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-  hbox_menu_top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
   hbox_timing = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-  hbox_colors = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   document_container = gtk_scrolled_window_new (NULL, NULL);
   document_viewport = gtk_viewport_new (NULL, NULL);
   document_view = gtk_drawing_area_new ();
 
-  menu_bar = gtk_menu_bar_new ();
-  menu_bar_file = gtk_menu_item_new_with_label ("File");
-  menu_file = gtk_menu_new ();
+  /*--------------------------------------------------------------------------.
+   | SETTINGS POPOVER                                                         |
+   '--------------------------------------------------------------------------*/
+
+  vbox_settings = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  hbox_colors = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  hbox_color_buttons = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  hbox_bg_color = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  hbox_zoom = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  hbox_pressure = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  hbox_dimensions = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   new_color_button = gtk_button_new_with_label ("+");
 
@@ -131,31 +194,44 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   pressure_input = gtk_spin_button_new_with_range (0, 1000.0, 0.05);
   pressure_toggle = gtk_switch_new ();
 
+  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>Pressure</b>");
+
+  gtk_box_pack_start (GTK_BOX (hbox_pressure), pressure_label, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_pressure), pressure_toggle, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_pressure), pressure_input, 0, 0, 5);
+  
+  gtk_box_pack_start (GTK_BOX (vbox_settings), hbox_pressure, 0, 0, 10);
+  gtk_widget_set_size_request (GTK_WIDGET (vbox_settings), 400, 200);
+  
   zoom_label = gtk_label_new ("");
   zoom_input = gtk_spin_button_new_with_range (10.0, 1000.0, 10.0);
   zoom_toggle = gtk_switch_new ();
+
+  gtk_label_set_markup (GTK_LABEL (zoom_label), "<b>Zoom</b>");
+
+  gtk_box_pack_start (GTK_BOX (hbox_zoom), zoom_label, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_zoom), zoom_toggle, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_zoom), zoom_input, 0, 0, 5);
+  
+  gtk_box_pack_start (GTK_BOX (vbox_settings), hbox_zoom, 0, 0, 0);
 
   dimensions_label = gtk_label_new ("");
   dimensions_input = gtk_combo_box_text_new ();
   orientation_input = gtk_combo_box_text_new ();
 
-  play_button = gtk_button_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_LARGE_TOOLBAR);
-  pause_button = gtk_button_new_from_icon_name ("media-playback-pause", GTK_ICON_SIZE_LARGE_TOOLBAR);
-  forward_button = gtk_button_new_from_icon_name ("media-seek-forward", GTK_ICON_SIZE_LARGE_TOOLBAR);
-  backward_button = gtk_button_new_from_icon_name ("media-seek-backward", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  gtk_label_set_markup (GTK_LABEL (dimensions_label), "<b>Dimensions</b>");
 
-  clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
-  gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
-  
-  GdkRGBA bg_doc_color;
-  if (settings.background != NULL)
-    gdk_rgba_parse (&bg_doc_color, settings.background);
-  else
-    gdk_rgba_parse (&bg_doc_color, "#fff");
+  gtk_box_pack_start (GTK_BOX (hbox_dimensions), dimensions_label, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_dimensions), dimensions_input, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_dimensions), orientation_input, 0, 0, 5);
 
-  bg_color_button = gtk_color_button_new_with_rgba (&bg_doc_color);
-  bg_color_label = gtk_label_new ("");
+  gtk_box_pack_start (GTK_BOX (vbox_settings), hbox_dimensions, 0, 0, 10);
+
   fg_color_label = gtk_label_new ("");
+  gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>Document colors</b>");
+  gtk_box_pack_start (GTK_BOX (hbox_colors), fg_color_label, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_colors), hbox_color_buttons, 0, 0, 5);
 
   /* Add the (already existing) colors as buttons to the color bar. */
   unsigned int a = 0;
@@ -172,45 +248,60 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
       g_signal_connect (G_OBJECT (btn_color), "color-set",
 			G_CALLBACK (gui_mainwindow_set_fg_color), number);
 
-      gtk_box_pack_start (GTK_BOX (hbox_colors), btn_color, 0, 0, 0);
-    }
-
-  /* Add the menu items to the menu. */
-  for (a = 0; a < (int)(sizeof (menu_items) / sizeof (char*)); a++)
-    {
-      GtkWidget* menu_item = gtk_menu_item_new_with_label (menu_items[a]);
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu_file), menu_item);
-
-      g_signal_connect (G_OBJECT (menu_item), "activate",
-			G_CALLBACK (gui_mainwindow_menu_file_activate), NULL);
+      gtk_box_pack_start (GTK_BOX (hbox_color_buttons), btn_color, 0, 0, 0);
     }
 
   a = 0;
   while (formats[a].name != NULL)
     {
-      gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (dimensions_input), formats[a].name, formats[a].name);
+      gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (dimensions_input),
+				 NULL, formats[a].name);
       a++;
     }
 
+  gtk_box_pack_start (GTK_BOX (vbox_settings), hbox_colors, 0, 0, 0);
+
+  GdkRGBA bg_doc_color;
+  (settings.background != NULL)
+    ? gdk_rgba_parse (&bg_doc_color, settings.background)
+    : gdk_rgba_parse (&bg_doc_color, "#fff");
+
+  bg_color_button = gtk_color_button_new_with_rgba (&bg_doc_color);
+  bg_color_label = gtk_label_new ("");
+  gtk_label_set_markup (GTK_LABEL (bg_color_label), "<b>Background color</b>");
+
+  gtk_box_pack_start (GTK_BOX (hbox_bg_color), bg_color_label, 0, 0, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_bg_color), bg_color_button, 0, 0, 5);
+
+  gtk_box_pack_start (GTK_BOX (vbox_settings), hbox_bg_color, 0, 0, 10);
+  gtk_widget_show_all (vbox_settings);
+
   gtk_combo_box_set_active (GTK_COMBO_BOX (dimensions_input), 0);
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), NULL, "Portrait");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), NULL, "Landscape");
 
-  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Portrait", "Portrait");
-  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (orientation_input), "Landscape", "Landscape");
+  (settings.page.orientation != NULL && !strcmp (settings.page.orientation, "Landscape"))
+    ? gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 1)
+    : gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
 
-  if (settings.page.orientation != NULL && !strcmp (settings.page.orientation, "Landscape"))
-   gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 1);
-  else
-   gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
+  gtk_container_add (GTK_CONTAINER (settings_popover), vbox_settings);
 
-  gtk_menu_item_set_submenu (GTK_MENU_ITEM (menu_bar_file), menu_file);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), menu_bar_file);
+  /*--------------------------------------------------------------------------.
+   | PLAYBACK                                                                 |
+   '--------------------------------------------------------------------------*/
+  play_button = gtk_button_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  pause_button = gtk_button_new_from_icon_name ("media-playback-pause", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  forward_button = gtk_button_new_from_icon_name ("media-seek-forward", GTK_ICON_SIZE_LARGE_TOOLBAR);
+  backward_button = gtk_button_new_from_icon_name ("media-seek-backward", GTK_ICON_SIZE_LARGE_TOOLBAR);
 
+  clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
+  gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
+  
   /*--------------------------------------------------------------------------.
    | FURTHER CONFIGURATION                                                    |
    '--------------------------------------------------------------------------*/
-  gtk_window_set_title (GTK_WINDOW (window), "InklingReader");
   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-  gtk_widget_set_size_request (window, WINDOW_WIDTH, WINDOW_HEIGHT);
+  gtk_window_set_default_size (GTK_WINDOW (window), WINDOW_WIDTH, WINDOW_HEIGHT);
 
   GdkRGBA bg;
   gdk_rgba_parse (&bg, "#101010");
@@ -218,12 +309,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_container_add (GTK_CONTAINER (document_viewport), document_view);
   gtk_container_add (GTK_CONTAINER (document_container), document_viewport);
-
-  gtk_label_set_markup (GTK_LABEL (bg_color_label), "<b>B:</b>");
-  gtk_label_set_markup (GTK_LABEL (fg_color_label), "<b>F:</b>");
-  gtk_label_set_markup (GTK_LABEL (pressure_label), "<b>P:</b>");
-  gtk_label_set_markup (GTK_LABEL (zoom_label), "<b>Z:</b>");
-  gtk_label_set_markup (GTK_LABEL (dimensions_label), "<b>D:</b>");
 
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (pressure_input), settings.pressure_factor);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), 100.0);
@@ -233,38 +318,18 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
    '--------------------------------------------------------------------------*/
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), menu_bar, 0, 0, 0);
-  gtk_box_pack_start (GTK_BOX (vbox_window), hbox_menu_top, 0, 0, 0);
-
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_label, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), bg_color_button, 0, 0, 5);
-
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), fg_color_label, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), hbox_colors, 0, 0, 0);
-  gtk_box_pack_end (GTK_BOX (hbox_colors), new_color_button, 0, 0, 5);
-
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_label, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_input, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), pressure_toggle, 0, 0, 5);
-
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_label, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_input, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), zoom_toggle, 0, 0, 5);
-
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), dimensions_label, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), dimensions_input, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_menu_top), orientation_input, 0, 0, 5);
-
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
   gtk_box_pack_start (GTK_BOX (hbox_timing), play_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), pause_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), backward_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), forward_button, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_timing), clock_scale, 1, 1, 5);
+  gtk_box_pack_end (GTK_BOX (hbox_timing), clock_scale, 1, 1, 5);
 
-  gtk_box_pack_end (GTK_BOX (vbox_window), hbox_timing, 0, 0, 5);
+  gtk_widget_show_all (GTK_WIDGET (hbox_timing));
+  gtk_widget_set_size_request (GTK_WIDGET (hbox_timing), 600, 0);
   
+  gtk_container_add (GTK_CONTAINER (timing_popover), hbox_timing);
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
 
   /*--------------------------------------------------------------------------.
@@ -315,16 +380,24 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   g_signal_connect (G_OBJECT (pressure_toggle), "notify::active",
 		    G_CALLBACK (gui_mainwindow_set_pressure_toggle), NULL);
 
+  g_signal_connect (G_OBJECT (open_button), "clicked",
+		    G_CALLBACK (gui_mainwindow_menu_file_activate), (void*)FILE_OPEN);
+
+  g_signal_connect (G_OBJECT (export_button), "clicked",
+		    G_CALLBACK (gui_mainwindow_menu_file_activate), (void*)FILE_EXPORT);
+
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |
    '--------------------------------------------------------------------------*/
 
   gtk_widget_show_all (window);
   gtk_widget_hide (zoom_input);
-  gtk_widget_hide (hbox_timing);
+  //gtk_widget_hide (hbox_timing);
+  gtk_widget_set_sensitive (GTK_WIDGET (export_button), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (timing_button), FALSE);
   
   if (filename)
-    gui_mainwindow_file_activated (NULL, (char*)filename);
+    gui_mainwindow_file_activated (window, (char*)filename);
 
   gtk_main ();
 }
@@ -350,16 +423,16 @@ gui_mainwindow_redisplay ()
 void 
 gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data)
 {
-  const char* label = gtk_menu_item_get_label (GTK_MENU_ITEM (widget));
-
-  if (!strcmp (label, "Open"))
-    gui_mainwindow_file_activated (widget, data);
-
-  else if (!strcmp (label, "Export"))
-    gui_mainwindow_export_activated (widget);
-
-  else if (!strcmp (label, "Quit"))
-    gui_mainwindow_quit ();
+  FileActions action = (FileActions)data;
+  switch (action)
+    {
+      case FILE_OPEN:
+	gui_mainwindow_file_activated (widget, NULL);
+	break;
+      case FILE_EXPORT:
+	gui_mainwindow_export_activated (widget);
+	break;
+    }
 }
 
 /*----------------------------------------------------------------------------.
@@ -536,7 +609,7 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
     {
       char* window_title = malloc (16 + strlen (filename) + 1);
       sprintf (window_title, "InklingReader: %s", filename);
-      gtk_window_set_title (GTK_WINDOW (parent), window_title);
+      gtk_header_bar_set_title (GTK_HEADER_BAR (header), window_title);
 
       free (window_title);
 
@@ -572,7 +645,9 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	}
 
       gtk_widget_show_all (hbox_timing);
-	  
+      gtk_widget_set_sensitive (GTK_WIDGET (export_button), TRUE);
+      gtk_widget_set_sensitive (GTK_WIDGET (timing_button), TRUE);
+
       /* Clean up the filename if it was gathered using the dialog. */
       if (!data)
 	g_free (filename);
@@ -634,15 +709,15 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
   double ratio = 1.00;
   
   if (!gtk_widget_get_visible (zoom_input))
-    ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.10;
+    ratio = w / (settings.page.width * PT_TO_MM * 1.25) / 1.15;
   else
     ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0,
     gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
 
-  double padding = (w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2;
+  double padding = ((w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2) - 30;
   if (padding < 0) padding = 0;
   double h = settings.page.height * PT_TO_MM * 1.25 * ratio + padding * 2;
-  w = settings.page.width * PT_TO_MM * 1.25 * ratio + padding + MINIMAL_PADDING;
+  w = settings.page.width * PT_TO_MM * 1.25 * ratio + padding;
 
   gtk_widget_set_size_request (widget, w, h);
 
@@ -650,10 +725,8 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
   cairo_scale (cr, ratio, ratio);
 
   if (handle)
-    {
-      rsvg_handle_render_cairo (handle, cr);
-      rsvg_handle_close (handle, NULL);
-    }
+    rsvg_handle_render_cairo (handle, cr),
+    rsvg_handle_close (handle, NULL);
   else if (parsed_data)
     {
       char* svg_data = co_svg_create (parsed_data, NULL, &settings);
@@ -672,10 +745,13 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
  | GUI_MAINWINDOW_ADD_COLOR                                                   |
  '----------------------------------------------------------------------------*/
 void
-gui_mainwindow_add_color ()
+gui_mainwindow_add_color (GtkWidget* widget)
 {
+  GtkWidget *parent = gtk_widget_get_toplevel (widget);
+  GtkWidget* color_chooser;
+
   /* Show the color selection dialog. */
-  GtkWidget* color_chooser = gtk_color_chooser_dialog_new ("Choose a color", NULL);
+  color_chooser = gtk_color_chooser_dialog_new ("Choose a color", GTK_WINDOW (parent));
   GdkRGBA chosen_color;
 
   gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (color_chooser), 0);
@@ -709,7 +785,7 @@ gui_mainwindow_add_color ()
       snprintf (settings.colors[settings.num_colors], 8, "#%02X%02x%02x", r, g, b);
       settings.num_colors++;
 
-      gtk_box_pack_start (GTK_BOX (hbox_colors), color, 0, 0, 0);
+      gtk_box_pack_start (GTK_BOX (hbox_color_buttons), color, 0, 0, 0);
       gtk_widget_show (color);
 
       gui_mainwindow_redisplay();

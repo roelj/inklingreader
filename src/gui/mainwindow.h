@@ -64,12 +64,12 @@ void gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data);
 /**
  * This callback function handles the drawing on the 'document_view' widget.
  */
-gboolean gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr);
+gboolean gui_mainwindow_document_view_draw (GtkWidget* widget, cairo_t *cr);
 
 /**
  * This callback function handles adding a color to the color list.
  */
-void gui_mainwindow_add_color ();
+void gui_mainwindow_add_color (GtkWidget* widget);
 
 /**
  * This function is the callback for setting the background color.
