@@ -1,7 +1,6 @@
 #include "point-reduction.h"
 #include "../datatypes/coordinate.h"
 #include "../datatypes/element.h"
-#include <stdio.h>
 
 static int
 opt_in_between (dt_coordinate* first, dt_coordinate* second, dt_coordinate* third, float factor)
@@ -27,8 +26,6 @@ opt_point_reduction_apply (GSList* data)
   dt_coordinate* first = NULL;
   dt_coordinate* second = NULL;
   dt_coordinate* third = NULL;
-  
-  printf ("Elements before: %i\n", g_slist_length (head));
   
   while (data != NULL)
     {
@@ -61,8 +58,6 @@ opt_point_reduction_apply (GSList* data)
 
       data = data->next;
     }
-
-  printf ("Elements after:  %i\n", g_slist_length (head));
 
   return 1;
 }
