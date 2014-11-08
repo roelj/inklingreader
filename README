@@ -1,9 +1,9 @@
-InklingReader
-==============
+GNU InklingReader
+=================
 
-This project is an attempt to create a GNU/Linux-friendly version of the Wacom 
-Inkling SketchManager. Instead of integrating with proprietary programs, this
-program aims to be compatible with free software alternatives like Inkscape.
+This GNU project is an attempt to create a GNU/Linux-friendly version of the
+Wacom Inkling SketchManager. Instead of integrating with proprietary programs,
+this program aims to be compatible with free software alternatives like Inkscape.
 
 The program can:
 
