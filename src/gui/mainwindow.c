@@ -90,15 +90,11 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
    '--------------------------------------------------------------------------*/
   GtkWidget* window;
   GtkWidget* open_button;
-  GtkWidget* open_icon;
-  GtkWidget* export_icon;
 
   GtkWidget* vbox_settings;
   GtkWidget* settings_button;
-  GtkWidget* settings_icon;
   GtkWidget* settings_popover;
 
-  GtkWidget* timing_icon;
   GtkWidget* timing_popover;
   
   GtkWidget* hbox_colors;
@@ -380,7 +376,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_widget_show_all (window);
   gtk_widget_hide (zoom_input);
-  //gtk_widget_hide (hbox_timing);
   gtk_widget_set_sensitive (GTK_WIDGET (export_button), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (timing_button), FALSE);
   
