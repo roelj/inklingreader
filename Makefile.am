@@ -7,11 +7,19 @@ AUTOMAKE_OPTIONS 	= subdir-objects
 AM_CFLAGS 		= $(gtk_CFLAGS) $(glib_CFLAGS) $(cairo_CFLAGS) $(rsvg_CFLAGS)
 bin_PROGRAMS 		= inklingreader
 inklingreader_SOURCES 	= src/main.c src/gui/mainwindow.c src/gui/mainwindow.h \
-			  src/converters/svg.c src/converters/png.c src/converters/json.c \
-			  src/converters/pdf.c src/converters/csv.c src/parsers/wpi.c \
-			  src/high/conversion.c src/datatypes/configuration.c \
-			  src/datatypes/configuration.h src/optimizers/point-reduction.h \
-			  src/optimizers/point-reduction.c
+			  src/converters/svg.c src/converters/svg.h \
+			  src/converters/png.c src/converters/png.h \
+			  src/converters/json.c src/converters/json.h \
+			  src/converters/pdf.c src/converters/pdf.h \
+			  src/converters/csv.c src/converters/csv.h \
+			  src/parsers/wpi.c src/parsers/wpi.h \
+			  src/high/conversion.c src/high/conversion.h \
+			  src/datatypes/configuration.c src/datatypes/configuration.h \
+			  src/optimizers/point-reduction.h src/optimizers/point-reduction.c \
+			  src/datatypes/coordinate.h src/datatypes/clock.h \
+			  src/datatypes/element.h src/datatypes/metadata.h \
+			  src/datatypes/pressure.h src/datatypes/stroke.h src/datatypes/tilt.h
+
 inklingreader_LDADD 	= $(gtk_LIBS) $(glib_LIBS) $(cairo_LIBS) $(rsvg_LIBS)
 
 if OS_LINUX
