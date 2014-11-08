@@ -123,11 +123,6 @@ void gui_mainwindow_set_clock_value (GtkWidget* widget);
 void gui_mainwindow_play ();
 
 /**
- * This callback function handles activating the "Pause" button.
- */
-void gui_mainwindow_pause ();
-
-/**
  * This callback function handles activating the "Forward" button.
  */
 void gui_mainwindow_forward ();

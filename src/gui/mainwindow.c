@@ -57,6 +57,8 @@ static RsvgHandle* handle;
 static char* last_file_extension;
 static char* last_dir;
 static guint timeout_id = 0;
+static gboolean is_playing = FALSE;
+static GtkWidget* play_button;
 
 static const char* file_mimetypes[]  = { 
   "application/pdf", 
@@ -117,8 +119,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* pressure_label;
   GtkWidget* zoom_label;
   GtkWidget* dimensions_label;
-  GtkWidget* play_button;
-  GtkWidget* pause_button;
   GtkWidget* forward_button;
   GtkWidget* backward_button;
   GtkWidget* zoom_toggle;
@@ -140,20 +140,13 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (header), FALSE);
   gtk_window_set_titlebar (GTK_WINDOW (window), header);
 
-  open_button = gtk_button_new ();
-  export_button = gtk_button_new ();
+  open_button = gtk_button_new_with_label ("Open");
+  export_button = gtk_button_new_with_label ("Export");
   settings_button = gtk_menu_button_new ();
   timing_button = gtk_menu_button_new ();
 
-  open_icon = gtk_image_new_from_icon_name ("document-open", GTK_ICON_SIZE_BUTTON);
-  export_icon = gtk_image_new_from_icon_name ("document-save-as", GTK_ICON_SIZE_BUTTON);
-  settings_icon = gtk_image_new_from_icon_name ("emblem-system-symbolic", GTK_ICON_SIZE_BUTTON);
-  timing_icon = gtk_image_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_BUTTON);
-  
-  gtk_button_set_image (GTK_BUTTON (open_button), open_icon);
-  gtk_button_set_image (GTK_BUTTON (export_button), export_icon);
-  gtk_button_set_image (GTK_BUTTON (settings_button), settings_icon);
-  gtk_button_set_image (GTK_BUTTON (timing_button), timing_icon);
+  gtk_button_set_label (GTK_BUTTON (settings_button), "Settings");
+  gtk_button_set_label (GTK_BUTTON (timing_button), "Timeline");
 
   settings_popover = gtk_popover_new (settings_button);
   timing_popover = gtk_popover_new (timing_button);
@@ -290,10 +283,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
    | PLAYBACK                                                                 |
    '--------------------------------------------------------------------------*/
   play_button = gtk_button_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_LARGE_TOOLBAR);
-  pause_button = gtk_button_new_from_icon_name ("media-playback-pause", GTK_ICON_SIZE_LARGE_TOOLBAR);
   forward_button = gtk_button_new_from_icon_name ("media-seek-forward", GTK_ICON_SIZE_LARGE_TOOLBAR);
   backward_button = gtk_button_new_from_icon_name ("media-seek-backward", GTK_ICON_SIZE_LARGE_TOOLBAR);
-
+  
   clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
   gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
   
@@ -321,7 +313,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
 
   gtk_box_pack_start (GTK_BOX (hbox_timing), play_button, 0, 0, 5);
-  gtk_box_pack_start (GTK_BOX (hbox_timing), pause_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), backward_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), forward_button, 0, 0, 5);
   gtk_box_pack_end (GTK_BOX (hbox_timing), clock_scale, 1, 1, 5);
@@ -343,9 +334,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (play_button), "clicked",
   		    G_CALLBACK (gui_mainwindow_play), NULL);
-
-  g_signal_connect (G_OBJECT (pause_button), "clicked",
-  		    G_CALLBACK (gui_mainwindow_pause), NULL);
 
   g_signal_connect (G_OBJECT (forward_button), "clicked",
   		    G_CALLBACK (gui_mainwindow_forward), metadata);
@@ -522,21 +510,30 @@ gui_mainwindow_update_clock ()
 void
 gui_mainwindow_play ()
 {
-  //gtk_range_set_value (GTK_RANGE (clock_scale), 0);
-  if (timeout_id != 0) g_source_remove (timeout_id);
-  timeout_id = g_timeout_add (100, gui_mainwindow_update_clock, NULL);
-}
-
-/*----------------------------------------------------------------------------.
- | GUI_MAINWINDOW_PAUSE                                                       |
- | This callback function handles activating the "Pause" button.              |
- '----------------------------------------------------------------------------*/
-void
-gui_mainwindow_pause ()
-{
   if (timeout_id != 0)
     g_source_remove (timeout_id),
     timeout_id = 0;
+
+  GtkWidget *icon;
+  
+  if (!is_playing)
+    {
+      timeout_id = g_timeout_add (100, gui_mainwindow_update_clock, NULL);
+
+      icon = gtk_image_new_from_icon_name ("media-playback-pause",
+					   GTK_ICON_SIZE_LARGE_TOOLBAR);
+
+      gtk_button_set_image (GTK_BUTTON (play_button), icon);
+      is_playing = TRUE;
+    }
+  else
+    {
+      icon = gtk_image_new_from_icon_name ("media-playback-start",
+					   GTK_ICON_SIZE_LARGE_TOOLBAR);
+
+      gtk_button_set_image (GTK_BUTTON (play_button), icon);      
+      is_playing = FALSE;
+    }
 }
 
 /*----------------------------------------------------------------------------.
