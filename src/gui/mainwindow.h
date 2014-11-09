@@ -66,6 +66,12 @@ void gui_mainwindow_menu_file_activate (GtkWidget* widget, void* data);
  */
 gboolean gui_mainwindow_document_view_draw (GtkWidget* widget, cairo_t *cr);
 
+
+/**
+ * This function is the callback for the "save settings" button.
+ */
+void gui_mainwindow_save_settings ();
+
 /**
  * This callback function handles adding a color to the color list.
  */

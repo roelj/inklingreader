@@ -99,4 +99,11 @@ void dt_configuration_parse_dimensions (const char* data, dt_configuration* conf
  */
 void dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* config);
 
+/**
+ * This function writes a configuration to a file.
+ * @param path   The filename to write the file content to.
+ * @param config A dt_configuration structure to get the data from.
+ */
+void dt_configuration_store_settings (const char* path, dt_configuration *config);
+
 #endif//DATATYPES_CONFIGURATION_H

@@ -119,6 +119,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* backward_button;
   GtkWidget* zoom_toggle;
   GtkWidget* pressure_toggle;
+  GtkWidget* save_config_button;
 
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
@@ -140,6 +141,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   export_button = gtk_button_new_with_label ("Export");
   settings_button = gtk_menu_button_new ();
   timing_button = gtk_menu_button_new ();
+  save_config_button = gtk_button_new_with_label ("Save configuration");
 
   gtk_button_set_label (GTK_BUTTON (settings_button), "Settings");
   gtk_button_set_label (GTK_BUTTON (timing_button), "Timeline");
@@ -273,6 +275,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
     ? gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 1)
     : gtk_combo_box_set_active (GTK_COMBO_BOX (orientation_input), 0);
 
+  gtk_widget_show (save_config_button);
+  gtk_box_pack_start (GTK_BOX (vbox_settings), save_config_button, 0, 1, 5);
   gtk_container_add (GTK_CONTAINER (settings_popover), vbox_settings);
 
   /*--------------------------------------------------------------------------.
@@ -369,6 +373,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   g_signal_connect (G_OBJECT (export_button), "clicked",
 		    G_CALLBACK (gui_mainwindow_menu_file_activate), (void*)FILE_EXPORT);
+
+  g_signal_connect (G_OBJECT (save_config_button), "clicked",
+		    G_CALLBACK (gui_mainwindow_save_settings), NULL);
 
   /*--------------------------------------------------------------------------.
    | DISPLAY                                                                  |
@@ -732,6 +739,15 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
   return 0;
 }
 
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_SAVE_SETTINGS                                               |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_save_settings ()
+{
+  settings.page.orientation = gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (orientation_input));
+  dt_configuration_store_settings (settings.config_location, &settings);
+}
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_ADD_COLOR                                                   |

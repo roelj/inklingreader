@@ -263,6 +263,10 @@ dt_configuration_parse_dimensions (const char* data, dt_configuration* config)
     dt_configuration_parse_preset_dimensions (data, config);
 }
 
+/*----------------------------------------------------------------------------.
+ | DT_CONFIGURATION_PARSE_PRESET_DIMENSIONS                                   |
+ | This function parses preset page dimensions and sets them in 'config'.     |
+ '----------------------------------------------------------------------------*/
 void
 dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* config)
 {
@@ -282,4 +286,45 @@ dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* co
 	} 
       a++;
     }
+}
+
+/*----------------------------------------------------------------------------.
+ | DT_CONFIGURATION_STORE_SETTINGS                                            |
+ | This function outputs the current settings to a file so it can be loaded   |
+ | some later time.                                                           |
+ '----------------------------------------------------------------------------*/
+void
+dt_configuration_store_settings (const char* path, dt_configuration *config)
+{
+  FILE *file;
+  file = fopen (path, "w");
+  if (file == NULL)
+    perror ("fopen");
+  else
+    {
+      char *colors = calloc (1, 10 * config->num_colors + 20);
+      if (colors == NULL)
+	{
+	  fclose (file);
+	  return;
+	}
+
+      int counter;
+      for (counter = 0; counter < config->num_colors; counter++)
+	{
+	  strcat (colors, config->colors[counter]);
+	  if (counter + 1 != config->num_colors) strcat (colors, ",");
+	}
+      
+      fprintf (file,
+	       "background = %s\ncolors = %s\npressure-factor = %.2f\n"
+	       "dimensions = %.2fx%.2f%s\norientation = %s", config->background,
+	       colors, config->pressure_factor, config->page.width,
+	       config->page.height, config->page.measurement,
+	       config->page.orientation);
+
+      free (colors);
+    }
+
+  fclose (file);
 }
