@@ -4,7 +4,7 @@
 # without any warranty.
 
 AUTOMAKE_OPTIONS 	= subdir-objects
-AM_CFLAGS 		= $(gtk_CFLAGS) $(glib_CFLAGS) $(cairo_CFLAGS) $(rsvg_CFLAGS)
+AM_CFLAGS 		= $(gtk_CFLAGS) $(glib_CFLAGS) $(cairo_CFLAGS) $(rsvg_CFLAGS) $(libusb_CFLAGS)
 bin_PROGRAMS 		= inklingreader
 inklingreader_SOURCES 	= src/main.c src/gui/mainwindow.c src/gui/mainwindow.h \
 			  src/converters/svg.c src/converters/svg.h \
@@ -16,11 +16,12 @@ inklingreader_SOURCES 	= src/main.c src/gui/mainwindow.c src/gui/mainwindow.h \
 			  src/high/conversion.c src/high/conversion.h \
 			  src/datatypes/configuration.c src/datatypes/configuration.h \
 			  src/optimizers/point-reduction.h src/optimizers/point-reduction.c \
+			  src/usb/online-mode.h src/usb/online-mode.c \
 			  src/datatypes/coordinate.h src/datatypes/clock.h \
 			  src/datatypes/element.h src/datatypes/metadata.h \
 			  src/datatypes/pressure.h src/datatypes/stroke.h src/datatypes/tilt.h
 
-inklingreader_LDADD 	= $(gtk_LIBS) $(glib_LIBS) $(cairo_LIBS) $(rsvg_LIBS)
+inklingreader_LDADD 	= $(gtk_LIBS) $(glib_LIBS) $(cairo_LIBS) $(rsvg_LIBS) $(libusb_LIBS)
 
 if OS_LINUX
 inklingreader_LDADD    += -ldl -lpthread

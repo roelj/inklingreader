@@ -28,6 +28,7 @@
  | - p_:     Parsers                                                          |
  | - gui_:   Graphical User Interface                                         |
  | - co_:    Converters                                                       |
+ | - opt_:   Optimizers.                                                      |
  | - high_:  Provides functions that combine other functions ("high level").  |
  '----------------------------------------------------------------------------*/
 
@@ -43,6 +44,7 @@
 #include "high/conversion.h"
 #include "converters/svg.h"
 #include "optimizers/point-reduction.h"
+//#include "usb/online-mode.h"
 
 /* This struct stores various run-time configuration options to allow 
  * customization of the behavior of the program. */
@@ -112,6 +114,9 @@ static void cleanup_configuration ()
 int
 main (int argc, char** argv)
 {
+  // Research for "online-mode".
+  //usb_online_mode_init ();
+
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
   unsigned char launch_gui = 1;
@@ -376,5 +381,6 @@ main (int argc, char** argv)
       gui_mainwindow_init (argc, argv, filename);
     }
 
+  //usb_online_mode_exit ();
   return 0;
 }

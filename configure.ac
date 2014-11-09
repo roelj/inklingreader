@@ -48,5 +48,6 @@ PKG_CHECK_MODULES([gtk], [gtk+-3.0])
 PKG_CHECK_MODULES([glib], [glib-2.0])
 PKG_CHECK_MODULES([rsvg], [librsvg-2.0])
 PKG_CHECK_MODULES([cairo], [cairo])
+PKG_CHECK_MODULES([libusb], [libusb-1.0])
 
 AC_OUTPUT
