@@ -29,6 +29,7 @@
  | - gui_:   Graphical User Interface                                         |
  | - co_:    Converters                                                       |
  | - opt_:   Optimizers.                                                      |
+ | - usb_:   USB device interaction (mostly for online-mode).                 |
  | - high_:  Provides functions that combine other functions ("high level").  |
  '----------------------------------------------------------------------------*/
 
@@ -44,7 +45,7 @@
 #include "high/conversion.h"
 #include "converters/svg.h"
 #include "optimizers/point-reduction.h"
-//#include "usb/online-mode.h"
+#include "usb/online-mode.h"
 
 /* This struct stores various run-time configuration options to allow 
  * customization of the behavior of the program. */
@@ -69,7 +70,7 @@ read_default_configuration ()
 static void
 show_version ()
 {
-  puts ("Version: 0.8\r\n");
+  puts ("Version: 0.8\n");
 }
 
 
@@ -80,20 +81,21 @@ show_version ()
 static void
 show_help ()
 {
-  puts ("\r\nAvailable options:\r\n"
-	"  --dimensions,        -a  Specify the page dimensions for the document.\r\n"
-	"  --orientation,       -o  Specify the orientation of the page.\r\n"
-	"  --background,        -b  Specify the background color for the document.\r\n"
-	"  --colors,            -c  Specify a list of colors (comma separated).\r\n"
-	"  --pressure-factor,   -p  Specify a factor for handling pressure data.\r\n"
-	"  --convert-directory, -d  Convert all WPI files in a directory.\r\n"
-	"  --file,              -f  Specify the WPI file to convert.\r\n"
-	"  --to,                -t  Specify the file to write to.\r\n"
-	"  --direct-output,     -i  Tell the program to output SVG data to stdout.\r\n"
-	"  --merge,             -m  Merge two WPI files into one.\r\n"
-	"  --gui,               -g  Start the graphical user interface.\r\n"
-	"  --version,           -v  Show versioning information.\r\n"
-	"  --help,              -h  Show this message.\r\n\r\n");
+  puts ("\nAvailable options:\n"
+	"  --dimensions,        -a  Specify the page dimensions for the document.\n"
+	"  --orientation,       -o  Specify the orientation of the page.\n"
+	"  --background,        -b  Specify the background color for the document.\n"
+	"  --colors,            -c  Specify a list of colors (comma separated).\n"
+	"  --pressure-factor,   -p  Specify a factor for handling pressure data.\n"
+	"  --convert-directory, -d  Convert all WPI files in a directory.\n"
+	"  --file,              -f  Specify the WPI file to convert.\n"
+	"  --to,                -t  Specify the file to write to.\n"
+	"  --direct-output,     -i  Tell the program to output SVG data to stdout.\n"
+	"  --merge,             -m  Merge two WPI files into one.\n"
+	"  --gui,               -g  Start the graphical user interface.\n"
+	"  --online-mode        -j  Use the online mode.\n"
+	"  --version,           -v  Show versioning information.\n"
+	"  --help,              -h  Show this message.\n\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -114,9 +116,6 @@ static void cleanup_configuration ()
 int
 main (int argc, char** argv)
 {
-  // Research for "online-mode".
-  //usb_online_mode_init ();
-
   /* A variable that controls whether the graphical user interface should be 
    * opened or not. 0 means "don't open" and 1 means "open". */
   unsigned char launch_gui = 1;
@@ -155,6 +154,7 @@ main (int argc, char** argv)
 	  { "gui",               optional_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "direct-output",     no_argument,       0, 'i' },
+	  { "online-mode",       no_argument,       0, 'j' },
 	  { "merge",             required_argument, 0, 'm' },
 	  { "orientation",       required_argument, 0, 'o' },
 	  { "pressure-factor",   required_argument, 0, 'p' },
@@ -166,7 +166,7 @@ main (int argc, char** argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "a:b:c:d:s:f:m:p:t:g:vh", options, &index);
+	  arg = getopt_long (argc, argv, "a:b:c:d:s:f:m:p:t:g:jvh", options, &index);
 
 	  switch (arg)
 	    {
@@ -332,6 +332,15 @@ main (int argc, char** argv)
 		launch_gui = 1;
 	      }
 	      break;
+	
+	      /*--------------------------------------------------------------.
+	       | OPTION: ONLINE_MODE                                          |
+	       | Try to get the device to behave like a mouse.                |
+	       '--------------------------------------------------------------*/
+	    case 'j':
+	      usb_online_mode_init ();
+	      usb_online_mode_exit ();
+	      break;
 
 	      /*--------------------------------------------------------------.
 	       | OPTION: HELP                                                 |
@@ -381,6 +390,5 @@ main (int argc, char** argv)
       gui_mainwindow_init (argc, argv, filename);
     }
 
-  //usb_online_mode_exit ();
   return 0;
 }
