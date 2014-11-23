@@ -144,6 +144,16 @@ void gui_mainwindow_backward ();
 gboolean gui_mainwindow_update_clock ();
 
 /**
+ * This callback funciton handles showing or hiding the "Settings" pane.
+ */
+void gui_mainwindow_toggle_settings (GtkWidget* widget, void* data);
+
+/**
+ * This callback funciton handles showing or hiding the timeline pane.
+ */
+void gui_mainwindow_toggle_timing (GtkWidget* widget, void* data);
+
+/**
  * Clean up when quitting.
  */
 void gui_mainwindow_quit ();

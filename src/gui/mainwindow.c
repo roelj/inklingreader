@@ -48,6 +48,7 @@ static GtkWidget* orientation_input;
 static GtkWidget* dimensions_input;
 static GtkWidget* pressure_input;
 static GtkWidget* document_view;
+static GtkWidget* document_container;
 static GtkWidget* hbox_color_buttons;
 static GtkWidget* hbox_timing;
 static GtkWidget* clock_scale;
@@ -93,9 +94,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   GtkWidget* vbox_settings;
   GtkWidget* settings_button;
-  GtkWidget* settings_popover;
-
-  GtkWidget* timing_popover;
   
   GtkWidget* hbox_colors;
   GtkWidget* hbox_bg_color;
@@ -104,7 +102,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* hbox_dimensions;
 
   GtkWidget* document_viewport;
-  GtkWidget* document_container;
 
   GtkWidget* vbox_window;
 
@@ -120,7 +117,9 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   GtkWidget* zoom_toggle;
   GtkWidget* pressure_toggle;
   GtkWidget* save_config_button;
-
+  GtkWidget* vbox_pane;
+  GtkWidget* hbox_pane;
+  
   /*--------------------------------------------------------------------------.
    | INIT AND CREATION OF WIDGETS                                             |
    '--------------------------------------------------------------------------*/
@@ -134,23 +133,16 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   header = gtk_header_bar_new ();
   gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (header), TRUE);
   gtk_header_bar_set_title (GTK_HEADER_BAR (header), "InklingReader");
-  gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (header), FALSE);
   gtk_window_set_titlebar (GTK_WINDOW (window), header);
 
   open_button = gtk_button_new_with_label ("Open");
   export_button = gtk_button_new_with_label ("Export");
-  settings_button = gtk_menu_button_new ();
-  timing_button = gtk_menu_button_new ();
+  settings_button = gtk_button_new_with_label ("Settings");
+  timing_button = gtk_button_new_with_label ("Timeline");
   save_config_button = gtk_button_new_with_label ("Save configuration");
 
-  gtk_button_set_label (GTK_BUTTON (settings_button), "Settings");
-  gtk_button_set_label (GTK_BUTTON (timing_button), "Timeline");
-
-  settings_popover = gtk_popover_new (settings_button);
-  timing_popover = gtk_popover_new (timing_button);
-
-  gtk_menu_button_set_popover (GTK_MENU_BUTTON (settings_button), settings_popover);
-  gtk_menu_button_set_popover (GTK_MENU_BUTTON (timing_button), timing_popover);
+  vbox_pane = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
+  hbox_pane = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
   
   gtk_header_bar_pack_start (GTK_HEADER_BAR (header), open_button);
   gtk_header_bar_pack_start (GTK_HEADER_BAR (header), export_button);
@@ -277,7 +269,6 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_widget_show (save_config_button);
   gtk_box_pack_start (GTK_BOX (vbox_settings), save_config_button, 0, 1, 5);
-  gtk_container_add (GTK_CONTAINER (settings_popover), vbox_settings);
 
   /*--------------------------------------------------------------------------.
    | PLAYBACK                                                                 |
@@ -285,7 +276,7 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   play_button = gtk_button_new_from_icon_name ("media-playback-start", GTK_ICON_SIZE_LARGE_TOOLBAR);
   forward_button = gtk_button_new_from_icon_name ("media-seek-forward", GTK_ICON_SIZE_LARGE_TOOLBAR);
   backward_button = gtk_button_new_from_icon_name ("media-seek-backward", GTK_ICON_SIZE_LARGE_TOOLBAR);
-  
+
   clock_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 1, 1);
   gtk_scale_set_value_pos (GTK_SCALE (clock_scale), GTK_POS_LEFT);
   
@@ -310,17 +301,19 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   /*--------------------------------------------------------------------------.
    | CONTAINERS                                                               |
    '--------------------------------------------------------------------------*/
-  gtk_box_pack_start (GTK_BOX (vbox_window), document_container, 1, 1, 0);
+  gtk_paned_pack1 (GTK_PANED (vbox_pane), document_container, 1, 1);
+  gtk_paned_pack2 (GTK_PANED (vbox_pane), hbox_timing, 0, 0);
+
+  gtk_paned_pack1 (GTK_PANED (hbox_pane), vbox_pane, 1, 1);
+  gtk_paned_pack2 (GTK_PANED (hbox_pane), vbox_settings, 0, 0);
+
+  gtk_box_pack_start (GTK_BOX (vbox_window), hbox_pane, 1, 1, 0);
 
   gtk_box_pack_start (GTK_BOX (hbox_timing), play_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), backward_button, 0, 0, 5);
   gtk_box_pack_start (GTK_BOX (hbox_timing), forward_button, 0, 0, 5);
   gtk_box_pack_end (GTK_BOX (hbox_timing), clock_scale, 1, 1, 5);
 
-  gtk_widget_show_all (GTK_WIDGET (hbox_timing));
-  gtk_widget_set_size_request (GTK_WIDGET (hbox_timing), 600, 0);
-  
-  gtk_container_add (GTK_CONTAINER (timing_popover), hbox_timing);
   gtk_container_add (GTK_CONTAINER (window), vbox_window);
 
   /*--------------------------------------------------------------------------.
@@ -374,6 +367,12 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
   g_signal_connect (G_OBJECT (export_button), "clicked",
 		    G_CALLBACK (gui_mainwindow_menu_file_activate), (void*)FILE_EXPORT);
 
+  g_signal_connect (G_OBJECT (settings_button), "clicked",
+		    G_CALLBACK (gui_mainwindow_toggle_settings), vbox_settings);
+
+  g_signal_connect (G_OBJECT (timing_button), "clicked",
+		    G_CALLBACK (gui_mainwindow_toggle_timing), hbox_timing);
+
   g_signal_connect (G_OBJECT (save_config_button), "clicked",
 		    G_CALLBACK (gui_mainwindow_save_settings), NULL);
 
@@ -383,6 +382,8 @@ gui_mainwindow_init (int argc, char** argv, const char* filename)
 
   gtk_widget_show_all (window);
   gtk_widget_hide (zoom_input);
+  gtk_widget_hide (vbox_settings);
+  gtk_widget_hide (hbox_timing);
   gtk_widget_set_sensitive (GTK_WIDGET (export_button), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (timing_button), FALSE);
   
@@ -643,7 +644,6 @@ gui_mainwindow_file_activated (GtkWidget* widget, void* data)
 	    }
 	}
 
-      gtk_widget_show_all (hbox_timing);
       gtk_widget_set_sensitive (GTK_WIDGET (export_button), TRUE);
       gtk_widget_set_sensitive (GTK_WIDGET (timing_button), TRUE);
 
@@ -702,9 +702,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
 {
   if (parsed_data == NULL && handle == NULL) return 0;
 
-  GtkWidget *parent = gtk_widget_get_toplevel (widget);
-
-  double w = gtk_widget_get_allocated_width (parent);
+  double w = gtk_widget_get_allocated_width (document_container);
   double ratio = 1.00;
   
   if (!gtk_widget_get_visible (zoom_input))
@@ -713,7 +711,7 @@ gui_mainwindow_document_view_draw (GtkWidget *widget, cairo_t *cr)
     ratio = gtk_spin_button_get_value (GTK_SPIN_BUTTON (zoom_input)) / 100.0,
     gtk_spin_button_set_value (GTK_SPIN_BUTTON (zoom_input), ratio * 100);
 
-  double padding = ((w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2) - 30;
+  double padding = ((w - (settings.page.width * PT_TO_MM * 1.25 * ratio)) / 2);
   if (padding < 0) padding = 0;
   double h = settings.page.height * PT_TO_MM * 1.25 * ratio + padding * 2;
   w = settings.page.width * PT_TO_MM * 1.25 * ratio + padding;
@@ -975,6 +973,33 @@ gui_mainwindow_set_clock_value (GtkWidget* widget)
 
   gui_mainwindow_redisplay();  
 }
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_TOGGLE_SETTINGS                                             |
+ | This callback is for toggling the visibility of the settings pane.         |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_toggle_settings (GtkWidget* widget, void* data)
+{
+  GtkWidget* settings_widget = GTK_WIDGET (data);
+  (gtk_widget_is_visible (settings_widget))
+    ? gtk_widget_hide (settings_widget)
+    : gtk_widget_show (settings_widget);
+}
+
+/*----------------------------------------------------------------------------.
+ | GUI_MAINWINDOW_TOGGLE_TIMING                                               |
+ | This callback is for toggling the visibility of the timing pane.           |
+ '----------------------------------------------------------------------------*/
+void
+gui_mainwindow_toggle_timing (GtkWidget* widget, void* data)
+{
+  GtkWidget* timing_widget = GTK_WIDGET (data);
+  (gtk_widget_is_visible (timing_widget))
+    ? gtk_widget_hide (timing_widget)
+    : gtk_widget_show_all (timing_widget);
+}
+
 
 /*----------------------------------------------------------------------------.
  | GUI_MAINWINDOW_QUIT                                                        |
