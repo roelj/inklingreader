@@ -106,11 +106,11 @@ of things you could do:
 Contact
 -------
 
-You can join the [bug-inklingreader <at> gnu.org](https://lists.gnu.org/mailman/listinfo/bug-inklingreader)
+You can join the [bug-inklingreader -at- gnu.org](https://lists.gnu.org/mailman/listinfo/bug-inklingreader)
 mailing list to report bugs.
 
 For general discussion, use the
-[inklingreader-discuss <at> gnu.org](https://lists.gnu.org/mailman/listinfo/inklingreader-discuss)
+[inklingreader-discuss -at- gnu.org](https://lists.gnu.org/mailman/listinfo/inklingreader-discuss)
 mailing list.
 
 License
