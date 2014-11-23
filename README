@@ -42,8 +42,10 @@ tools installed:
 * Automake
 * Autoconf
 * Make
-* Gtk+-3.0, GLib-2.0 and Cairo
-* Librsvg-2.0
+* GTK+ (3.10 or later)
+* librsvg-2.0
+* libusb 1.0
+
 
 Build instructions
 ------------------
@@ -80,11 +82,11 @@ Tested distributions
 
 The software is known to run on:
 
-* Debian 7.6
+* Debian 7.x
 * CrunchBang Linux 11
-* Fedora 20
+* Fedora 20 or later
 * Mageia 4
-* Ubuntu 14.04
+* Ubuntu 14.04 or later
 * Mac OS X 10.7.5, clang (based on LLVM 3.1svn)
 * Windows 8.1 (with MinGW and GTK 32-bit all-in-one bundle)
 
@@ -99,9 +101,17 @@ InklingReader can use help! If you're interested in helping, here's a list
 of things you could do:
 
 * Package InklingReader for any distribution
-* Request features
-* Implement features
-* Research "online-mode"
+* Request and/or implement features
+
+Contact
+-------
+
+You can join the [bug-inklingreader <at> gnu.org](https://lists.gnu.org/mailman/listinfo/bug-inklingreader)
+mailing list to report bugs.
+
+For general discussion, use the
+[inklingreader-discuss <at> gnu.org](https://lists.gnu.org/mailman/listinfo/inklingreader-discuss)
+mailing list.
 
 License
 -------
