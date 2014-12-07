@@ -34,20 +34,8 @@
   <!-- notebook for the tabs -->
   <param name="tab" type="notebook">
 
-    <!-- default import tab -->
-    <page name="default_tab" _gui-text="Default Import">
-
-      <!-- summary -->
-      <_param name="info_default" type="description" xml:space="preserve">Import selected Wacom Inkling file with default settings
-(as built-in, or as defined in config file)</_param>
-
-    </page><!-- end of default import tab -->
-
-    <!-- custom import tab -->
-    <page name="custom_import_tab" _gui-text="Custom Import">
-
-      <!-- summary -->
-      <_param name="info_custom" type="description" xml:space="preserve">Import selected Wacom Inkling file with custom settings:</_param>
+    <!-- import options tab -->
+    <page name="tab_import_options" _gui-text="Import Options">
 
       <!-- ink options -->
       <_param name="header_ink" type="description" xml:space="preserve" appearance="header" indent="1">
@@ -59,49 +47,72 @@ Ink Options</_param>
       <_param name="header_color" type="description" xml:space="preserve" appearance="header" indent="1">
 Color Options</_param>
       <!-- background -->
-      <param name="background" type="enum" _gui-text="Background color: ">
-        <_item value="custom">Custom Color</_item>
-        <_item value="default">Default</_item>
-        <_item value="none">None</_item>
-      </param>
-      <param name="background_color" type="string" max_length="7" _gui-text="Custom background color (hex): ">#ffffff</param>
       <!-- colors -->
-      <param name="foreground" type="enum" _gui-text="Foreground colors: ">
-        <_item value="custom">Custom list</_item>
-        <_item value="default">Default</_item>
+      <param name="notebook_colors" type="notebook">
+        <page name="notebook_colors_default" _gui-text="Default">
+          <_param name="info_colors_default" type="description">(built-in, or from configuration file)</_param>
+        </page>
+        <page name="notebook_colors_presets" _gui-text="Presets">
+          <param name="background" type="enum" _gui-text="Background color: ">
+            <_item value="default">Default</_item>
+            <_item value="white">White</_item>
+            <_item value="lightgray">Light gray</_item>
+            <_item value="mediumgray">Medium gray</_item>
+            <_item value="black">Black</_item>
+            <_item value="none">None</_item>
+          </param>
+          <param name="foreground" type="enum" _gui-text="Foreground colors: ">
+            <_item value="default">Default</_item>
+            <_item value="black">Black</_item>
+            <_item value="blue">Blue</_item>
+            <_item value="white">White</_item>
+            <_item value="black_rgb">black, red, green, blue</_item>
+          </param>
+        </page>
+        <page name="notebook_colors_custom" _gui-text="Custom">
+          <param name="background_color" type="string" max_length="7" _gui-text="Custom background color (hex): ">#ffffff</param>
+          <param name="foreground_colors" type="string" _gui-text="Color list: ">#000000,#ff0000,#0000ff,#00ff00</param>
+        </page>
       </param>
-      <param name="foreground_colors" type="string" _gui-text="Color list: ">#000000,#ff0000,#0000ff,#00ff00</param>
 
       <!-- other page options -->
       <_param name="header_dimensions" type="description" xml:space="preserve" appearance="header" indent="1">
 Page Dimensions</_param>
       <!-- dimensions -->
-      <param name="dimensions" type="enum" _gui-text="Page dimensions: ">
-        <_item value="custom">Custom</_item>
-        <_item value="default">Default</_item>
-        <_item value="A3">A3</_item>
-        <_item value="A4">A4</_item>
-        <_item value="A5">A5</_item>
-        <_item value="A6">A6</_item>
-        <_item value="US Letter">US Letter</_item>
-        <_item value="US Legal">US Legal</_item>
-        <_item value="B3">B3</_item>
-        <_item value="B4">B4</_item>
-        <_item value="B5">B5</_item>
-        <_item value="B6">B6</_item>
-      </param>
-      <param name="dimensions_orientation" type="enum" _gui-text="Page orientation: ">
-        <_item value="portrait" default="true">Portrait</_item>
-        <_item value="landscape">Landscape</_item>
-      </param>
-      <param name="dimensions_width" type="float" min="0.0" max="5000.0" precision="1" _gui-text="Custom page width: ">210.0</param>
-      <param name="dimensions_height" type="float" min="0.0" max="5000.0" precision="1" _gui-text="Custom page height: ">297.0</param>
-      <param name="dimensions_units" type="enum" _gui-text="Units for custom dimensions: ">
-        <_item value="mm">mm</_item>
-        <_item value="cm">cm</_item>
-        <_item value="pt">pt</_item>
-        <_item value="in">in</_item>
-        <_item value="px">px</_item>
+      <param name="notebook_dimensions" type="notebook">
+        <page name="notebook_dimensions_default" _gui-text="Default">
+          <_param name="info_dimensions_default" type="description">(built-in, or from configuration file)</_param>
+        </page>
+        <page name="notebook_dimensions_presets" _gui-text="Presets">
+          <param name="dimensions" type="enum" _gui-text="Paper format: ">
+            <_item value="default">Default</_item>
+            <_item value="A3">A3</_item>
+            <_item value="A4">A4</_item>
+            <_item value="A5">A5</_item>
+            <_item value="A6">A6</_item>
+            <_item value="US Letter">US Letter</_item>
+            <_item value="US Legal">US Legal</_item>
+            <_item value="B3">B3</_item>
+            <_item value="B4">B4</_item>
+            <_item value="B5">B5</_item>
+            <_item value="B6">B6</_item>
+          </param>
+          <param name="dimensions_orientation" type="enum" _gui-text="Orientation: ">
+            <_item value="portrait" default="true">Portrait</_item>
+            <_item value="landscape">Landscape</_item>
+          </param>
+        </page>
+        <page name="notebook_dimensions_custom" _gui-text="Custom">
+          <param name="dimensions_width" type="float" min="0.0" max="5000.0" precision="1" _gui-text="Page width: ">210.0</param>
+          <param name="dimensions_height" type="float" min="0.0" max="5000.0" precision="1" _gui-text="Page height: ">297.0</param>
+          <param name="dimensions_units" type="enum" _gui-text="Page units: ">
+            <_item value="mm">mm</_item>
+            <_item value="cm">cm</_item>
+            <_item value="pt">pt</_item>
+            <_item value="in">in</_item>
+            <_item value="px">px</_item>
+          </param>
+        </page>
       </param>
 
     </page><!-- end of custom import tab -->

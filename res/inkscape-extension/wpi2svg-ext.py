@@ -2,7 +2,7 @@
 
 """
 wpi2svg-ext.py
-Python script for running inklingreader in Inkscape extensions
+Python script to run inklingreader for WPI import in Inkscape
 
 Copyright (C) 2014 su-v <suv-sf@users.sf.net>
 
@@ -48,6 +48,18 @@ except:
     import gettext
     _ = gettext.gettext
 
+
+# predefined color settings
+background_presets = {'none'      : "none",
+                      'white'     : "#ffffff",
+                      'lightgray' : "#dcdcdc",
+                      'mediumgray': "#bebebe",
+                      'black'     : "#000000"}
+
+foreground_presets = {'black'     : "#000000",
+                      'blue'      : "#0000ff",
+                      'white'     : "#ffffff",
+                      'black_rgb' : "#000000,#ff0000,#00ff00,#0000ff"}
 
 # papersizes known to Inkscape
 inkscape_papersizes = {'A4'                      : (   210,   297, "mm"),
@@ -199,6 +211,12 @@ class InputWPI(inkex.Effect):
         self.OptionParser.add_option("--tab",
                                      action="store", type="string",
                                      dest="tab")
+        self.OptionParser.add_option("--notebook_colors",
+                                     action="store", type="string",
+                                     dest="notebook_colors")
+        self.OptionParser.add_option("--notebook_dimensions",
+                                     action="store", type="string",
+                                     dest="notebook_dimensions")
         # global
         self.OptionParser.add_option("--verbose",
                                      action="store", type="inkbool",
@@ -217,7 +235,7 @@ class InputWPI(inkex.Effect):
             inkex.debug(((helper_app + custom_opts + inout_opts)
                          % infile, helper_app, self.verbose))
         run_direct((helper_app + custom_opts + inout_opts)
-            % infile, helper_app, self.verbose)
+                   % infile, helper_app, self.verbose)
 
     def effect(self):
         pass
@@ -231,69 +249,60 @@ class InputWPI(inkex.Effect):
         """
         infile = self.input_file
 
-        if self.options.tab == '"default_tab"':
+        # defaults
+        pressure_factor_cmd = ''
+        background_cmd = ''
+        colors_cmd = ''
+        dimensions_cmd = ''
 
-            # import with default settings
-            self.wpi_import_direct(infile)
+        # pressure factor
+        if self.options.pressure_factor != 1.0:
+            pressure_factor_cmd = (' --pressure-factor=%.2f' % self.options.pressure_factor)
 
-        elif self.options.tab == '"custom_import_tab"':
-
-            # pressure factor
-            pressure_factor_cmd = (' --pressure-factor=%s' % str(self.options.pressure_factor))
-
-            # page background
-            if self.options.background == "custom":
-                background_cmd = (' --background="%s"' % self.options.background_color)
-            elif self.options.background == "none":
-                background_cmd = (' --background="%s"' % self.options.background)
-            else:
-                background_cmd = ''
-
-            # foreground colors
-            if self.options.foreground == "custom":
-                colors_cmd = (' --colors="%s"' % self.options.foreground_colors)
-            else:
-                colors_cmd = ''
-
-            # page dimensions
-            if self.options.dimensions == "custom":
-                    if self.options.dimensions_orientation == "portrait":
-                        dimensions_cmd = (' --dimensions="%sx%s%s"'
-                                          % (self.options.dimensions_width,
-                                             self.options.dimensions_height,
-                                             self.options.dimensions_units))
-                    else:  # landscape
-                        dimensions_cmd = (' --dimensions="%sx%s%s"'
-                                          % (self.options.dimensions_height,
-                                             self.options.dimensions_width,
-                                             self.options.dimensions_units))
-            else:
+        # page background and foreground colors
+        if self.options.notebook_colors == '"notebook_colors_presets"':
+            if self.options.background != "default":
                 try:
-                    # test for known PAPERSIZE
-                    known_papersize = inkscape_papersizes[self.options.dimensions]
-                    if self.options.dimensions_orientation == "portrait":
-                        dimensions_cmd = (' --dimensions="%sx%s%s"'
-                                          % (known_papersize[0],
-                                             known_papersize[1],
-                                             known_papersize[2]))
-                    else:  # landscape
-                        dimensions_cmd = (' --dimensions="%sx%s%s"'
-                                          % (known_papersize[1],
-                                             known_papersize[0],
-                                             known_papersize[2]))
+                    bg = background_presets[self.options.background]
+                    background_cmd = (' --background="%s"' % bg)
                 except:
-                    # dimensions not found in dict
-                    # fall back to default
-                    dimensions_cmd = ''
+                    pass
+            if self.options.foreground != "default":
+                try:
+                    fg = foreground_presets[self.options.foreground]
+                    colors_cmd = (' --colors="%s"' % fg)
+                except:
+                    pass
+        elif self.options.notebook_colors == '"notebook_colors_custom"':
+            background_cmd = (' --background="%s"' % self.options.background_color)
+            colors_cmd = (' --colors="%s"' % self.options.foreground_colors)
 
-            custom_options = dimensions_cmd + background_cmd + colors_cmd + pressure_factor_cmd
-            # import with custom settings
-            self.wpi_import_direct(infile, custom_options)
+        # page dimensions
+        if self.options.notebook_dimensions == '"notebook_dimensions_presets"':
+            try:
+                # test for known PAPERSIZE
+                known_papersize = inkscape_papersizes[self.options.dimensions]
+                if self.options.dimensions_orientation == "portrait":
+                    dimensions_cmd = (' --dimensions="%sx%s%s"'
+                                      % (known_papersize[0],
+                                         known_papersize[1],
+                                         known_papersize[2]))
+                else:  # landscape
+                    dimensions_cmd = (' --dimensions="%sx%s%s"'
+                                      % (known_papersize[1],
+                                         known_papersize[0],
+                                         known_papersize[2]))
+            except:
+                pass
+        elif self.options.notebook_dimensions == '"notebook_dimensions_custom"':
+            dimensions_cmd = (' --dimensions="%sx%s%s"'
+                              % (self.options.dimensions_width,
+                                 self.options.dimensions_height,
+                                 self.options.dimensions_units))
 
-        else:  # unknown tab selected:
-
-            # import with default settings
-            self.wpi_import_direct(infile)
+        custom_options = dimensions_cmd + background_cmd + colors_cmd + pressure_factor_cmd
+        # import with custom settings
+        self.wpi_import_direct(infile, custom_options)
 
     def affect(self, args=sys.argv[1:], output=False, input=True):
         """
@@ -305,6 +314,7 @@ class InputWPI(inkex.Effect):
         self.effect()
         if output: self.output()
         if input: self.input()
+
 
 if __name__ == '__main__':
     e = InputWPI()
