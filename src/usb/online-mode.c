@@ -3,6 +3,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <linux/input.h>
+#include <linux/uinput.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <stdlib.h>
+
 /*----------------------------------------------------------------------------.
  | READ ME                                                                    |
  | -------------------------------------------------------------------------  |
@@ -126,6 +136,97 @@ usb_online_mode_init ()
       puts ("Touch  X      Y      Press  Tilt X Tilt Y");
       puts ("------ ------ ------ ------ ------ ------");
 
+      /*----------------------------------------------------------------------.
+       | SET UP A VIRTUAL MOUSE DEVICE USING UINPUT.                          |
+       '----------------------------------------------------------------------*/
+
+      int virtual_mouse_desc;
+      virtual_mouse_desc = open ("/dev/uinput", O_WRONLY | O_NONBLOCK);
+
+      if (virtual_mouse_desc < 0)
+	{
+	  puts ("Failed to use uinput.");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_EVBIT, EV_KEY) < 0)
+	{
+	  puts ("Failed to set up key handling events.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_KEYBIT, BTN_MOUSE) < 0)
+	{
+	  puts ("Failed to set up mouse button events.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_KEYBIT, BTN_LEFT) < 0)
+	{
+	  puts ("Failed to set up mouse button events.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+      
+      if (ioctl (virtual_mouse_desc, UI_SET_KEYBIT, BTN_RIGHT) < 0)
+	{
+	  puts ("Failed to set up mouse button events.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_EVBIT, EV_ABS) < 0)
+	{
+	  puts ("Failed to set up absolute coordinate events.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_X) < 0)
+	{
+	  puts ("Failed to set up absolute coordinate events for the X axis.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_Y) < 0)
+	{
+	  puts ("Failed to set up absolute coordinate events for the Y axis..");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+      
+      struct uinput_user_dev uidev;
+      memset (&uidev, 0, sizeof (uidev));
+
+      snprintf (uidev.name, UINPUT_MAX_NAME_SIZE, "inkling-virtual");
+      uidev.id.bustype = BUS_USB;
+      uidev.id.vendor  = 0x1;//0x056a;
+      uidev.id.product = 0x1;//0x0221;
+      uidev.id.version = 1;
+
+      if (write (virtual_mouse_desc, &uidev, sizeof (uidev)) < 0)
+	{
+	  puts ("Failed to set up the virtual mouse device");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_DEV_CREATE) < 0)
+	{
+	  puts ("Failed to register the virtual mouse device");
+	  goto device_release;
+	}
+
+      // Define the device ranges.
+      uidev.absmin[ABS_X] = 0;
+      uidev.absmax[ABS_X] = 1920;
+      uidev.absmin[ABS_Y] = 0;
+      uidev.absmax[ABS_Y] = 1920;
+
+      int click_state = 0;
+
       while (1)
 	{
 	  // Allocate some space for receiving data.
@@ -156,8 +257,9 @@ usb_online_mode_init ()
 	  int x = data[2] * 256 + data[1];
 	  int y = (data[4] * 256 + data[3]) * -1;
 
-	  int tilt_x = data[8];
-	  int tilt_y = data[9];
+	  // TODO: Do something with tilt data.
+	  //int tilt_x = data[8];
+	  //int tilt_y = data[9];
 
 	  // Same formula applies to pressure data.
 	  // segment * 2^8 + pressure
@@ -165,13 +267,54 @@ usb_online_mode_init ()
 	  // between 0 and 1024.
 	  int pressure = data[6];
 	  pressure = pressure + 256 * data[7];
+	  
+	  //printf ("%-5d %-5d %-5d %-5d %-5d %-5d\n", data[5], x, y, pressure, tilt_x, tilt_y);
 
-	  printf ("%-5d %-5d %-5d %-5d %-5d %-5d\n", data[5], x, y, pressure, tilt_x, tilt_y);
+	  // Move the mouse pointer with our virtual mouse device.
+	  struct input_event ev[2];
+	  memset (ev, 0, sizeof (ev));
+
+	  ev[0].type = EV_ABS;
+	  ev[0].code = ABS_X;
+	  ev[0].value = abs (x);//abs(x) - prev_x;
+	  ev[1].type = EV_ABS;
+	  ev[1].code = ABS_Y;
+	  ev[1].value = abs (y);//abs(y) - prev_y;
+
+	  if (write (virtual_mouse_desc, ev, sizeof (ev)) < 1)
+	    puts ("Failed to move the mouse pointer.");
+
+	  // Do a mouse click when needed.
+	  if (pressure > 5)
+	    {
+	      click_state = 1;
+	      struct input_event click;
+	      click.type = EV_KEY;
+	      click.code = BTN_LEFT;
+	      click.value = 1;
+
+	      if (write (virtual_mouse_desc, &click, sizeof (click)) < 1)
+		puts ("Failed to do a click event.");
+
+	    }
+	  else if (click_state == 1)
+	    {
+	      click_state = 0;
+	      struct input_event click;
+	      click.type = EV_KEY;
+	      click.code = BTN_LEFT;
+	      click.value = 0;
+
+	      if (write (virtual_mouse_desc, &click, sizeof (click)) < 1)
+		puts ("Failed to do a click event.");
+	    }
 	}
 
     device_release:
       libusb_release_interface (handle, 0);
       libusb_reset_device (handle);
+      ioctl (virtual_mouse_desc, UI_DEV_DESTROY);
+      close (virtual_mouse_desc);
     }
 
  free_device_list:
