@@ -133,9 +133,6 @@ usb_online_mode_init ()
 	  goto device_release;
 	}
 
-      puts ("Touch  X      Y      Press  Tilt X Tilt Y");
-      puts ("------ ------ ------ ------ ------ ------");
-
       /*----------------------------------------------------------------------.
        | SET UP A VIRTUAL MOUSE DEVICE USING UINPUT.                          |
        '----------------------------------------------------------------------*/
@@ -184,6 +181,27 @@ usb_online_mode_init ()
 	  goto device_release;
 	}
 
+      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_TILT_X) < 0)
+	{
+	  puts ("Failed to set up tilt in the X direction.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_TILT_Y) < 0)
+	{
+	  puts ("Failed to set up tilt in the Y direction.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
+      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_PRESSURE) < 0)
+	{
+	  puts ("Failed to set up pressure sensitivity.");
+	  perror ("ioctl");
+	  goto device_release;
+	}
+
       if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_X) < 0)
 	{
 	  puts ("Failed to set up absolute coordinate events for the X axis.");
@@ -224,6 +242,12 @@ usb_online_mode_init ()
       uidev.absmax[ABS_X] = 1920;
       uidev.absmin[ABS_Y] = 0;
       uidev.absmax[ABS_Y] = 1920;
+      uidev.absmin[ABS_PRESSURE] = 0;
+      uidev.absmax[ABS_PRESSURE] = 1024;
+      uidev.absmin[ABS_TILT_X] = 0; 
+      uidev.absmax[ABS_TILT_X] = 255;
+      uidev.absmin[ABS_TILT_Y] = 0; 
+      uidev.absmax[ABS_TILT_Y] = 255;
 
       int click_state = 0;
 
@@ -257,9 +281,8 @@ usb_online_mode_init ()
 	  int x = data[2] * 256 + data[1];
 	  int y = (data[4] * 256 + data[3]) * -1;
 
-	  // TODO: Do something with tilt data.
-	  //int tilt_x = data[8];
-	  //int tilt_y = data[9];
+	  int tilt_x = data[8];
+	  int tilt_y = data[9];
 
 	  // Same formula applies to pressure data.
 	  // segment * 2^8 + pressure
@@ -271,15 +294,24 @@ usb_online_mode_init ()
 	  //printf ("%-5d %-5d %-5d %-5d %-5d %-5d\n", data[5], x, y, pressure, tilt_x, tilt_y);
 
 	  // Move the mouse pointer with our virtual mouse device.
-	  struct input_event ev[2];
+	  struct input_event ev[5];
 	  memset (ev, 0, sizeof (ev));
 
 	  ev[0].type = EV_ABS;
 	  ev[0].code = ABS_X;
-	  ev[0].value = abs (x);//abs(x) - prev_x;
+	  ev[0].value = abs (x);
 	  ev[1].type = EV_ABS;
 	  ev[1].code = ABS_Y;
-	  ev[1].value = abs (y);//abs(y) - prev_y;
+	  ev[1].value = abs (y);
+	  ev[2].type = EV_ABS;
+	  ev[2].code = ABS_PRESSURE;
+	  ev[2].value = pressure;
+	  ev[3].type = EV_ABS;
+	  ev[3].code = ABS_TILT_X;
+	  ev[3].value = tilt_x;
+	  ev[4].type = EV_ABS;
+	  ev[4].code = ABS_TILT_Y;
+	  ev[4].value = tilt_y;
 
 	  if (write (virtual_mouse_desc, ev, sizeof (ev)) < 1)
 	    puts ("Failed to move the mouse pointer.");
