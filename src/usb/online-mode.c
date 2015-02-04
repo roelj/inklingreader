@@ -37,6 +37,18 @@
  | bEndpointAddress: 0x83                                                     |
  '----------------------------------------------------------------------------*/
 
+int
+usb_online_mode_mouse_enable_feature (int virtual_mouse_desc, int bit, int feature)
+{
+  if (ioctl (virtual_mouse_desc, bit, feature) < 0)
+    {
+      perror ("ioctl");
+      return 0;
+    }
+
+  return 1;  
+}
+
 
 void
 usb_online_mode_init ()
@@ -140,82 +152,30 @@ usb_online_mode_init ()
       int virtual_mouse_desc;
       virtual_mouse_desc = open ("/dev/uinput", O_WRONLY | O_NONBLOCK);
 
-      if (virtual_mouse_desc < 0)
-	{
-	  puts ("Failed to use uinput.");
-	  goto device_release;
-	}
+      // Enable the virtual mouse device features we need.
+      if (virtual_mouse_desc < 0
 
-      if (ioctl (virtual_mouse_desc, UI_SET_EVBIT, EV_KEY) < 0)
-	{
-	  puts ("Failed to set up key handling events.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
+	  // Key events are the base for the rest.
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_EVBIT, EV_KEY) == 0
 
-      if (ioctl (virtual_mouse_desc, UI_SET_KEYBIT, BTN_MOUSE) < 0)
-	{
-	  puts ("Failed to set up mouse button events.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
+	  // Enable support for mouse buttons.
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_KEYBIT, BTN_MOUSE) == 0
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_KEYBIT, BTN_LEFT) == 0
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_KEYBIT, BTN_RIGHT) == 0
 
-      if (ioctl (virtual_mouse_desc, UI_SET_KEYBIT, BTN_LEFT) < 0)
-	{
-	  puts ("Failed to set up mouse button events.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
-      
-      if (ioctl (virtual_mouse_desc, UI_SET_KEYBIT, BTN_RIGHT) < 0)
-	{
-	  puts ("Failed to set up mouse button events.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
+	  // Enable absolute coordinate positioning.
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_EVBIT, EV_ABS) == 0
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_ABSBIT, ABS_X) == 0
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_ABSBIT, ABS_Y) == 0
 
-      if (ioctl (virtual_mouse_desc, UI_SET_EVBIT, EV_ABS) < 0)
-	{
-	  puts ("Failed to set up absolute coordinate events.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
+	  // Enable tilt features.
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_ABSBIT, ABS_TILT_X) == 0
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_ABSBIT, ABS_TILT_Y) == 0
 
-      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_TILT_X) < 0)
-	{
-	  puts ("Failed to set up tilt in the X direction.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
+	  // Enable pressure features.
+	  || usb_online_mode_mouse_enable_feature (virtual_mouse_desc, UI_SET_ABSBIT, ABS_PRESSURE) == 0)
+	goto device_release;
 
-      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_TILT_Y) < 0)
-	{
-	  puts ("Failed to set up tilt in the Y direction.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
-
-      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_PRESSURE) < 0)
-	{
-	  puts ("Failed to set up pressure sensitivity.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
-
-      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_X) < 0)
-	{
-	  puts ("Failed to set up absolute coordinate events for the X axis.");
-	  perror ("ioctl");
-	  goto device_release;
-	}
-
-      if (ioctl (virtual_mouse_desc, UI_SET_ABSBIT, ABS_Y) < 0)
-	{
-	  puts ("Failed to set up absolute coordinate events for the Y axis..");
-	  perror ("ioctl");
-	  goto device_release;
-	}
-      
       struct uinput_user_dev uidev;
       memset (&uidev, 0, sizeof (uidev));
 
