@@ -11,10 +11,11 @@ The program can:
 * Merge WPI files (command-line only)
 * Export to Inkscape SVG (preserving layers), PDF, PNG and JSON
 * Convert all WPI files in a directory to SVG
-* Automatically use different colors when the "new layer" is pressed multiple times.
-* Give control over stroke pressure.
-* Export timing information in JSON.
+* Automatically assign colors upon pressing the "new layer" multiple times
+* Give control over stroke pressure
+* Export timing information in JSON
 * Interact with the timeline of your drawing
+* Use the Wacom Inkling as a mouse device
 
 Integration with Inkscape
 -------------------------
@@ -26,6 +27,21 @@ to SVG in the background.
 Installing the extension is quite easy. Copy the files in res/inkscape-extension
 to your Inkscape extension directory. On GNU/Linux that is:
 <pre>~/.config/inkscape/extensions/</pre>
+
+Online-mode
+-----------
+
+The online-mode feature (use the Wacom Inkling as a mouse device) is in a rough
+shape at the moment. It only works for GNU/Linux because it uses the uinput
+kernel module. To enable it, you need super user rights (root) to be able to
+activate the online-mode of the device and to create a virtual mouse device.
+
+Enabling it can be done with the following commands:
+<pre>
+su -                # Become a super user
+modprobe uinput     # Make sure the uinput kernel module is loaded.
+./inklingreader -j  # Start the program with the option to enable online-mode.
+</pre>
 
 Screenshot
 ----------
