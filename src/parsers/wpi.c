@@ -26,6 +26,8 @@
 #include "../datatypes/stroke.h"
 #include "../datatypes/clock.h"
 
+#define FILE_HEADER_LEN 322
+
 /*----------------------------------------------------------------------------.
  | BLOCK DESCRIPTORS                                                          |
  | -------------------------------------------------------------------------- |
@@ -56,30 +58,15 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
   FILE* file = fopen (filename, "rb");
 
   if (file == NULL)
-    {
-      printf ("Cannot open file '%s'\r\n", filename);
-      return NULL;
-    }
+    goto io_error;
 
-  /* Determine the size of the file.
-   * FIXME: Filesize limit is now around 2GB. It would be cooler when
-   * the size is virtually unlimited. In practice, we're fine with the
-   * 2GB limit. */
-  fseek (file, 0L, SEEK_END);
-  size_t data_len = ftell (file);
-  fseek (file, 0L, SEEK_SET);
+  /* Read the file header into memory. */
+  unsigned char *file_header = calloc (1, FILE_HEADER_LEN);
+  if (file_header == NULL)
+    goto io_error;
 
-  /* Set up an array that can keep the entire file in memory. */
-  unsigned char data[data_len];
-  memset (&data, 0, data_len);
-
-  /* Read the entire file into memory. This should give us some speed advantage
-   * while processing the data. */
-  if (fread (data, 1, data_len, file) != data_len)
-    {
-      puts ("An error occurred when reading the file.");
-      return NULL;
-    }
+  if (fread (file_header, 1, FILE_HEADER_LEN, file) != FILE_HEADER_LEN)
+    goto io_error;
 
   /* The first 322 bytes seem to be equal for every WPI file. I've encoded 
    * these 322 bytes using the base64 encoding algorithm. The result of this
@@ -93,37 +80,37 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
     "rQAAAAAkAAADAAAAAgAAAAAlAAADAAAAWgAAAAAmAAADAAAAQQAAAAAnAAADAAAAZHS8ygAwAA"
     "AFAAAA1P7//wAAAAAUAAAAATAAAAUAAAAsAQAAAAAAABQAAAAAMwAAAwAAAA==";
 
-  size_t header_len = 322;
-  char* file_header = calloc (1, header_len);
-
-  if (file_header == NULL)
-    {
-      fclose (file);
-      return NULL;
-    }
-
-  file_header = memcpy (file_header, data, header_len);
-  gchar* base64_header = g_base64_encode ((unsigned char*)file_header, header_len);
-
+  gchar* base64_header = g_base64_encode (file_header, FILE_HEADER_LEN);
   if (strcmp (base64_header, header))
     {
-      puts ("This file is not a (supported) WPI file.");
-      g_free (file_header);
+      free (file_header);
       g_free (base64_header);
-      fclose (file);
-      return NULL;
+      goto io_error;
     }
 
   g_free (base64_header);
   free (file_header);
   file_header = NULL;
 
-  /* Find out interesting places. The first 2040 bytes can be skipped (according
-   * to the PaperInkConverter program). This data seems to tell something about
-   * the Inkling device (this could be firmware versions, or a unique identifier
-   * for each Inkling device. */
-  size_t count;
-  for (count = 2040; count < data_len; count++)
+  /* Determine the size of the file. */
+  fseek (file, 0L, SEEK_END);
+  size_t data_len = ftell (file) - 2040;
+
+  /* Set up an array that can keep the entire file in memory. */
+  unsigned char *data = calloc (1, data_len);
+
+  /* Read the relevant data in the file to memory. The first 2040 bytes can be
+   * skipped (according to the PaperInkConverter program). This data seems to
+   * tell something about the Inkling device (this could be firmware versions,
+   * or a unique identifier for each Inkling device. */ 
+  fseek (file, 2040, SEEK_SET);
+  unsigned int read_len = fread (data, 1, data_len, file);
+  if (read_len != data_len)
+    goto io_error;
+
+  /* Parse the data in the file. */
+  unsigned int count;
+  for (count = 0; count < data_len; count++)
     switch (data[count])
       {
 	/*--------------------------------------------------------.
@@ -276,10 +263,16 @@ p_wpi_parse (const char* filename, unsigned short* seconds)
 	    }
 	}
       }
-  
+
+  free (data);
   list = g_slist_reverse (list);
   fclose (file);
   return list;
+
+ io_error:
+  puts ("An error occurred when reading the file.");
+  fclose (file);
+  return NULL;
 }
 
 /*----------------------------------------------------------------------------.
