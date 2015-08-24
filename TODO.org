@@ -1,126 +1,62 @@
-* InklingReader features
+#+TITLE: InklingReader to-do list
+
+* Features
 
   In this category, possible new features are described. Feel free to implement
-  any of them!
-  
-  - [ ] Research the 'online-mode' option
-	
-	In the user manual 'online-mode' is mentioned. According to the manual, 
-	pen strokes can be directly received by the computer when the receiver
-	is connected to the computer.
+  any of them.
 
-	Recording strokes from there wouldn't be too difficult, since cursor
-	movement can be tracked. Storing the strokes is not a feature provided
-	by the Inkling SketchManager, nevertheless it's a cool feature to look
-	into.
+** [ ] Research the 'online-mode' option
 
-	UPDATE: I've succesfully captured data that looks useful. Here is the
-	data in hexadecimal format. The three dots indicate there were 
-	multiple packets in between that contain the same data:
+   In the user manual 'online-mode' is mentioned. According to the manual, 
+   pen strokes can be directly received by the computer when the receiver
+   is connected to the computer.
 
-	02 f3 03 c2 02 09 fe 03 f2 12
-	...
-	02 f3 03 c2 02 09 fe 03 f2 12
-	02 f3 03 c2 02 09 fe 03 f3 12
-	...
-	02 f3 03 c2 02 09 fe 03 f3 12
-	02 f3 03 c2 02 09 fe 03 f4 12
-	...
-	02 f3 03 c2 02 09 fe 03 f4 12
-	02 f7 03 d1 02 09 fe 03 f4 12
-	02 f9 03 d6 02 09 fe 03 f4 12
-	02 fb 03 dd 02 09 fe 03 f4 12
-	02 fd 03 e2 02 09 fe 03 f4 13
-	02 ff 03 e9 02 09 f9 03 f4 13
-	02 01 04 ef 02 09 f9 03 f4 13
-	02 04 04 f5 02 09 f9 03 f4 13
-	02 06 04 fb 02 09 f7 03 f4 13
-	02 08 04 02 03 09 f7 03 f4 12
-	02 0b 04 07 03 09 f7 03 f4 12
-	02 0d 04 0e 03 09 f4 03 f4 12
-	02 0f 04 13 03 09 f4 03 f4 12
-	02 12 04 1a 03 09 f4 03 f4 12
-	
-	This could be a very small part of a stroke. More testing should make
-	the meaning of the packets clear.
-	
-	The only way to capture packets is to interface with the Inkling in a 
-	special way (this basically means we need a usb device driver). We could
-	see how the Windows driver interacts and mimic that.
+   Recent developments have enabled a renewed effort of bringing this 
+   feature to InklingReader. Although the best solution would be to
+   get a kernel driver so this option can be used system-wide, the current
+   efforts are aimed towards understanding the USB communication.
+
+** [ ] Add gettext support to the program to allow translations.
+** [ ] Handwriting recognition
+       
+   The sketches can contain text. Ideally, this handwriting should be
+   converted to a plain-text file, or a LibreOffice or PDF document.
+
+** [ ] Coloring individual strokes
+       
+   Providing basic editing capabilities like changing stroke colors and
+   stroke thickness makes life easier for those who don't want to work
+   with a full-blown editor like Inkscape.
+
+   There has been an Inkscape extension for a while now that seems to be
+   very mature. 
+
+** [-] Give the choice for different paper backgrounds.
+
+   PARTIAL FIX: Background colors can be specified.
+
+** [X] Make a layer a different color when the user presses the "new layer" 
+** [X] Inkscape layering support
+** [X] Handle pressure data correctly.
+** [X] Add a command-line option to disable pressure data and set a fixed 
+** [X] Ability to merge files into one.
+** [X] Get all features to work on Windows as well.
+*** [X] Compile for Windows
+*** [X] Convert a file with the Windows binary
+*** [X] Convert all files in a directory with the Windows binary
+*** [X] Use the graphical user interface with the Windows binary
+**** [X] Open a file
+***** [X] Export as PDF
+***** [X] Export as PNG
+***** [X] Export as SVG
 
 
-  - [ ] Handwriting recognition
-	
-	The sketches can contain text. Ideally, this handwriting should be
-	converted to a plain-text file, or a LibreOffice or PDF document.
+* Documentation
 
-  - [ ] Coloring individual strokes
-	
-	Providing basic editing capabilities like changing stroke colors and
-	stroke thickness makes life easier for those who don't want to work
-	with a full-blown editor like Inkscape.
+  In this category, documentation efforts are described. Even if you don't
+  have programming skills, these tasks would be fairly easy to pick up.
 
-  - [X] Make a layer a different color when the user presses the "new layer" 
-	multiple times without drawing new data.
-
-  - [-] Give the choice for different paper backgrounds.
-
-	PARTIAL FIX: Background colors can be specified.
-
-  - [X] Inkscape layering support
-	
-	As drawing is moving towards Cairo instead of a custom SVG exporter,
-	the ability to store layering information got lost. This regression
-	should be fixed. The code that produces Inkscape layers is still in
-	the project, and it involves adding a few lines into the SVG.
-
-	FIXED: Not using the Cairo SVG exporter, instead I improved our own
-	exporter tool.
-
-  - [X] Handle pressure data correctly.
-
-  - [X] Add a command-line option to disable pressure data and set a fixed 
-	stroke width (possibly two options: 1. disable pressure, 2. define 
-	stroke width).
-        
-        FIXED: --pressure-factor handles this.
-
-  - [X] Ability to merge files into one.
-
-  - [X] Get all features to work on Windows as well.
-
-    - [X] Compile for Windows
-    - [X] Convert a file with the Windows binary
-    - [X] Convert all files in a directory with the Windows binary
-    - [X] Use the graphical user interface with the Windows binary
-      - [X] Open a file
-	- [X] Export as PDF
-	- [X] Export as PNG
-	- [X] Export as SVG
-			  
-
-** Inner working of the format
-
-   There's not much known about the WPI data format. Below you can find what 
-   we have figured out already. Feel free to add your discoveries as well.
-
-*** Header differs per device
-
-    It seems that files originating from different Wacom Inkling devices 
-    actually have a different header. The difference starts at the 323 byte in
-    the file. What this difference is, is not certain at this point. I've only
-    compared data from two Inkling devices.
-
-    The difference could be a firmware version string, or a unique device ID.
-    The former would be most useful and therefore most probable. The latter 
-    could possibly reveal who wrote what.
-
-*** Blocks
-
-    + The format seems to have a couple of 'blocks' to describe actions:
-      - Stroke
-      - Coordinate
-      - Pressure
-      - Tilt
-      - New layer
-
+** [ ] Update the current user guide and describe all features.
+** [ ] Document the WPI file format.
+** [ ] Document the USB communication.
+** [ ] Create a Inkling-drawn demo drawing to use in screenshots.
