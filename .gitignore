@@ -13,3 +13,9 @@ install-sh
 inklingreader
 *.dirstamp
 doc/doxygen/html/*
+*.wpi
+*.WPI
+*.pdf
+*.png
+*.dat
+*.db
