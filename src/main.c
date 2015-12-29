@@ -340,6 +340,7 @@ main (int argc, char** argv)
 	    case 'j':
 	      usb_online_mode_init ();
 	      usb_online_mode_exit ();
+	      launch_gui = 0;
 	      break;
 
 	      /*--------------------------------------------------------------.
