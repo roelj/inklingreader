@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=Inkling Online Mode
-GenericName=Wacom Inkling Reader
+GenericName=Wacom Inkling Online Mode
 Comment=Inkling Online Mode.
 Type=Application
 Exec=sudo inklingreader -j
