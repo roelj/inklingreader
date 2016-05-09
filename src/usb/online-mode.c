@@ -107,7 +107,7 @@ usb_online_mode_init ()
       libusb_set_configuration (handle, 1);
 
       // Claim the HID interface.
-      if (!libusb_claim_interface (handle, 0) == 0)
+      if (!(libusb_claim_interface (handle, 0) == 0))
 	puts ("Failed to claim HID interface.");
 
       // Some kind of handshaking.
