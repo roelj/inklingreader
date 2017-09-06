@@ -129,7 +129,7 @@ dt_configuration_cleanup (dt_configuration* config)
     {
       unsigned int a = 0;
       for (; a < config->num_colors; a++)
-	free (config->colors[a]), config->colors[a] = NULL;
+        free (config->colors[a]), config->colors[a] = NULL;
 
       free (config->colors), config->colors = NULL;
       config->num_colors = 0;
@@ -166,86 +166,86 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
       file = fopen (filename, "r");
 
       if (file == NULL)
-	      perror ("fopen");
+        perror ("fopen");
       else
-	    {
-	      char* line = calloc (1, LINE_LENGTH);
+        {
+          char* line = calloc (1, LINE_LENGTH);
 
-	      /* The loop below will end with (line == NULL). But line was 
-	       * allocated so we must be able to free it afterwards. */
-	      char* line_allocated = line;
+          /* The loop below will end with (line == NULL). But line was
+           * allocated so we must be able to free it afterwards. */
+          char* line_allocated = line;
 
-	      while ((line = fgets (line, LINE_LENGTH, file)) != NULL)
-	        {
-	          char* location = 0;
-	          if ((location = strstr (line, "colors = ")) != NULL)
-	    	{
-	    	  char* newline = strchr (line, '\r');
-	    	  if (newline == NULL) newline = strchr (line, '\n');
-	    	  if (newline != NULL) line[newline - line] = '\0';
+          while ((line = fgets (line, LINE_LENGTH, file)) != NULL)
+            {
+              char* location = 0;
+              if ((location = strstr (line, "colors = ")) != NULL)
+                {
+                  char* newline = strchr (line, '\r');
+                  if (newline == NULL) newline = strchr (line, '\n');
+                  if (newline != NULL) line[newline - line] = '\0';
 
-	    	  location += 9;
-	    	  dt_configuration_parse_colors (location, config);
-	    	}
+                  location += 9;
+                  dt_configuration_parse_colors (location, config);
+                }
 
-	          else if ((location = strstr (line, "background = ")) != NULL)
-	    	{
-	    	  char* newline = strchr (line, '\r');
-	    	  if (newline == NULL) newline = strchr (line, '\n');
-	    	  if (newline != NULL) line[newline - line] = '\0';
+              else if ((location = strstr (line, "background = ")) != NULL)
+                {
+                  char* newline = strchr (line, '\r');
+                  if (newline == NULL) newline = strchr (line, '\n');
+                  if (newline != NULL) line[newline - line] = '\0';
 
-	    	  location += 13;
-	    	  config->background = malloc (strlen (location) + 1);
-	    	  memset (config->background, '0', strlen (location) + 1);
-	    	  if (config->background != NULL)
-	    	    sprintf (config->background, "%s", location);
-	    	}
+                  location += 13;
+                  config->background = malloc (strlen (location) + 1);
+                  memset (config->background, '0', strlen (location) + 1);
+                  if (config->background != NULL)
+                    sprintf (config->background, "%s", location);
+                }
 
-	          else if ((location = strstr (line, "pressure-factor = ")) != NULL)
-	    	{
-	    	  char* newline = strchr (line, '\r');
-	    	  if (newline == NULL) newline = strchr (line, '\n');
-	    	  if (newline != NULL) line[newline - line] = '\0';
+              else if ((location = strstr (line, "pressure-factor = ")) != NULL)
+                {
+                  char* newline = strchr (line, '\r');
+                  if (newline == NULL) newline = strchr (line, '\n');
+                  if (newline != NULL) line[newline - line] = '\0';
 
-	    	  location += 17;
-	    	  config->pressure_factor = atof (location);
-	    	}
-	          else if ((location = strstr (line, "dimensions = ")) != NULL)
-	    	{
-	    	  char* newline = strchr (line, '\r');
-	    	  if (newline == NULL) newline = strchr (line, '\n');
-	    	  if (newline != NULL) line[newline - line] = '\0';
+                  location += 17;
+                  config->pressure_factor = atof (location);
+                }
+              else if ((location = strstr (line, "dimensions = ")) != NULL)
+                {
+                  char* newline = strchr (line, '\r');
+                  if (newline == NULL) newline = strchr (line, '\n');
+                  if (newline != NULL) line[newline - line] = '\0';
 
-	    	  location += 13;
-	    	  dt_configuration_parse_dimensions (location, config);
-	    	}
-	          else if ((location = strstr (line, "orientation = ")) != NULL)
-	    	{
-	    	  char* newline = strchr (line, '\r');
-	    	  if (newline == NULL) newline = strchr (line, '\n');
-	    	  if (newline != NULL) line[newline - line] = '\0';
+                  location += 13;
+                  dt_configuration_parse_dimensions (location, config);
+                }
+              else if ((location = strstr (line, "orientation = ")) != NULL)
+                {
+                  char* newline = strchr (line, '\r');
+                  if (newline == NULL) newline = strchr (line, '\n');
+                  if (newline != NULL) line[newline - line] = '\0';
 
-	    	  location += 14;
+                  location += 14;
 
-	    	  config->page.orientation = calloc (1, strlen (location) + 1);
-	    	  strncpy (config->page.orientation, location, strlen (location));
+                  config->page.orientation = calloc (1, strlen (location) + 1);
+                  strncpy (config->page.orientation, location, strlen (location));
 
-	    	  if (!strcmp (config->page.orientation, "Landscape"))
-	    	    {
-	    	      double width = config->page.width;
-	    	      config->page.width = config->page.height;
-	    	      config->page.height = width;
-	    	    }
+                  if (!strcmp (config->page.orientation, "Landscape"))
+                    {
+                      double width = config->page.width;
+                      config->page.width = config->page.height;
+                      config->page.height = width;
+                    }
 
-	    	}
+                }
 
-	          /* Reset the line. */
-	          line = memset (line, '\0', LINE_LENGTH);
-	        }
+              /* Reset the line. */
+              line = memset (line, '\0', LINE_LENGTH);
+            }
 
-	      free (line_allocated), line_allocated = NULL;
-	      fclose (file);
-	    }
+          free (line_allocated), line_allocated = NULL;
+          fclose (file);
+        }
 
       /* Reset to default locale settings. */
       setlocale (LC_NUMERIC, "");
@@ -265,10 +265,10 @@ dt_configuration_parse_dimensions (const char* data, dt_configuration* config)
       if (config->page.width == 0) config->page.width = 210;
       if (config->page.height == 0) config->page.height = 297;
       if (config->page.measurement != NULL) 
-	config->page.measurement = strncpy (config->page.measurement, "mm", 2);
+        config->page.measurement = strncpy (config->page.measurement, "mm", 2);
     }
   else if (sscanf (data, "%lfx%lf%s", &config->page.width, &config->page.height, 
-		   config->page.measurement) != 3)
+                   config->page.measurement) != 3)
     dt_configuration_parse_preset_dimensions (data, config);
 }
 
@@ -285,14 +285,14 @@ dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* co
   while (formats[a].name != NULL)
     {
       if (!strcmp (data, formats[a].name))
-	{
-	  config->page.width = formats[a].width;
-	  config->page.height = formats[a].height;
-	  config->page.measurement = calloc (1, 3);
-	  config->page.measurement = strncpy (config->page.measurement, 
-					      formats[a].measurement, 2);
-	  break;
-	} 
+        {
+          config->page.width = formats[a].width;
+          config->page.height = formats[a].height;
+          config->page.measurement = calloc (1, 3);
+          config->page.measurement = strncpy (config->page.measurement,
+                                              formats[a].measurement, 2);
+          break;
+        }
       a++;
     }
 }
@@ -318,24 +318,24 @@ dt_configuration_store_settings (const char* path, dt_configuration *config)
     {
       char *colors = calloc (1, 10 * config->num_colors + 20);
       if (colors == NULL)
-	{
-	  fclose (file);
-	  return;
-	}
+        {
+          fclose (file);
+          return;
+        }
 
       int counter;
       for (counter = 0; counter < config->num_colors; counter++)
-	{
-	  strcat (colors, config->colors[counter]);
-	  if (counter + 1 != config->num_colors) strcat (colors, ",");
-	}
+        {
+          strcat (colors, config->colors[counter]);
+          if (counter + 1 != config->num_colors) strcat (colors, ",");
+        }
       
       fprintf (file,
-	       "background = %s\ncolors = %s\npressure-factor = %.2f\n"
-	       "dimensions = %.2fx%.2f%s\norientation = %s", config->background,
-	       colors, config->pressure_factor, config->page.width,
-	       config->page.height, config->page.measurement,
-	       config->page.orientation);
+               "background = %s\ncolors = %s\npressure-factor = %.2f\n"
+               "dimensions = %.2fx%.2f%s\norientation = %s", config->background,
+               colors, config->pressure_factor, config->page.width,
+               config->page.height, config->page.measurement,
+               config->page.orientation);
 
       free (colors);
     }
