@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <locale.h>
 
 #define LINE_LENGTH 255
 
@@ -156,90 +157,98 @@ dt_configuration_parse (const char* filename, dt_configuration* config)
 {
   if (access (filename, F_OK) != -1)
     {
+      /* Floating-point numbers should be written with a dot instead of a comma.
+       * To ensure that this happens, (temporarily) set the locale to the "C"
+       * locale for this program. */
+      setlocale (LC_NUMERIC, "C");
+
       FILE* file;
       file = fopen (filename, "r");
 
       if (file == NULL)
-	perror ("fopen");
+	      perror ("fopen");
       else
-	{
-	  char* line = calloc (1, LINE_LENGTH);
-
-	  /* The loop below will end with (line == NULL). But line was 
-	   * allocated so we must be able to free it afterwards. */
-	  char* line_allocated = line;
-
-	  while ((line = fgets (line, LINE_LENGTH, file)) != NULL)
 	    {
-	      char* location = 0;
-	      if ((location = strstr (line, "colors = ")) != NULL)
-		{
-		  char* newline = strchr (line, '\r');
-		  if (newline == NULL) newline = strchr (line, '\n');
-		  if (newline != NULL) line[newline - line] = '\0';
+	      char* line = calloc (1, LINE_LENGTH);
 
-		  location += 9;
-		  dt_configuration_parse_colors (location, config);
-		}
+	      /* The loop below will end with (line == NULL). But line was 
+	       * allocated so we must be able to free it afterwards. */
+	      char* line_allocated = line;
 
-	      else if ((location = strstr (line, "background = ")) != NULL)
-		{
-		  char* newline = strchr (line, '\r');
-		  if (newline == NULL) newline = strchr (line, '\n');
-		  if (newline != NULL) line[newline - line] = '\0';
+	      while ((line = fgets (line, LINE_LENGTH, file)) != NULL)
+	        {
+	          char* location = 0;
+	          if ((location = strstr (line, "colors = ")) != NULL)
+	    	{
+	    	  char* newline = strchr (line, '\r');
+	    	  if (newline == NULL) newline = strchr (line, '\n');
+	    	  if (newline != NULL) line[newline - line] = '\0';
 
-		  location += 13;
-		  config->background = malloc (strlen (location) + 1);
-		  memset (config->background, '0', strlen (location) + 1);
-		  if (config->background != NULL)
-		    sprintf (config->background, "%s", location);
-		}
+	    	  location += 9;
+	    	  dt_configuration_parse_colors (location, config);
+	    	}
 
-	      else if ((location = strstr (line, "pressure-factor = ")) != NULL)
-		{
-		  char* newline = strchr (line, '\r');
-		  if (newline == NULL) newline = strchr (line, '\n');
-		  if (newline != NULL) line[newline - line] = '\0';
+	          else if ((location = strstr (line, "background = ")) != NULL)
+	    	{
+	    	  char* newline = strchr (line, '\r');
+	    	  if (newline == NULL) newline = strchr (line, '\n');
+	    	  if (newline != NULL) line[newline - line] = '\0';
 
-		  location += 17;
-		  config->pressure_factor = atof (location);
-		}
-	      else if ((location = strstr (line, "dimensions = ")) != NULL)
-		{
-		  char* newline = strchr (line, '\r');
-		  if (newline == NULL) newline = strchr (line, '\n');
-		  if (newline != NULL) line[newline - line] = '\0';
+	    	  location += 13;
+	    	  config->background = malloc (strlen (location) + 1);
+	    	  memset (config->background, '0', strlen (location) + 1);
+	    	  if (config->background != NULL)
+	    	    sprintf (config->background, "%s", location);
+	    	}
 
-		  location += 13;
-		  dt_configuration_parse_dimensions (location, config);
-		}
-	      else if ((location = strstr (line, "orientation = ")) != NULL)
-		{
-		  char* newline = strchr (line, '\r');
-		  if (newline == NULL) newline = strchr (line, '\n');
-		  if (newline != NULL) line[newline - line] = '\0';
+	          else if ((location = strstr (line, "pressure-factor = ")) != NULL)
+	    	{
+	    	  char* newline = strchr (line, '\r');
+	    	  if (newline == NULL) newline = strchr (line, '\n');
+	    	  if (newline != NULL) line[newline - line] = '\0';
 
-		  location += 14;
+	    	  location += 17;
+	    	  config->pressure_factor = atof (location);
+	    	}
+	          else if ((location = strstr (line, "dimensions = ")) != NULL)
+	    	{
+	    	  char* newline = strchr (line, '\r');
+	    	  if (newline == NULL) newline = strchr (line, '\n');
+	    	  if (newline != NULL) line[newline - line] = '\0';
 
-		  config->page.orientation = calloc (1, strlen (location) + 1);
-		  strncpy (config->page.orientation, location, strlen (location));
+	    	  location += 13;
+	    	  dt_configuration_parse_dimensions (location, config);
+	    	}
+	          else if ((location = strstr (line, "orientation = ")) != NULL)
+	    	{
+	    	  char* newline = strchr (line, '\r');
+	    	  if (newline == NULL) newline = strchr (line, '\n');
+	    	  if (newline != NULL) line[newline - line] = '\0';
 
-		  if (!strcmp (config->page.orientation, "Landscape"))
-		    {
-		      double width = config->page.width;
-		      config->page.width = config->page.height;
-		      config->page.height = width;
-		    }
+	    	  location += 14;
 
-		}
+	    	  config->page.orientation = calloc (1, strlen (location) + 1);
+	    	  strncpy (config->page.orientation, location, strlen (location));
 
-	      /* Reset the line. */
-	      line = memset (line, '\0', LINE_LENGTH);
+	    	  if (!strcmp (config->page.orientation, "Landscape"))
+	    	    {
+	    	      double width = config->page.width;
+	    	      config->page.width = config->page.height;
+	    	      config->page.height = width;
+	    	    }
+
+	    	}
+
+	          /* Reset the line. */
+	          line = memset (line, '\0', LINE_LENGTH);
+	        }
+
+	      free (line_allocated), line_allocated = NULL;
+	      fclose (file);
 	    }
 
-	  free (line_allocated), line_allocated = NULL;
-	  fclose (file);
-	}
+      /* Reset to default locale settings. */
+      setlocale (LC_NUMERIC, "");
     }
 }
 
@@ -296,6 +305,11 @@ dt_configuration_parse_preset_dimensions (const char* data, dt_configuration* co
 void
 dt_configuration_store_settings (const char* path, dt_configuration *config)
 {
+  /* Floating-point numbers should be written with a dot instead of a comma.
+   * To ensure that this happens, (temporarily) set the locale to the "C"
+   * locale for this program. */
+  setlocale (LC_NUMERIC, "C");
+
   FILE *file;
   file = fopen (path, "w");
   if (file == NULL)
@@ -327,4 +341,7 @@ dt_configuration_store_settings (const char* path, dt_configuration *config)
     }
 
   fclose (file);
+
+  /* Reset to default locale settings. */
+  setlocale (LC_NUMERIC, "");
 }
