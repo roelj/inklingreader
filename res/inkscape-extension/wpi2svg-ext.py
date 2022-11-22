@@ -43,7 +43,7 @@ import inkex
 
 # keep localization backwards-compatible with 0.48.x series
 try:
-    inkex.localize()
+    inkex.localization.localize()
 except:
     import gettext
     _ = gettext.gettext
@@ -143,12 +143,13 @@ def run_direct(command, prog_name, verbose):
             p = Popen(command, shell=True, stderr=PIPE)
             rc = p.wait()
             err = p.stderr.read()
+            p.stderr.close()
         except ImportError:
             # shouldn't happen...
             msg = "Subprocess.Popen is not available"
         if rc and msg is None:
             msg = "%s failed:\n%s\n" % (prog_name, err)
-    except Exception, inst:
+    except Exception as inst:
         msg = "Error attempting to run %s: %s" % (prog_name, str(inst))
 
     # Ouput error message (if any) and exit.
@@ -159,67 +160,68 @@ def run_direct(command, prog_name, verbose):
         sys.exit(0)
 
 
-class InputWPI(inkex.Effect):
+class InputWPI(inkex.EffectExtension):
     def __init__(self):
         # Call base class construtor.
-        inkex.Effect.__init__(self)
+        super(InputWPI, self).__init__()
         self.verbose = False
 
+    def add_arguments(self, pars):
         # inklingreader options
-        self.OptionParser.add_option("--dimensions",
-                                     action="store", type="string",
+        pars.add_argument("--dimensions",
+                                     action="store", type=str,
                                      dest="dimensions", default="custom",
                                      help="Whether to use custom page dimensions")
-        self.OptionParser.add_option("--dimensions_orientation",
-                                     action="store", type="string",
+        pars.add_argument("--dimensions_orientation",
+                                     action="store", type=str,
                                      dest="dimensions_orientation", default="portrait",
                                      help="Specify page orientation for the document")
-        self.OptionParser.add_option("--dimensions_width",
-                                     action="store", type="float",
+        pars.add_argument("--dimensions_width",
+                                     action="store", type=float,
                                      dest="dimensions_width", default="210.0",
                                      help="Specify the page width for the document")
-        self.OptionParser.add_option("--dimensions_height",
-                                     action="store", type="float",
+        pars.add_argument("--dimensions_height",
+                                     action="store", type=float,
                                      dest="dimensions_height", default="297.0",
                                      help="Specify the page height for the document")
-        self.OptionParser.add_option("--dimensions_units",
-                                     action="store", type="string",
+        pars.add_argument("--dimensions_units",
+                                     action="store", type=str,
                                      dest="dimensions_units", default="mm",
                                      help="Specify the units for the custom document dimensions")
-        self.OptionParser.add_option("--background",
-                                     action="store", type="string",
+        pars.add_argument("--background",
+                                     action="store", type=str,
                                      dest="background", default="custom",
                                      help="Whether to use a background color for the document")
-        self.OptionParser.add_option("--background_color",
-                                     action="store", type="string",
+        pars.add_argument("--background_color",
+                                     action="store", type=str,
                                      dest="background_color", default="#ffffff",
                                      help="Specify the background color for the document")
-        self.OptionParser.add_option("--foreground",
-                                     action="store", type="string",
+        pars.add_argument("--foreground",
+                                     action="store", type=str,
                                      dest="foreground", default="custom",
                                      help="Whether to use a list of colors for the foreground")
-        self.OptionParser.add_option("--foreground_colors",
-                                     action="store", type="string",
+        pars.add_argument("--foreground_colors",
+                                     action="store", type=str,
                                      dest="foreground_colors",
                                      default="#000000,#ff0000,#0000ff,#00ff00",
                                      help="Specify a list of colors (comma separated)")
-        self.OptionParser.add_option("--pressure_factor",
-                                     action="store", type="float",
+        pars.add_argument("--pressure_factor",
+                                     action="store", type=float,
                                      dest="pressure_factor", default="1.0",
                                      help="Specify a factor for handling pressure data")
         # tabs
-        self.OptionParser.add_option("--tab",
-                                     action="store", type="string",
+        pars.add_argument("--tab",
+                                     action="store", type=str,
                                      dest="tab")
-        self.OptionParser.add_option("--notebook_colors",
-                                     action="store", type="string",
+        pars.add_argument("--notebook_colors",
+                                     action="store", type=str,
                                      dest="notebook_colors")
-        self.OptionParser.add_option("--notebook_dimensions",
-                                     action="store", type="string",
+        pars.add_argument("--notebook_dimensions",
+                                     action="store", type=str,
                                      dest="notebook_dimensions")
         # global
-        self.OptionParser.add_option("--verbose",
-                                     action="store", type="inkbool",
+        pars.add_argument("--verbose",
+                                     action="store", type=inkex.Boolean,
                                      dest="verbose", default=False,
                                      help="Use verbose output for debugging")
 
@@ -232,7 +234,7 @@ class InputWPI(inkex.Effect):
 
         # run external command
         if self.verbose:
-            inkex.debug(((helper_app + custom_opts + inout_opts)
+            inkex.utils.debug(((helper_app + custom_opts + inout_opts)
                          % infile, helper_app, self.verbose))
         run_direct((helper_app + custom_opts + inout_opts)
                    % infile, helper_app, self.verbose)
@@ -247,7 +249,7 @@ class InputWPI(inkex.Effect):
         """
         Parse input options, construct and run external command string
         """
-        infile = self.input_file
+        infile = self.options.input_file
 
         # defaults
         pressure_factor_cmd = ''
@@ -308,8 +310,7 @@ class InputWPI(inkex.Effect):
         """
         Affect input document with a callback effect
         """
-        self.input_file = args[-1]
-        self.getoptions(args)
+        self.parse_arguments(args)
         self.verbose = self.options.verbose
         self.effect()
         if output: self.output()
