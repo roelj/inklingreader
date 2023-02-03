@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Inkling Online Mode
+GenericName=Wacom Inkling Online Mode
+Comment=Inkling Online Mode.
+Type=Application
+Exec=gksu "inklingreader -j"
+Icon=InklingReader
+Terminal=false
+Categories=GNOME;Graphics;
+StartupNotify=true
+
