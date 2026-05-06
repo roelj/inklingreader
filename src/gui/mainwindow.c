@@ -495,7 +495,7 @@ gui_mainwindow_file_dialog (GtkWidget* parent, GtkFileChooserAction action)
  | This function applies the next step in time for the "play" feature.        |
  '----------------------------------------------------------------------------*/
 gboolean
-gui_mainwindow_update_clock ()
+gui_mainwindow_update_clock (gpointer data)
 {
   double value = gtk_range_get_value (GTK_RANGE (clock_scale));
   gtk_range_set_value (GTK_RANGE (clock_scale), value + 1);

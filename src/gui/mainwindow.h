@@ -141,7 +141,7 @@ void gui_mainwindow_backward ();
 /**
  * This function applies the next step in time for the "play" feature.
  */
-gboolean gui_mainwindow_update_clock ();
+gboolean gui_mainwindow_update_clock (gpointer data);
 
 /**
  * This callback funciton handles showing or hiding the "Settings" pane.
